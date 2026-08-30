@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Tournament {
+  id                   String         @id @default(cuid())
+  slug                 String         @unique
+  title                String
+  description          String
+  category             String
+  format               String         @default("classical")
+  startDate            DateTime
+  endDate              DateTime
+  venue                String
+  city                 String
+  entryFee             Int            @default(0)
+  maxParticipants      Int?
+  registrationDeadline DateTime
+  posterImageUrl       String?
+  brochurePdfUrl       String?
+  status               String         @default("draft")
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  registrations        Registration[]
+}
+
+model Registration {
+  id           String     @id @default(cuid())
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  tournamentId String
+  fullName     String
+  email        String
+  phone        String
+  dob          DateTime?
+  gender       String?
+  city         String?
+  fideId       String?
+  status       String     @default("registered")
+  registeredAt DateTime   @default(now())
+
+  @@unique([tournamentId, email])
+}
+
+model ClassProgram {
+  id             String            @id @default(cuid())
+  slug           String            @unique
+  title          String
+  level          String
+  description    String
+  scheduleText   String
+  instructorName String
+  bannerImageUrl String?
+  isOnline       Boolean           @default(true)
+  createdAt      DateTime          @default(now())
+  enrollments    ClassEnrollment[]
+}
+
+model ClassEnrollment {
+  id             String       @id @default(cuid())
+  classProgram   ClassProgram @relation(fields: [classProgramId], references: [id], onDelete: Cascade)
+  classProgramId String
+  fullName       String
+  email          String
+  phone          String
+  message        String?
+  enrolledAt     DateTime     @default(now())
+
+  @@unique([classProgramId, email])
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  createdAt DateTime @default(now())
+}
