@@ -32,12 +32,16 @@ export default async function ClassesPage() {
                 <ClassCard
                   key={c.id}
                   slug={c.slug}
+                  level={c.level}
                   title={c.title}
-                  level={LEVEL_LABEL[c.level]}
                   description={c.description}
                   scheduleText={c.scheduleText}
                   instructorName={c.instructorName}
                   isOnline={c.isOnline}
+                  sessionType={c.sessionType}
+                  price={c.price}
+                  maxGroupSize={c.maxGroupSize}
+                  durationMinutes={c.durationMinutes}
                 />
               ))}
             </div>

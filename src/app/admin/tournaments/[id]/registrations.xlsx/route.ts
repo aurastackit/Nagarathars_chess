@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { toCsv } from "@/lib/csv";
+import { toXlsxBuffer } from "@/lib/xlsx";
 import { formatDate } from "@/lib/format";
 import { ageCategoryLabel } from "@/lib/age-category";
 
@@ -21,7 +21,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const csv = toCsv(
+  const buffer = toXlsxBuffer(
+    "Registrations",
     [
       "Full name",
       "Email",
@@ -52,10 +53,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     ])
   );
 
-  return new NextResponse(csv, {
+  return new NextResponse(new Uint8Array(buffer), {
     headers: {
-      "Content-Type": "text/csv",
-      "Content-Disposition": `attachment; filename="${tournament.slug}-registrations.csv"`,
+      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "Content-Disposition": `attachment; filename="${tournament.slug}-registrations.xlsx"`,
     },
   });
 }

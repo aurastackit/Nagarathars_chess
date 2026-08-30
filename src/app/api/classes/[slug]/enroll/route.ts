@@ -18,11 +18,25 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     return NextResponse.json({ error: "Class not found" }, { status: 404 });
   }
 
-  const { fullName, email, phone, message } = parsed.data;
+  const { fullName, email, phone, fideId, message } = parsed.data;
+
+  if (classProgram.level !== "beginner" && !fideId) {
+    return NextResponse.json(
+      { error: "A FIDE ID is required to enroll in intermediate or advanced classes" },
+      { status: 400 }
+    );
+  }
 
   try {
     await prisma.classEnrollment.create({
-      data: { classProgramId: classProgram.id, fullName, email, phone, message: message || null },
+      data: {
+        classProgramId: classProgram.id,
+        fullName,
+        email,
+        phone,
+        fideId: fideId || null,
+        message: message || null,
+      },
     });
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {

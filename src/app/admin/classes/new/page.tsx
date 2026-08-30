@@ -11,6 +11,10 @@ async function createClass(formData: FormData) {
       title,
       slug: `${slugify(title)}-${Date.now().toString(36)}`,
       level: String(formData.get("level") ?? "beginner") as never,
+      sessionType: String(formData.get("sessionType") ?? "group") as never,
+      price: Number(formData.get("price") ?? 0),
+      maxGroupSize: formData.get("maxGroupSize") ? Number(formData.get("maxGroupSize")) : null,
+      durationMinutes: Number(formData.get("durationMinutes") ?? 60),
       description: String(formData.get("description") ?? ""),
       scheduleText: String(formData.get("scheduleText") ?? ""),
       instructorName: String(formData.get("instructorName") ?? ""),
@@ -43,6 +47,27 @@ export default function NewClassPage() {
             <div className="flex items-end gap-2 pb-2">
               <input id="isOnline" name="isOnline" type="checkbox" defaultChecked className="h-4 w-4" />
               <Label htmlFor="isOnline">Online class</Label>
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-4">
+            <div>
+              <Label htmlFor="sessionType">Session type</Label>
+              <select id="sessionType" name="sessionType" className="w-full rounded-md border border-border bg-white px-3 py-2 text-sm">
+                <option value="group">Group</option>
+                <option value="individual">1-on-1</option>
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="price">Price (₹ per session)</Label>
+              <Input id="price" name="price" type="number" min={0} defaultValue={800} />
+            </div>
+            <div>
+              <Label htmlFor="maxGroupSize">Max group size</Label>
+              <Input id="maxGroupSize" name="maxGroupSize" type="number" min={1} placeholder="Group sessions only" />
+            </div>
+            <div>
+              <Label htmlFor="durationMinutes">Duration (min)</Label>
+              <Input id="durationMinutes" name="durationMinutes" type="number" min={15} defaultValue={60} />
             </div>
           </div>
           <div>

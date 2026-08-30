@@ -58,7 +58,7 @@ function TournamentGrid({
               <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
                 {t.posterImageUrl && (
                   <div className="relative h-40 w-full bg-gray-100">
-                    <Image src={t.posterImageUrl} alt={t.title} fill className="object-cover" />
+                    <Image src={t.posterImageUrl} alt={t.title} fill className="object-contain" />
                   </div>
                 )}
                 <div className="p-4">

@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { LinkButton, Card, Badge } from "@/components/ui";
+import { HeroSlideshow } from "@/components/hero-slideshow";
 import { formatDateRange } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -18,8 +19,10 @@ export default async function HomePage() {
 
   return (
     <main>
-      <section className="bg-navy text-white">
-        <div className="mx-auto flex max-w-6xl flex-col items-start gap-6 px-4 py-20">
+      <section className="relative overflow-hidden bg-navy text-white">
+        <HeroSlideshow />
+        <div className="absolute inset-0 bg-navy/80" />
+        <div className="relative mx-auto flex max-w-6xl flex-col items-start gap-6 px-4 py-20">
           <span className="rounded-full bg-orange px-3 py-1 text-xs font-semibold uppercase tracking-wide">
             Local players welcome
           </span>
@@ -55,7 +58,7 @@ export default async function HomePage() {
                 <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
                   {t.posterImageUrl && (
                     <div className="relative h-40 w-full bg-gray-100">
-                      <Image src={t.posterImageUrl} alt={t.title} fill className="object-cover" />
+                      <Image src={t.posterImageUrl} alt={t.title} fill className="object-contain" />
                     </div>
                   )}
                   <div className="p-4">

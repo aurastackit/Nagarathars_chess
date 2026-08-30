@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { registrationSchema } from "@/lib/validations";
 import { notifyRegistration } from "@/lib/notify";
+import { ageAt, isAgeCategoryAllowed, naturalAgeCategory, type AgeCategoryValue } from "@/lib/age-category";
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -21,7 +22,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     return NextResponse.json({ error: "Registration is closed for this tournament" }, { status: 400 });
   }
 
-  const { fullName, email, phone, dob, gender, city, fideId } = parsed.data;
+  const { fullName, email, phone, dob, gender, city, fideId, rating, kovil, pirivu, ageCategory } =
+    parsed.data;
+
+  if (dob) {
+    const natural = naturalAgeCategory(ageAt(new Date(dob), tournament.startDate));
+    if (!isAgeCategoryAllowed(ageCategory as AgeCategoryValue, natural)) {
+      return NextResponse.json(
+        { error: "You can register in your own age category or a higher one, not a lower one" },
+        { status: 400 }
+      );
+    }
+  }
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -41,6 +53,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
           gender: gender || null,
           city: city || null,
           fideId: fideId || null,
+          rating: rating ? Number(rating) : null,
+          kovil: kovil || null,
+          pirivu: pirivu || null,
+          ageCategory,
         },
       });
     });

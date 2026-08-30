@@ -24,6 +24,7 @@ export default async function AdminClassesPage() {
               <th className="px-4 py-2 font-medium">Title</th>
               <th className="px-4 py-2 font-medium">Level</th>
               <th className="px-4 py-2 font-medium">Mode</th>
+              <th className="px-4 py-2 font-medium">Price</th>
               <th className="px-4 py-2 font-medium">Enrollments</th>
               <th className="px-4 py-2 font-medium"></th>
             </tr>
@@ -36,6 +37,9 @@ export default async function AdminClassesPage() {
                   <Badge tone="orange">{c.level}</Badge>
                 </td>
                 <td className="px-4 py-2 text-foreground/60">{c.isOnline ? "Online" : "In-person"}</td>
+                <td className="px-4 py-2 text-foreground/60">
+                  ₹{c.price} &middot; {c.sessionType === "group" ? "Group" : "1-on-1"}
+                </td>
                 <td className="px-4 py-2">
                   <Link href={`/admin/classes/${c.id}`} className="font-medium text-navy hover:underline">
                     {c._count.enrollments}
@@ -50,7 +54,7 @@ export default async function AdminClassesPage() {
             ))}
             {classes.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-foreground/50">
+                <td colSpan={6} className="px-4 py-6 text-center text-foreground/50">
                   No classes yet.
                 </td>
               </tr>

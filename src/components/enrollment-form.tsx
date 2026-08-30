@@ -3,7 +3,8 @@
 import { useState, type FormEvent } from "react";
 import { Button, Input, Label, Textarea } from "@/components/ui";
 
-export function EnrollmentForm({ classSlug }: { classSlug: string }) {
+export function EnrollmentForm({ classSlug, level }: { classSlug: string; level: string }) {
+  const fideRequired = level !== "beginner";
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -54,6 +55,17 @@ export function EnrollmentForm({ classSlug }: { classSlug: string }) {
           <Label htmlFor={`${classSlug}-phone`}>Phone</Label>
           <Input id={`${classSlug}-phone`} name="phone" type="tel" required />
         </div>
+      </div>
+      <div>
+        <Label htmlFor={`${classSlug}-fideId`}>
+          FIDE ID{fideRequired ? "" : " (optional)"}
+        </Label>
+        <Input
+          id={`${classSlug}-fideId`}
+          name="fideId"
+          required={fideRequired}
+          placeholder={fideRequired ? "Required for intermediate/advanced classes" : "Optional"}
+        />
       </div>
       <div>
         <Label htmlFor={`${classSlug}-message`}>Message</Label>

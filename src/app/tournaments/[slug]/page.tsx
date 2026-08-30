@@ -26,7 +26,7 @@ export default async function TournamentDetailPage({
     <main className="mx-auto max-w-4xl px-4 py-12">
       {tournament.posterImageUrl && (
         <div className="relative mb-6 h-64 w-full overflow-hidden rounded-lg bg-gray-100 sm:h-96">
-          <Image src={tournament.posterImageUrl} alt={tournament.title} fill className="object-cover" />
+          <Image src={tournament.posterImageUrl} alt={tournament.title} fill className="object-contain" />
         </div>
       )}
 

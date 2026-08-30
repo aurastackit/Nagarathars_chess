@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { Card, Input, Label, Textarea, Button, Badge } from "@/components/ui";
 import { formatDate } from "@/lib/format";
+import { ageCategoryLabel } from "@/lib/age-category";
 
 export const dynamic = "force-dynamic";
 
@@ -163,43 +164,67 @@ export default async function ManageTournamentPage({ params }: { params: Promise
           <h2 className="text-lg font-semibold text-foreground">
             Registrants ({tournament.registrations.length})
           </h2>
-          <a
-            href={`/admin/tournaments/${tournament.id}/registrations.csv`}
-            className="text-sm font-semibold text-navy hover:underline"
-          >
-            Export CSV
-          </a>
+          <div className="flex gap-4">
+            <a
+              href={`/admin/tournaments/${tournament.id}/registrations.csv`}
+              className="text-sm font-semibold text-navy hover:underline"
+            >
+              Export CSV
+            </a>
+            <a
+              href={`/admin/tournaments/${tournament.id}/registrations.xlsx`}
+              className="text-sm font-semibold text-navy hover:underline"
+            >
+              Export Excel
+            </a>
+          </div>
         </div>
         <Card className="mt-3 overflow-hidden">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-navy/5 text-foreground/60">
-              <tr>
-                <th className="px-4 py-2 font-medium">Name</th>
-                <th className="px-4 py-2 font-medium">Email</th>
-                <th className="px-4 py-2 font-medium">Phone</th>
-                <th className="px-4 py-2 font-medium">City</th>
-                <th className="px-4 py-2 font-medium">Registered</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tournament.registrations.map((r) => (
-                <tr key={r.id} className="border-t border-border">
-                  <td className="px-4 py-2">{r.fullName}</td>
-                  <td className="px-4 py-2">{r.email}</td>
-                  <td className="px-4 py-2">{r.phone}</td>
-                  <td className="px-4 py-2">{r.city ?? "—"}</td>
-                  <td className="px-4 py-2">{formatDate(r.registeredAt)}</td>
-                </tr>
-              ))}
-              {tournament.registrations.length === 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-navy/5 text-foreground/60">
                 <tr>
-                  <td colSpan={5} className="px-4 py-6 text-center text-foreground/50">
-                    No registrants yet.
-                  </td>
+                  <th className="px-4 py-2 font-medium">Name</th>
+                  <th className="px-4 py-2 font-medium">Email</th>
+                  <th className="px-4 py-2 font-medium">Phone</th>
+                  <th className="px-4 py-2 font-medium">DOB</th>
+                  <th className="px-4 py-2 font-medium">Gender</th>
+                  <th className="px-4 py-2 font-medium">City</th>
+                  <th className="px-4 py-2 font-medium">Rating</th>
+                  <th className="px-4 py-2 font-medium">FIDE ID</th>
+                  <th className="px-4 py-2 font-medium">Kovil</th>
+                  <th className="px-4 py-2 font-medium">Pirivu</th>
+                  <th className="px-4 py-2 font-medium">Age category</th>
+                  <th className="px-4 py-2 font-medium">Registered</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {tournament.registrations.map((r) => (
+                  <tr key={r.id} className="border-t border-border">
+                    <td className="px-4 py-2">{r.fullName}</td>
+                    <td className="px-4 py-2">{r.email}</td>
+                    <td className="px-4 py-2">{r.phone}</td>
+                    <td className="px-4 py-2">{r.dob ? formatDate(r.dob) : "—"}</td>
+                    <td className="px-4 py-2">{r.gender ?? "—"}</td>
+                    <td className="px-4 py-2">{r.city ?? "—"}</td>
+                    <td className="px-4 py-2">{r.rating ?? "—"}</td>
+                    <td className="px-4 py-2">{r.fideId ?? "—"}</td>
+                    <td className="px-4 py-2">{r.kovil ?? "—"}</td>
+                    <td className="px-4 py-2">{r.pirivu ?? "—"}</td>
+                    <td className="px-4 py-2">{ageCategoryLabel(r.ageCategory)}</td>
+                    <td className="px-4 py-2">{formatDate(r.registeredAt)}</td>
+                  </tr>
+                ))}
+                {tournament.registrations.length === 0 && (
+                  <tr>
+                    <td colSpan={12} className="px-4 py-6 text-center text-foreground/50">
+                      No registrants yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </Card>
       </section>
     </div>

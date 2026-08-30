@@ -40,6 +40,10 @@ model Registration {
   gender       String?
   city         String?
   fideId       String?
+  rating       Int?
+  kovil        String?
+  pirivu       String?
+  ageCategory  String?
   status       String     @default("registered")
   registeredAt DateTime   @default(now())
 
@@ -47,17 +51,21 @@ model Registration {
 }
 
 model ClassProgram {
-  id             String            @id @default(cuid())
-  slug           String            @unique
-  title          String
-  level          String
-  description    String
-  scheduleText   String
-  instructorName String
-  bannerImageUrl String?
-  isOnline       Boolean           @default(true)
-  createdAt      DateTime          @default(now())
-  enrollments    ClassEnrollment[]
+  id              String            @id @default(cuid())
+  slug            String            @unique
+  title           String
+  level           String
+  sessionType     String            @default("group")
+  price           Int               @default(0)
+  maxGroupSize    Int?
+  durationMinutes Int               @default(60)
+  description     String
+  scheduleText    String
+  instructorName  String
+  bannerImageUrl  String?
+  isOnline        Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  enrollments     ClassEnrollment[]
 }
 
 model ClassEnrollment {
@@ -67,6 +75,7 @@ model ClassEnrollment {
   fullName       String
   email          String
   phone          String
+  fideId         String?
   message        String?
   enrolledAt     DateTime     @default(now())
 
