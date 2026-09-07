@@ -2,8 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 
 const NAV = [
-  { href: "/tournaments", label: "Tournaments" },
+  { href: "/", label: "Home" },
   { href: "/classes", label: "Online Classes" },
+  { href: "/tournaments", label: "Online Tournament" },
+  { href: "/gallery", label: "Gallery" },
+  { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -20,21 +23,15 @@ export function SiteHeader() {
         </Link>
         <nav className="hidden gap-6 text-sm font-medium text-foreground/80 sm:flex">
           {NAV.map((item) => (
-            <Link key={item.href} href={item.href} className="hover:text-navy">
+            <Link key={item.href} href={item.href} className="transition-colors hover:text-navy">
               {item.label}
             </Link>
           ))}
         </nav>
-        <Link
-          href="/admin/login"
-          className="rounded-md border border-navy px-4 py-2 text-sm font-semibold text-navy hover:bg-navy hover:text-white"
-        >
-          Admin Login
-        </Link>
       </div>
       <nav className="flex gap-4 overflow-x-auto border-t border-border px-4 py-2 text-sm font-medium text-foreground/80 sm:hidden">
         {NAV.map((item) => (
-          <Link key={item.href} href={item.href} className="whitespace-nowrap hover:text-navy">
+          <Link key={item.href} href={item.href} className="whitespace-nowrap transition-colors hover:text-navy">
             {item.label}
           </Link>
         ))}

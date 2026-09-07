@@ -194,6 +194,10 @@ export default async function ManageTournamentPage({ params }: { params: Promise
                   <th className="px-4 py-2 font-medium">FIDE ID</th>
                   <th className="px-4 py-2 font-medium">Kovil</th>
                   <th className="px-4 py-2 font-medium">Pirivu</th>
+                  <th className="px-4 py-2 font-medium">Father</th>
+                  <th className="px-4 py-2 font-medium">Mother</th>
+                  <th className="px-4 py-2 font-medium">Sangam</th>
+                  <th className="px-4 py-2 font-medium">Docs</th>
                   <th className="px-4 py-2 font-medium">Age category</th>
                   <th className="px-4 py-2 font-medium">Registered</th>
                 </tr>
@@ -211,13 +215,19 @@ export default async function ManageTournamentPage({ params }: { params: Promise
                     <td className="px-4 py-2">{r.fideId ?? "—"}</td>
                     <td className="px-4 py-2">{r.kovil ?? "—"}</td>
                     <td className="px-4 py-2">{r.pirivu ?? "—"}</td>
+                    <td className="px-4 py-2">{r.fatherName ?? "—"}</td>
+                    <td className="px-4 py-2">{r.motherName ?? "—"}</td>
+                    <td className="px-4 py-2">{r.sangamMember ? "Yes" : "No"}</td>
+                    <td className="px-4 py-2">
+                      {[r.aadhaarImageData && "Aadhaar", r.passportPhotoData && "Photo"].filter(Boolean).join(", ") || "—"}
+                    </td>
                     <td className="px-4 py-2">{ageCategoryLabel(r.ageCategory)}</td>
                     <td className="px-4 py-2">{formatDate(r.registeredAt)}</td>
                   </tr>
                 ))}
                 {tournament.registrations.length === 0 && (
                   <tr>
-                    <td colSpan={12} className="px-4 py-6 text-center text-foreground/50">
+                    <td colSpan={16} className="px-4 py-6 text-center text-foreground/50">
                       No registrants yet.
                     </td>
                   </tr>

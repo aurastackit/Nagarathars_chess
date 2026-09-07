@@ -80,10 +80,11 @@ export function Label({ children, htmlFor }: { children: React.ReactNode; htmlFo
   );
 }
 
-export function Badge({ children, tone = "navy" }: { children: React.ReactNode; tone?: "navy" | "orange" | "gray" }) {
+export function Badge({ children, tone = "navy" }: { children: React.ReactNode; tone?: "navy" | "orange" | "gold" | "gray" }) {
   const tones = {
     navy: "bg-navy/10 text-navy",
     orange: "bg-orange/10 text-orange",
+    gold: "bg-gold/10 text-gold",
     gray: "bg-gray-200 text-gray-700",
   };
   return (

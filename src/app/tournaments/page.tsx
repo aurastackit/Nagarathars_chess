@@ -55,7 +55,7 @@ function TournamentGrid({
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {tournaments.map((t) => (
             <Link key={t.id} href={`/tournaments/${t.slug}`}>
-              <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
+              <Card className="group h-full overflow-hidden transition-shadow hover:shadow-md">
                 {t.posterImageUrl && (
                   <div className="relative h-40 w-full bg-gray-100">
                     <Image src={t.posterImageUrl} alt={t.title} fill className="object-contain" />
@@ -70,10 +70,10 @@ function TournamentGrid({
                   <p className="mt-1 text-sm text-foreground/60">
                     {formatDateRange(t.startDate, t.endDate)} &middot; {t.venue}, {t.city}
                   </p>
-                  <div className="mt-2 flex items-center justify-between">
-                    <p className="text-sm font-semibold text-orange">
-                      {t.entryFee === 0 ? "Free entry" : `Entry ₹${t.entryFee}`}
-                    </p>
+                  <div className="mt-3 flex items-center justify-between">
+                    <span className="inline-flex items-center rounded-full bg-orange px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors group-hover:bg-orange/90">
+                      {t.entryFee === 0 ? "Register — Free Entry" : `Register — ₹${t.entryFee}`}
+                    </span>
                     <p className="text-xs text-foreground/50">{t._count.registrations} registered</p>
                   </div>
                 </div>

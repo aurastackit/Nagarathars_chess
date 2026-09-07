@@ -22,8 +22,31 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     return NextResponse.json({ error: "Registration is closed for this tournament" }, { status: 400 });
   }
 
-  const { fullName, email, phone, dob, gender, city, fideId, rating, kovil, pirivu, ageCategory } =
-    parsed.data;
+  const {
+    fullName,
+    email,
+    phone,
+    dob,
+    gender,
+    city,
+    address,
+    fideId,
+    rating,
+    kovil,
+    pirivu,
+    native,
+    fatherName,
+    motherName,
+    fatherGrandparents,
+    motherGrandparents,
+    motherNative,
+    motherKovil,
+    motherPirivu,
+    sangamMember,
+    aadhaarImageData,
+    passportPhotoData,
+    ageCategory,
+  } = parsed.data;
 
   if (dob) {
     const natural = naturalAgeCategory(ageAt(new Date(dob), tournament.startDate));
@@ -52,10 +75,22 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
           dob: dob ? new Date(dob) : null,
           gender: gender || null,
           city: city || null,
+          address: address || null,
           fideId: fideId || null,
           rating: rating ? Number(rating) : null,
           kovil: kovil || null,
           pirivu: pirivu || null,
+          native: native || null,
+          fatherName: fatherName || null,
+          motherName: motherName || null,
+          fatherGrandparents: fatherGrandparents || null,
+          motherGrandparents: motherGrandparents || null,
+          motherNative: motherNative || null,
+          motherKovil: motherKovil || null,
+          motherPirivu: motherPirivu || null,
+          sangamMember: sangamMember ?? false,
+          aadhaarImageData: aadhaarImageData || null,
+          passportPhotoData: passportPhotoData || null,
           ageCategory,
         },
       });

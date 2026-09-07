@@ -30,22 +30,34 @@ model Tournament {
 }
 
 model Registration {
-  id           String     @id @default(cuid())
-  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  tournamentId String
-  fullName     String
-  email        String
-  phone        String
-  dob          DateTime?
-  gender       String?
-  city         String?
-  fideId       String?
-  rating       Int?
-  kovil        String?
-  pirivu       String?
-  ageCategory  String?
-  status       String     @default("registered")
-  registeredAt DateTime   @default(now())
+  id                 String     @id @default(cuid())
+  tournament         Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  tournamentId       String
+  fullName           String
+  email              String
+  phone              String
+  dob                DateTime?
+  gender             String?
+  city               String?
+  address            String?
+  fideId             String?
+  rating             Int?
+  kovil              String?
+  pirivu             String?
+  native             String?
+  fatherName         String?
+  motherName         String?
+  fatherGrandparents String?
+  motherGrandparents String?
+  motherNative       String?
+  motherKovil        String?
+  motherPirivu       String?
+  sangamMember       Boolean    @default(false)
+  aadhaarImageData   String?
+  passportPhotoData  String?
+  ageCategory        String?
+  status             String     @default("registered")
+  registeredAt       DateTime   @default(now())
 
   @@unique([tournamentId, email])
 }
