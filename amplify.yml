@@ -6,6 +6,7 @@ frontend:
         - npm ci
         - npx prisma generate
         - npx prisma db push
+        - printf 'DATABASE_URL=%s\nDIRECT_URL=%s\nAUTH_SECRET=%s\nADMIN_EMAIL=%s\nADMIN_PASSWORD=%s\n' "$DATABASE_URL" "$DIRECT_URL" "$AUTH_SECRET" "$ADMIN_EMAIL" "$ADMIN_PASSWORD" > .env.production.local
     build:
       commands:
         - npm run build
