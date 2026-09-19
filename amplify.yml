@@ -6,7 +6,7 @@ frontend:
         - npm ci
         - npx prisma generate
         - npx prisma db push
-        - printf 'DATABASE_URL=%s\nDIRECT_URL=%s\nAUTH_SECRET=%s\nADMIN_EMAIL=%s\nADMIN_PASSWORD=%s\n' "$DATABASE_URL" "$DIRECT_URL" "$AUTH_SECRET" "$ADMIN_EMAIL" "$ADMIN_PASSWORD" > .env.production.local
+        - node -e "const fs=require('fs');const keys=['DATABASE_URL','DIRECT_URL','AUTH_SECRET','ADMIN_EMAIL','ADMIN_PASSWORD'];fs.writeFileSync('src/lib/env-runtime.ts',keys.map(k=>'process.env.'+k+' = process.env.'+k+' || '+JSON.stringify(process.env[k]||'')+';').join('\n')+'\nexport {};\n')"
     build:
       commands:
         - npm run build
