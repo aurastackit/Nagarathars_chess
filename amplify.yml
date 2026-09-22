@@ -6,7 +6,7 @@ frontend:
         - npm ci
         - npx prisma generate
         - npx prisma db push
-        - node -e "const fs=require('fs');const keys=['DATABASE_URL','DIRECT_URL','AUTH_SECRET','ADMIN_EMAIL','ADMIN_PASSWORD'];fs.writeFileSync('src/lib/env-runtime.ts',keys.map(k=>'process.env.'+k+' = process.env.'+k+' || '+JSON.stringify(process.env[k]||'')+';').join('\n')+'\nexport {};\n')"
+        - node -e "const fs=require('fs');const keys=['DATABASE_URL','DIRECT_URL','AUTH_SECRET','ADMIN_EMAIL','ADMIN_PASSWORD','S3_BUCKET_NAME','S3_REGION','S3_ACCESS_KEY_ID','S3_SECRET_ACCESS_KEY','RAZORPAY_KEY_ID','RAZORPAY_KEY_SECRET','RESEND_API_KEY','RESEND_FROM_EMAIL','NEXT_PUBLIC_SITE_URL'];fs.writeFileSync('src/lib/env-runtime.ts',keys.map(k=>'process.env.'+k+' = process.env.'+k+' || '+JSON.stringify(process.env[k]||'')+';').join('\n')+'\nexport {};\n')"
     build:
       commands:
         - npm run build
