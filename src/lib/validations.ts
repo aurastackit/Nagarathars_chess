@@ -68,3 +68,34 @@ export const contactSchema = z.object({
 });
 
 export type ContactInput = z.infer<typeof contactSchema>;
+
+export const tournamentSchema = z
+  .object({
+    title: z.string().trim().min(2, "Enter a title"),
+    description: z.string().trim().min(1, "Enter a description"),
+    category: z.string().trim().min(1, "Enter a category"),
+    format: z.enum(["classical", "rapid", "blitz"]),
+    startDate: z.coerce.date({ error: "Enter a valid start date" }),
+    endDate: z.coerce.date({ error: "Enter a valid end date" }),
+    venue: z.string().trim().min(1, "Enter a venue"),
+    city: z.string().trim().min(1, "Enter a city"),
+    entryFee: z.coerce.number().int().min(0),
+    maxParticipants: z.coerce.number().int().min(1).optional().nullable(),
+    registrationDeadline: z.coerce.date({ error: "Enter a valid registration deadline" }),
+    posterImageUrl: optionalText,
+    brochurePdfUrl: optionalText,
+    timeControl: optionalText,
+    rounds: z.coerce.number().int().min(1).optional().nullable(),
+    prizeStructure: optionalText,
+    rulesText: optionalText,
+  })
+  .refine((data) => data.endDate >= data.startDate, {
+    error: "End date must be on or after the start date",
+    path: ["endDate"],
+  })
+  .refine((data) => data.registrationDeadline < data.startDate, {
+    error: "Registration deadline must be before the start date",
+    path: ["registrationDeadline"],
+  });
+
+export type TournamentInput = z.infer<typeof tournamentSchema>;

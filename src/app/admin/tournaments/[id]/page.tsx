@@ -1,9 +1,10 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { Card, Input, Label, Textarea, Button, Badge } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 import { ageCategoryLabel } from "@/lib/age-category";
+import { tournamentSchema } from "@/lib/validations";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +12,15 @@ function toDateInputValue(date: Date) {
   return date.toISOString().slice(0, 10);
 }
 
-export default async function ManageTournamentPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ManageTournamentPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string }>;
+}) {
   const { id } = await params;
+  const { error } = await searchParams;
   const tournament = await prisma.tournament.findUnique({
     where: { id },
     include: { registrations: { orderBy: { registeredAt: "desc" } } },
@@ -22,30 +30,58 @@ export default async function ManageTournamentPage({ params }: { params: Promise
 
   async function updateTournament(formData: FormData) {
     "use server";
+    const parsed = tournamentSchema.safeParse({
+      title: formData.get("title"),
+      description: formData.get("description"),
+      category: formData.get("category"),
+      format: formData.get("format"),
+      startDate: formData.get("startDate"),
+      endDate: formData.get("endDate"),
+      venue: formData.get("venue"),
+      city: formData.get("city"),
+      entryFee: formData.get("entryFee") || 0,
+      maxParticipants: formData.get("maxParticipants") || undefined,
+      registrationDeadline: formData.get("registrationDeadline"),
+      posterImageUrl: formData.get("posterImageUrl"),
+      brochurePdfUrl: formData.get("brochurePdfUrl"),
+      timeControl: formData.get("timeControl"),
+      rounds: formData.get("rounds") || undefined,
+      prizeStructure: formData.get("prizeStructure"),
+      rulesText: formData.get("rulesText"),
+    });
+
+    if (!parsed.success) {
+      redirect(`/admin/tournaments/${id}?error=${encodeURIComponent(parsed.error.issues[0]?.message ?? "Invalid input")}`);
+    }
+
+    const data = parsed.data;
     await prisma.tournament.update({
       where: { id },
       data: {
-        title: String(formData.get("title") ?? ""),
-        description: String(formData.get("description") ?? ""),
-        category: String(formData.get("category") ?? ""),
-        format: String(formData.get("format") ?? "classical") as never,
-        startDate: new Date(String(formData.get("startDate"))),
-        endDate: new Date(String(formData.get("endDate"))),
-        venue: String(formData.get("venue") ?? ""),
-        city: String(formData.get("city") ?? ""),
-        entryFee: Number(formData.get("entryFee") ?? 0),
-        maxParticipants: formData.get("maxParticipants")
-          ? Number(formData.get("maxParticipants"))
-          : null,
-        registrationDeadline: new Date(String(formData.get("registrationDeadline"))),
-        posterImageUrl: String(formData.get("posterImageUrl") ?? "") || null,
-        brochurePdfUrl: String(formData.get("brochurePdfUrl") ?? "") || null,
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        format: data.format,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        venue: data.venue,
+        city: data.city,
+        entryFee: data.entryFee,
+        maxParticipants: data.maxParticipants ?? null,
+        registrationDeadline: data.registrationDeadline,
+        posterImageUrl: data.posterImageUrl || null,
+        brochurePdfUrl: data.brochurePdfUrl || null,
+        timeControl: data.timeControl || null,
+        rounds: data.rounds ?? null,
+        prizeStructure: data.prizeStructure || null,
+        rulesText: data.rulesText || null,
         status: String(formData.get("status") ?? "draft") as never,
       },
     });
     revalidatePath(`/admin/tournaments/${id}`);
     revalidatePath("/admin/tournaments");
     revalidatePath("/tournaments");
+    revalidatePath(`/tournaments/${tournament!.slug}`);
   }
 
   return (
@@ -56,6 +92,9 @@ export default async function ManageTournamentPage({ params }: { params: Promise
       </div>
 
       <Card className="mt-6 p-6">
+        {error && (
+          <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+        )}
         <form action={updateTournament} className="space-y-4">
           <div>
             <Label htmlFor="title">Title</Label>
@@ -143,6 +182,7 @@ export default async function ManageTournamentPage({ params }: { params: Promise
                 defaultValue={toDateInputValue(tournament.registrationDeadline)}
                 required
               />
+              <p className="mt-1 text-xs text-foreground/50">Must be before the start date.</p>
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -154,6 +194,37 @@ export default async function ManageTournamentPage({ params }: { params: Promise
               <Label htmlFor="brochurePdfUrl">Brochure PDF URL</Label>
               <Input id="brochurePdfUrl" name="brochurePdfUrl" defaultValue={tournament.brochurePdfUrl ?? ""} />
             </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="timeControl">Time control</Label>
+              <Input id="timeControl" name="timeControl" defaultValue={tournament.timeControl ?? ""} placeholder="e.g. 90 min + 30 sec increment" />
+            </div>
+            <div>
+              <Label htmlFor="rounds">Rounds</Label>
+              <Input id="rounds" name="rounds" type="number" min={1} defaultValue={tournament.rounds ?? undefined} placeholder="Optional" />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="prizeStructure">Prize structure</Label>
+            <Textarea
+              id="prizeStructure"
+              name="prizeStructure"
+              rows={3}
+              defaultValue={tournament.prizeStructure ?? ""}
+              placeholder={"1st place — ₹5,000\n2nd place — ₹3,000\nBest U-11 — ₹1,000"}
+            />
+          </div>
+          <div>
+            <Label htmlFor="rulesText">Rules</Label>
+            <Textarea
+              id="rulesText"
+              name="rulesText"
+              rows={4}
+              defaultValue={tournament.rulesText ?? ""}
+              placeholder={"Eligibility|Open to all age categories, no FIDE rating required.\nTiebreaks|Standard FIDE tiebreak rules apply."}
+            />
+            <p className="mt-1 text-xs text-foreground/50">One rule per line, formatted as Title|Details.</p>
           </div>
           <Button type="submit">Save changes</Button>
         </form>

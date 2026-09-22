@@ -24,6 +24,10 @@ model Tournament {
   registrationDeadline DateTime
   posterImageUrl       String?
   brochurePdfUrl       String?
+  timeControl          String?
+  rounds               Int?
+  prizeStructure       String?
+  rulesText            String?
   status               String         @default("draft")
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt

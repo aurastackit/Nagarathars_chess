@@ -3,13 +3,13 @@ import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { LinkButton, Card, Badge, Container, SectionHeading, EmptyState } from "@/components/ui";
 import { HeroSlideshow } from "@/components/hero-slideshow";
-import { formatDateRange } from "@/lib/format";
 import { generateGalleryPlaceholders } from "@/lib/gallery-placeholders";
 import { GalleryPlaceholderTile } from "@/components/gallery-tile";
 import { Reveal } from "@/components/reveal";
 import { CountUp } from "@/components/count-up";
 import { Countdown } from "@/components/countdown";
 import { getNextTournament } from "@/lib/next-tournament";
+import { TournamentCard } from "@/components/tournament-card";
 import { BishopIcon, KingIcon, KnightIcon, PawnIcon, QueenIcon, RookIcon, TrophyIcon } from "@/components/icons/chess-pieces";
 
 export const dynamic = "force-dynamic";
@@ -132,6 +132,7 @@ export default async function HomePage() {
       where: { status: "published" },
       orderBy: { startDate: "asc" },
       take: 3,
+      include: { _count: { select: { registrations: true } } },
     }),
     prisma.classProgram.findMany({ orderBy: { createdAt: "asc" } }),
     prisma.tournament.findMany({ where: { status: "published" } }),
@@ -319,25 +320,7 @@ export default async function HomePage() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {tournaments.map((t, i) => (
               <Reveal key={t.id} delay={i * 100}>
-                <Link href={`/tournaments/${t.slug}`}>
-                  <Card className="group h-full overflow-hidden transition-shadow hover:shadow-md">
-                    {t.posterImageUrl && (
-                      <div className="relative h-40 w-full bg-gray-100">
-                        <Image src={t.posterImageUrl} alt={t.title} fill className="object-contain" />
-                      </div>
-                    )}
-                    <div className="p-4">
-                      <Badge tone="charcoal">{t.format}</Badge>
-                      <h3 className="mt-2 font-semibold text-foreground">{t.title}</h3>
-                      <p className="mt-1 text-sm text-foreground/60">
-                        {formatDateRange(t.startDate, t.endDate)} &middot; {t.city}
-                      </p>
-                      <span className="mt-3 inline-flex items-center rounded-full bg-gold px-3 py-1.5 text-xs font-semibold text-charcoal shadow-sm transition-colors group-hover:bg-gold/90">
-                        {t.entryFee === 0 ? "Register — Free Entry" : `Register — ₹${t.entryFee}`}
-                      </span>
-                    </div>
-                  </Card>
-                </Link>
+                <TournamentCard tournament={t} />
               </Reveal>
             ))}
           </div>
