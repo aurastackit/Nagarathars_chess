@@ -44,9 +44,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       "Mother Kovil",
       "Mother Pirivu",
       "Sangam member",
-      "Aadhaar uploaded",
+      "Age proof type",
+      "Age proof uploaded",
       "Passport photo uploaded",
       "Age category",
+      "Payment status",
+      "Review status",
       "Registered at",
     ],
     tournament.registrations.map((r) => [
@@ -70,9 +73,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       r.motherKovil ?? "",
       r.motherPirivu ?? "",
       r.sangamMember ? "Yes" : "No",
-      r.aadhaarImageData ? "Yes" : "No",
-      r.passportPhotoData ? "Yes" : "No",
+      r.ageProofType ?? "",
+      r.ageProofKey || r.aadhaarImageData ? "Yes" : "No",
+      r.passportPhotoKey || r.passportPhotoData ? "Yes" : "No",
       ageCategoryLabel(r.ageCategory),
+      r.paymentStatus,
+      r.status,
       formatDate(r.registeredAt),
     ])
   );

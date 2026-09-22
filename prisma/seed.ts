@@ -46,32 +46,46 @@ async function main() {
     },
   });
 
+  const testPlayerDob = new Date("2010-01-01");
   await prisma.registration.upsert({
-    where: { tournamentId_email: { tournamentId: tournament1.id, email: "test.player@example.com" } },
+    where: {
+      tournamentId_email_dob: { tournamentId: tournament1.id, email: "test.player@example.com", dob: testPlayerDob },
+    },
     update: {},
     create: {
       tournamentId: tournament1.id,
       fullName: "Test Player (sample entry)",
       email: "test.player@example.com",
       phone: "9999999999",
+      dob: testPlayerDob,
       city: "Chennai",
       rating: 1200,
       kovil: "Sample Kovil",
       pirivu: "Sample Pirivu",
       ageCategory: "11_to_18",
+      status: "confirmed",
+      consentAccepted: true,
     },
   });
 
+  const sampleChildDob = new Date("2016-06-15");
   await prisma.registration.upsert({
-    where: { tournamentId_email: { tournamentId: tournament2.id, email: "sample.child@example.com" } },
+    where: {
+      tournamentId_email_dob: { tournamentId: tournament2.id, email: "sample.child@example.com", dob: sampleChildDob },
+    },
     update: {},
     create: {
       tournamentId: tournament2.id,
       fullName: "Sample Child Entry",
       email: "sample.child@example.com",
       phone: "8888888888",
+      dob: sampleChildDob,
       city: "Ramanathapuram",
       ageCategory: "under_11",
+      status: "confirmed",
+      consentAccepted: true,
+      guardianName: "Sample Guardian",
+      guardianConsent: true,
     },
   });
 

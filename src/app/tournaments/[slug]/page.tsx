@@ -8,7 +8,7 @@ import { capitalizeWords } from "@/lib/text";
 import { getTournamentStatus, TOURNAMENT_STATUS_LABEL } from "@/lib/tournament-status";
 import { parseRules } from "@/lib/rules";
 import { SITE_URL } from "@/lib/site";
-import { RegistrationForm } from "@/components/registration-form";
+import { RegistrationWizard } from "@/components/registration-wizard/registration-wizard";
 import { RulesAccordion } from "@/components/rules-accordion";
 import { VenueMap } from "@/components/venue-map";
 import { CalendarIcon, WhatsAppIcon } from "@/components/icons/misc";
@@ -251,7 +251,12 @@ export default async function TournamentDetailPage({
             </div>
           ) : (
             <div className="mt-4">
-              <RegistrationForm tournamentSlug={tournament.slug} />
+              <RegistrationWizard
+                tournamentSlug={tournament.slug}
+                tournamentTitle={tournament.title}
+                tournamentStartDate={tournament.startDate}
+                entryFee={tournament.entryFee}
+              />
             </div>
           )}
         </section>

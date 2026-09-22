@@ -58,13 +58,24 @@ model Registration {
   motherKovil        String?
   motherPirivu       String?
   sangamMember       Boolean    @default(false)
+  // Legacy base64 fields from the single-page form — kept for historical rows, no longer written to.
   aadhaarImageData   String?
   passportPhotoData  String?
+  // Current uploads: private S3 object keys only, never a public URL.
+  ageProofType       String?
+  ageProofKey        String?
+  passportPhotoKey   String?
+  consentAccepted    Boolean    @default(false)
+  guardianName       String?
+  guardianConsent    Boolean    @default(false)
   ageCategory        String?
-  status             String     @default("registered")
+  status             String     @default("pending")
+  paymentStatus      String     @default("not_required")
+  razorpayOrderId    String?
+  razorpayPaymentId  String?
   registeredAt       DateTime   @default(now())
 
-  @@unique([tournamentId, email])
+  @@unique([tournamentId, email, dob])
 }
 
 model ClassProgram {

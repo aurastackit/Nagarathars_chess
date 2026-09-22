@@ -14,12 +14,19 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1138.0",
+    "@aws-sdk/s3-request-presigner": "^3.1138.0",
+    "@hookform/resolvers": "^5.9.1",
     "@prisma/client": "^6.12.0",
+    "browser-image-compression": "^2.0.2",
     "next": "16.3.2",
     "next-auth": "^5.0.0-beta.32",
     "prisma": "^6.12.0",
+    "razorpay": "^2.9.8",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "react-hook-form": "^7.88.0",
+    "resend": "^6.28.1",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zod": "^4.4.3"
   },

@@ -84,6 +84,13 @@ export default async function ManageTournamentPage({
     revalidatePath(`/tournaments/${tournament!.slug}`);
   }
 
+  async function setRegistrationStatus(registrationId: string, next: "confirmed" | "rejected") {
+    "use server";
+    await prisma.registration.update({ where: { id: registrationId }, data: { status: next } });
+    revalidatePath(`/admin/tournaments/${id}`);
+    revalidatePath(`/registration/${registrationId}`);
+  }
+
   return (
     <div>
       <div className="flex items-center gap-3">
@@ -270,7 +277,10 @@ export default async function ManageTournamentPage({
                   <th className="px-4 py-2 font-medium">Sangam</th>
                   <th className="px-4 py-2 font-medium">Docs</th>
                   <th className="px-4 py-2 font-medium">Age category</th>
+                  <th className="px-4 py-2 font-medium">Payment</th>
+                  <th className="px-4 py-2 font-medium">Status</th>
                   <th className="px-4 py-2 font-medium">Registered</th>
+                  <th className="px-4 py-2 font-medium">Review</th>
                 </tr>
               </thead>
               <tbody>
@@ -290,15 +300,51 @@ export default async function ManageTournamentPage({
                     <td className="px-4 py-2">{r.motherName ?? "—"}</td>
                     <td className="px-4 py-2">{r.sangamMember ? "Yes" : "No"}</td>
                     <td className="px-4 py-2">
-                      {[r.aadhaarImageData && "Aadhaar", r.passportPhotoData && "Photo"].filter(Boolean).join(", ") || "—"}
+                      <div className="flex flex-col gap-0.5">
+                        {r.ageProofKey && (
+                          <a href={`/api/admin/uploads?key=${encodeURIComponent(r.ageProofKey)}`} target="_blank" rel="noreferrer" className="text-charcoal hover:underline">
+                            Age proof
+                          </a>
+                        )}
+                        {r.passportPhotoKey && (
+                          <a href={`/api/admin/uploads?key=${encodeURIComponent(r.passportPhotoKey)}`} target="_blank" rel="noreferrer" className="text-charcoal hover:underline">
+                            Photo
+                          </a>
+                        )}
+                        {!r.ageProofKey && !r.passportPhotoKey && (r.aadhaarImageData || r.passportPhotoData
+                          ? [r.aadhaarImageData && "Aadhaar (legacy)", r.passportPhotoData && "Photo (legacy)"].filter(Boolean).join(", ")
+                          : "—")}
+                      </div>
                     </td>
                     <td className="px-4 py-2">{ageCategoryLabel(r.ageCategory)}</td>
+                    <td className="px-4 py-2 capitalize">{r.paymentStatus.replace(/_/g, " ")}</td>
+                    <td className="px-4 py-2">
+                      <Badge tone={r.status === "confirmed" || r.status === "registered" ? "gold" : r.status === "rejected" ? "gray" : "charcoal"}>
+                        {r.status}
+                      </Badge>
+                    </td>
                     <td className="px-4 py-2">{formatDate(r.registeredAt)}</td>
+                    <td className="px-4 py-2">
+                      {r.status === "pending" && (
+                        <div className="flex gap-2">
+                          <form action={setRegistrationStatus.bind(null, r.id, "confirmed")}>
+                            <button type="submit" className="text-xs font-semibold text-gold hover:underline">
+                              Confirm
+                            </button>
+                          </form>
+                          <form action={setRegistrationStatus.bind(null, r.id, "rejected")}>
+                            <button type="submit" className="text-xs font-semibold text-red-600 hover:underline">
+                              Reject
+                            </button>
+                          </form>
+                        </div>
+                      )}
+                    </td>
                   </tr>
                 ))}
                 {tournament.registrations.length === 0 && (
                   <tr>
-                    <td colSpan={16} className="px-4 py-6 text-center text-foreground/50">
+                    <td colSpan={19} className="px-4 py-6 text-center text-foreground/50">
                       No registrants yet.
                     </td>
                   </tr>

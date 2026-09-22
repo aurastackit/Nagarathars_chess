@@ -1,3 +1,11 @@
+// Archived: the single-page tournament registration form, replaced by the
+// multi-step RegistrationWizard (src/components/registration-wizard/). To
+// restore: move this file back to src/components/registration-form.tsx and
+// swap RegistrationWizard back for RegistrationForm in
+// src/app/tournaments/[slug]/page.tsx. It posted straight to
+// /api/tournaments/[slug]/register with the old flat registrationSchema —
+// that route now expects the wizard's field set instead, so the old API
+// contract would need restoring too (see git history for that route).
 "use client";
 
 import { useState, type FormEvent } from "react";

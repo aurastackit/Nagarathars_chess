@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { registrationSchema } from "@/lib/validations";
-import { notifyRegistration } from "@/lib/notify";
-import { ageAt, isAgeCategoryAllowed, naturalAgeCategory, type AgeCategoryValue } from "@/lib/age-category";
+import { createRegistrationWizardSchema } from "@/lib/registration-schema";
+import { sendRegistrationConfirmationEmail } from "@/lib/notify";
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const body = await req.json().catch(() => null);
-  const parsed = registrationSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
-  }
 
   const tournament = await prisma.tournament.findUnique({ where: { slug } });
   if (!tournament || tournament.status !== "published") {
@@ -22,95 +16,81 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     return NextResponse.json({ error: "Registration is closed for this tournament" }, { status: 400 });
   }
 
-  const {
-    fullName,
-    email,
-    phone,
-    dob,
-    gender,
-    city,
-    address,
-    fideId,
-    rating,
-    kovil,
-    pirivu,
-    native,
-    fatherName,
-    motherName,
-    fatherGrandparents,
-    motherGrandparents,
-    motherNative,
-    motherKovil,
-    motherPirivu,
-    sangamMember,
-    aadhaarImageData,
-    passportPhotoData,
-    ageCategory,
-  } = parsed.data;
-
-  if (dob) {
-    const natural = naturalAgeCategory(ageAt(new Date(dob), tournament.startDate));
-    if (!isAgeCategoryAllowed(ageCategory as AgeCategoryValue, natural)) {
-      return NextResponse.json(
-        { error: "You can register in your own age category or a higher one, not a lower one" },
-        { status: 400 }
-      );
-    }
+  const schema = createRegistrationWizardSchema(tournament.startDate);
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
   }
+  const data = parsed.data;
 
+  const requiresPayment = tournament.entryFee > 0;
+
+  let registrationId: string;
   try {
-    await prisma.$transaction(async (tx) => {
+    registrationId = await prisma.$transaction(async (tx) => {
       if (tournament.maxParticipants !== null) {
         const count = await tx.registration.count({ where: { tournamentId: tournament.id } });
         if (count >= tournament.maxParticipants) {
           throw new Error("FULL");
         }
       }
-      await tx.registration.create({
+      const registration = await tx.registration.create({
         data: {
           tournamentId: tournament.id,
-          fullName,
-          email,
-          phone,
-          dob: dob ? new Date(dob) : null,
-          gender: gender || null,
-          city: city || null,
-          address: address || null,
-          fideId: fideId || null,
-          rating: rating ? Number(rating) : null,
-          kovil: kovil || null,
-          pirivu: pirivu || null,
-          native: native || null,
-          fatherName: fatherName || null,
-          motherName: motherName || null,
-          fatherGrandparents: fatherGrandparents || null,
-          motherGrandparents: motherGrandparents || null,
-          motherNative: motherNative || null,
-          motherKovil: motherKovil || null,
-          motherPirivu: motherPirivu || null,
-          sangamMember: sangamMember ?? false,
-          aadhaarImageData: aadhaarImageData || null,
-          passportPhotoData: passportPhotoData || null,
-          ageCategory,
+          fullName: data.fullName,
+          email: data.email,
+          phone: data.phone,
+          dob: data.dob,
+          gender: data.gender || null,
+          city: data.city || null,
+          address: data.address || null,
+          fideId: data.fideId || null,
+          rating: data.rating ? Number(data.rating) : null,
+          kovil: data.kovil || null,
+          pirivu: data.pirivu || null,
+          native: data.native || null,
+          fatherName: data.fatherName || null,
+          motherName: data.motherName || null,
+          fatherGrandparents: data.fatherGrandparents || null,
+          motherGrandparents: data.motherGrandparents || null,
+          motherNative: data.motherNative || null,
+          motherKovil: data.motherKovil || null,
+          motherPirivu: data.motherPirivu || null,
+          sangamMember: data.sangamMember,
+          ageProofType: data.ageProofType,
+          ageProofKey: data.ageProofKey,
+          passportPhotoKey: data.passportPhotoKey,
+          consentAccepted: data.consentAccepted,
+          guardianName: data.guardianName || null,
+          guardianConsent: data.guardianConsent,
+          ageCategory: data.ageCategory,
+          status: "pending",
+          paymentStatus: requiresPayment ? "pending" : "not_required",
         },
       });
+      return registration.id;
     });
   } catch (err) {
     if (err instanceof Error && err.message === "FULL") {
       return NextResponse.json({ error: "This tournament is full" }, { status: 400 });
     }
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-      return NextResponse.json({ error: "You've already registered with this email" }, { status: 409 });
+      return NextResponse.json(
+        { error: "You've already registered for this tournament with this email and date of birth" },
+        { status: 409 }
+      );
     }
     throw err;
   }
 
-  await notifyRegistration({
-    to: email,
-    fullName,
-    subject: `Registered: ${tournament.title}`,
-    context: `Registration confirmed for ${tournament.title} (${tournament.slug})`,
-  });
+  if (!requiresPayment) {
+    await sendRegistrationConfirmationEmail({
+      to: data.email,
+      fullName: data.fullName,
+      registrationId,
+      tournament,
+    });
+  }
 
-  return NextResponse.json({ ok: true }, { status: 201 });
+  return NextResponse.json({ id: registrationId, requiresPayment, amount: tournament.entryFee }, { status: 201 });
 }
