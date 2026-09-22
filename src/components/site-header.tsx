@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const NAV = [
   { href: "/", label: "Home" },
@@ -13,11 +14,17 @@ const NAV = [
   { href: "/contact", label: "Contact" },
 ];
 
+function isActivePath(pathname: string, href: string) {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
-    <header className="border-b border-border bg-card">
+    <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link href="/" className="flex items-center gap-3" onClick={() => setMenuOpen(false)}>
           <Image src="/images/logo.png" alt="Logo" width={40} height={40} className="h-10 w-10 object-contain" />
@@ -26,12 +33,24 @@ export function SiteHeader() {
             <span className="block text-xs font-normal text-foreground/60">Championship</span>
           </span>
         </Link>
-        <nav className="hidden gap-6 text-sm font-medium text-foreground/80 sm:flex">
-          {NAV.map((item) => (
-            <Link key={item.href} href={item.href} className="transition-colors hover:text-navy">
-              {item.label}
-            </Link>
-          ))}
+        <nav className="hidden items-center gap-1 text-sm font-medium sm:flex">
+          {NAV.map((item) => {
+            const active = isActivePath(pathname, item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={`rounded-full px-3.5 py-2 transition-colors ${
+                  active
+                    ? "bg-navy text-white shadow-sm"
+                    : "text-foreground/70 hover:bg-navy/10 hover:text-navy"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
         <button
           type="button"
@@ -53,17 +72,23 @@ export function SiteHeader() {
         </button>
       </div>
       {menuOpen && (
-        <nav className="flex flex-col gap-1 border-t border-border px-4 py-2 text-sm font-medium text-foreground/80 sm:hidden">
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-md px-2 py-2 transition-colors hover:bg-background hover:text-navy"
-              onClick={() => setMenuOpen(false)}
-            >
-              {item.label}
-            </Link>
-          ))}
+        <nav className="flex flex-col gap-1 border-t border-border px-4 py-2 text-sm font-medium sm:hidden">
+          {NAV.map((item) => {
+            const active = isActivePath(pathname, item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={`rounded-md px-2 py-2 transition-colors ${
+                  active ? "bg-navy text-white" : "text-foreground/70 hover:bg-background hover:text-navy"
+                }`}
+                onClick={() => setMenuOpen(false)}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
       )}
     </header>

@@ -256,34 +256,108 @@ export default async function HomePage() {
         <HeroSlideshow />
         <div className="absolute inset-0 bg-navy/80" />
         <div className="chess-pattern absolute inset-0" />
-        <div className="relative mx-auto flex max-w-6xl flex-col items-start gap-6 px-4 py-20">
-          <span className="animate-fade-up rounded-full bg-orange px-3 py-1 text-xs font-semibold uppercase tracking-wide">
-            Local players welcome
-          </span>
-          <h1 className="animate-fade-up max-w-2xl text-4xl font-bold leading-tight sm:text-5xl" style={{ animationDelay: "80ms" }}>
-            Chess tournaments and coaching, built for your community.
-          </h1>
-          <p className="animate-fade-up max-w-xl text-lg text-white/80" style={{ animationDelay: "160ms" }}>
-            Register for upcoming local tournaments, join online chess classes, and represent
-            your community — no rating required to get started.
-          </p>
-          <div className="animate-fade-up flex flex-wrap gap-4" style={{ animationDelay: "240ms" }}>
-            <LinkButton href="/tournaments">View Tournaments</LinkButton>
-            <LinkButton href="/classes" variant="outline" className="border-white text-white hover:bg-white hover:text-navy">
-              Explore Classes
-            </LinkButton>
+        <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-gold/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-32 left-1/3 h-80 w-80 rounded-full bg-orange/20 blur-3xl" />
+
+        <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:py-28">
+          <div className="flex flex-col items-start gap-6">
+            <span className="animate-fade-up inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide ring-1 ring-inset ring-white/20">
+              <span className="h-1.5 w-1.5 rounded-full bg-gold" />
+              Local players welcome
+            </span>
+            <h1
+              className="animate-fade-up max-w-xl text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl"
+              style={{ animationDelay: "80ms" }}
+            >
+              Chess tournaments and coaching, built for your community.
+            </h1>
+            <p className="animate-fade-up max-w-lg text-lg text-white/75" style={{ animationDelay: "160ms" }}>
+              Register for upcoming local tournaments, join online chess classes, and represent
+              your community — no rating required to get started.
+            </p>
+            <div className="animate-fade-up flex flex-wrap gap-4" style={{ animationDelay: "240ms" }}>
+              <LinkButton href="/tournaments" className="shadow-lg shadow-black/20">
+                View Tournaments
+              </LinkButton>
+              <LinkButton
+                href="/classes"
+                variant="outline"
+                className="border-white/40 text-white hover:bg-white hover:text-navy"
+              >
+                Explore Classes
+              </LinkButton>
+            </div>
+            <div
+              className="animate-fade-up flex flex-wrap gap-x-6 gap-y-2 pt-1 text-sm text-white/70"
+              style={{ animationDelay: "300ms" }}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <span className="text-gold">✓</span> No FIDE rating needed
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="text-gold">✓</span> Free entry to most events
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="text-gold">✓</span> Every age welcome
+              </span>
+            </div>
+
+            {nextTournament && (
+              <div
+                className="animate-fade-up mt-2 w-full max-w-md rounded-xl border border-white/15 bg-white/5 p-4 lg:hidden"
+                style={{ animationDelay: "360ms" }}
+              >
+                <p className="text-xs font-semibold uppercase tracking-wide text-white/60">
+                  Registration closes for {nextTournament.title}
+                </p>
+                <div className="mt-3">
+                  <Countdown target={nextTournament.registrationDeadline.toISOString()} />
+                </div>
+              </div>
+            )}
           </div>
 
-          {nextTournament && (
-            <div className="animate-fade-up mt-2 rounded-xl border border-white/15 bg-white/5 p-4" style={{ animationDelay: "320ms" }}>
-              <p className="text-xs font-semibold uppercase tracking-wide text-white/60">
-                Registration closes for {nextTournament.title}
-              </p>
-              <div className="mt-3">
-                <Countdown target={nextTournament.registrationDeadline.toISOString()} />
+          <div className="animate-fade-up relative hidden min-h-[360px] lg:block" style={{ animationDelay: "200ms" }}>
+            <div className="absolute right-4 top-0 w-64 -rotate-6 rounded-2xl border border-white/15 bg-white/10 p-4 shadow-2xl backdrop-blur-sm transition-transform hover:rotate-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Live Formats</p>
+              <div className="mt-3 grid grid-cols-8 gap-[2px] overflow-hidden rounded-md">
+                {Array.from({ length: 64 }).map((_, i) => {
+                  const row = Math.floor(i / 8);
+                  const dark = (row + i) % 2 === 0;
+                  return <div key={i} className={`aspect-square ${dark ? "bg-navy-dark" : "bg-white/80"}`} />;
+                })}
+              </div>
+              <p className="mt-3 text-sm font-semibold text-white">Classical &middot; Rapid &middot; Blitz</p>
+            </div>
+
+            <div className="absolute left-0 top-28 w-72 rotate-3 rounded-2xl border border-white/15 bg-navy-dark/80 p-5 shadow-2xl backdrop-blur-md transition-transform hover:rotate-0">
+              {nextTournament ? (
+                <>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-white/60">
+                    Registration closes for {nextTournament.title}
+                  </p>
+                  <div className="mt-3">
+                    <Countdown target={nextTournament.registrationDeadline.toISOString()} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Get started</p>
+                  <p className="mt-2 text-lg font-semibold text-white">
+                    Your first tournament is free to enter.
+                  </p>
+                </>
+              )}
+            </div>
+
+            <div className="absolute bottom-0 right-2 flex items-center gap-3 rounded-xl border border-white/15 bg-white/10 px-4 py-3 shadow-xl backdrop-blur-sm">
+              <span className="text-2xl">🏆</span>
+              <div>
+                <p className="text-sm font-bold text-white">Community-run</p>
+                <p className="text-xs text-white/60">Free to join</p>
               </div>
             </div>
-          )}
+          </div>
         </div>
       </section>
 
