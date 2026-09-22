@@ -3,9 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slug";
 import { Card, Input, Label, Textarea, Button } from "@/components/ui";
 import { tournamentSchema } from "@/lib/validations";
+import { requireAdminPage } from "@/lib/require-admin";
+import { logAdminAction } from "@/lib/audit-log";
 
 async function createTournament(formData: FormData) {
   "use server";
+  const session = await requireAdminPage();
   const parsed = tournamentSchema.safeParse({
     title: formData.get("title"),
     description: formData.get("description"),
@@ -54,6 +57,13 @@ async function createTournament(formData: FormData) {
       status: "draft",
     },
   });
+  await logAdminAction({
+    actorEmail: session.user!.email!,
+    action: "tournament.create",
+    targetType: "Tournament",
+    targetId: tournament.id,
+    summary: `Created "${tournament.title}"`,
+  });
   redirect(`/admin/tournaments/${tournament.id}`);
 }
 
@@ -62,6 +72,7 @@ export default async function NewTournamentPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
+  await requireAdminPage();
   const { error } = await searchParams;
 
   return (

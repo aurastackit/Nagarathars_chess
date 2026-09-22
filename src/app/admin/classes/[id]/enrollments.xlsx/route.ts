@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireAdminApi } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
 import { toXlsxBuffer } from "@/lib/xlsx";
 import { formatDate } from "@/lib/format";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
+  const session = await requireAdminApi();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

@@ -81,3 +81,52 @@ export async function sendRegistrationConfirmationEmail(params: {
     ],
   });
 }
+
+/** Sent when an admin confirms or rejects a registration. Falls back to the console.log stub, same as above. */
+export async function sendRegistrationDecisionEmail(params: {
+  to: string;
+  fullName: string;
+  registrationId: string;
+  tournamentTitle: string;
+  decision: "confirmed" | "rejected";
+  reason?: string | null;
+}) {
+  const statusUrl = `${SITE_URL}/registration/${params.registrationId}`;
+  const subject =
+    params.decision === "confirmed"
+      ? `Confirmed: ${params.tournamentTitle}`
+      : `Update on your registration for ${params.tournamentTitle}`;
+
+  if (!isResendConfigured()) {
+    return notifyRegistration({
+      to: params.to,
+      fullName: params.fullName,
+      subject,
+      context: `Registration ${params.registrationId} for ${params.tournamentTitle} — ${params.decision}${
+        params.reason ? ` (${params.reason})` : ""
+      } — ${statusUrl}`,
+    });
+  }
+
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const html =
+    params.decision === "confirmed"
+      ? `
+        <p>Hi ${params.fullName},</p>
+        <p>Your registration for <strong>${params.tournamentTitle}</strong> has been confirmed. See you there!</p>
+        <p>Track your registration at <a href="${statusUrl}">${statusUrl}</a>.</p>
+      `
+      : `
+        <p>Hi ${params.fullName},</p>
+        <p>We're sorry — your registration for <strong>${params.tournamentTitle}</strong> could not be confirmed.</p>
+        ${params.reason ? `<p><strong>Reason:</strong> ${params.reason}</p>` : ""}
+        <p>If you think this is a mistake, please get in touch with the organizers.</p>
+      `;
+
+  return resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL ?? "Nagarathar's Chess <registrations@example.com>",
+    to: params.to,
+    subject,
+    html,
+  });
+}

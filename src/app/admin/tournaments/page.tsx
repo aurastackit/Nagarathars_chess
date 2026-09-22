@@ -3,18 +3,47 @@ import { prisma } from "@/lib/prisma";
 import { Card, LinkButton, Badge } from "@/components/ui";
 import { formatDateRange } from "@/lib/format";
 import { revalidatePath } from "next/cache";
+import { requireAdminPage } from "@/lib/require-admin";
+import { logAdminAction } from "@/lib/audit-log";
 
 export const dynamic = "force-dynamic";
 
-async function togglePublish(id: string, currentStatus: string) {
+async function togglePublish(id: string, currentStatus: string, title: string) {
   "use server";
+  const session = await requireAdminPage();
   const nextStatus = currentStatus === "published" ? "draft" : "published";
   await prisma.tournament.update({ where: { id }, data: { status: nextStatus } });
+  await logAdminAction({
+    actorEmail: session.user!.email!,
+    action: nextStatus === "published" ? "tournament.publish" : "tournament.unpublish",
+    targetType: "Tournament",
+    targetId: id,
+    summary: `${nextStatus === "published" ? "Published" : "Unpublished"} "${title}"`,
+  });
+  revalidatePath("/admin/tournaments");
+  revalidatePath("/tournaments");
+}
+
+async function deleteTournament(id: string, title: string) {
+  "use server";
+  const session = await requireAdminPage();
+  const count = await prisma.registration.count({ where: { tournamentId: id } });
+  if (count > 0) return;
+  await prisma.tournament.delete({ where: { id } });
+  await logAdminAction({
+    actorEmail: session.user!.email!,
+    action: "tournament.delete",
+    targetType: "Tournament",
+    targetId: id,
+    summary: `Deleted "${title}" (had no registrations)`,
+  });
   revalidatePath("/admin/tournaments");
   revalidatePath("/tournaments");
 }
 
 export default async function AdminTournamentsPage() {
+  await requireAdminPage();
+
   const tournaments = await prisma.tournament.findMany({
     orderBy: { startDate: "desc" },
     include: { _count: { select: { registrations: true } } },
@@ -52,7 +81,7 @@ export default async function AdminTournamentsPage() {
                   </Link>
                 </td>
                 <td className="space-x-3 px-4 py-2 text-right">
-                  <form action={togglePublish.bind(null, t.id, t.status)} className="inline">
+                  <form action={togglePublish.bind(null, t.id, t.status, t.title)} className="inline">
                     <button type="submit" className="text-xs font-medium text-charcoal hover:underline">
                       {t.status === "published" ? "Unpublish" : "Publish"}
                     </button>
@@ -60,6 +89,13 @@ export default async function AdminTournamentsPage() {
                   <Link href={`/admin/tournaments/${t.id}`} className="text-xs font-medium text-charcoal hover:underline">
                     Manage
                   </Link>
+                  {t._count.registrations === 0 && (
+                    <form action={deleteTournament.bind(null, t.id, t.title)} className="inline">
+                      <button type="submit" className="text-xs font-medium text-red-600 hover:underline">
+                        Delete
+                      </button>
+                    </form>
+                  )}
                 </td>
               </tr>
             ))}

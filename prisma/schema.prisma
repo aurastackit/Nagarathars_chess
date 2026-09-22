@@ -70,7 +70,9 @@ model Registration {
   guardianConsent    Boolean    @default(false)
   ageCategory        String?
   status             String     @default("pending")
+  rejectionReason    String?
   paymentStatus      String     @default("not_required")
+  amountPaid         Int?
   razorpayOrderId    String?
   razorpayPaymentId  String?
   registeredAt       DateTime   @default(now())
@@ -116,4 +118,17 @@ model ContactMessage {
   email     String
   message   String
   createdAt DateTime @default(now())
+}
+
+model AdminActivityLog {
+  id         String   @id @default(cuid())
+  actorEmail String
+  action     String
+  targetType String
+  targetId   String
+  summary    String
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([targetType, targetId])
 }

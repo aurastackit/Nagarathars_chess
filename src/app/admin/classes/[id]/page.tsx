@@ -3,10 +3,13 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { Card, Input, Label, Textarea, Button, Badge } from "@/components/ui";
 import { formatDate } from "@/lib/format";
+import { requireAdminPage } from "@/lib/require-admin";
+import { logAdminAction } from "@/lib/audit-log";
 
 export const dynamic = "force-dynamic";
 
 export default async function ManageClassPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireAdminPage();
   const { id } = await params;
   const classProgram = await prisma.classProgram.findUnique({
     where: { id },
@@ -17,6 +20,7 @@ export default async function ManageClassPage({ params }: { params: Promise<{ id
 
   async function updateClass(formData: FormData) {
     "use server";
+    const session = await requireAdminPage();
     await prisma.classProgram.update({
       where: { id },
       data: {
@@ -32,6 +36,13 @@ export default async function ManageClassPage({ params }: { params: Promise<{ id
         bannerImageUrl: String(formData.get("bannerImageUrl") ?? "") || null,
         isOnline: formData.get("isOnline") === "on",
       },
+    });
+    await logAdminAction({
+      actorEmail: session.user!.email!,
+      action: "class.update",
+      targetType: "ClassProgram",
+      targetId: id,
+      summary: `Updated class "${classProgram!.title}"`,
     });
     revalidatePath(`/admin/classes/${id}`);
     revalidatePath("/admin/classes");

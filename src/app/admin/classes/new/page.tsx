@@ -2,9 +2,12 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slug";
 import { Card, Input, Label, Textarea, Button } from "@/components/ui";
+import { requireAdminPage } from "@/lib/require-admin";
+import { logAdminAction } from "@/lib/audit-log";
 
 async function createClass(formData: FormData) {
   "use server";
+  const session = await requireAdminPage();
   const title = String(formData.get("title") ?? "");
   const classProgram = await prisma.classProgram.create({
     data: {
@@ -22,10 +25,18 @@ async function createClass(formData: FormData) {
       isOnline: formData.get("isOnline") === "on",
     },
   });
+  await logAdminAction({
+    actorEmail: session.user!.email!,
+    action: "class.create",
+    targetType: "ClassProgram",
+    targetId: classProgram.id,
+    summary: `Created class "${classProgram.title}"`,
+  });
   redirect(`/admin/classes/${classProgram.id}`);
 }
 
-export default function NewClassPage() {
+export default async function NewClassPage() {
+  await requireAdminPage();
   return (
     <div>
       <h1 className="text-2xl font-bold text-charcoal">New Class</h1>

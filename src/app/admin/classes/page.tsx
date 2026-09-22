@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Card, LinkButton, Badge } from "@/components/ui";
+import { requireAdminPage } from "@/lib/require-admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminClassesPage() {
+  await requireAdminPage();
   const classes = await prisma.classProgram.findMany({
     orderBy: { createdAt: "desc" },
     include: { _count: { select: { enrollments: true } } },

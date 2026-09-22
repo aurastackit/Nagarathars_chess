@@ -5,6 +5,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await auth();
 
   if (!session) {
+    // Middleware (src/middleware.ts) already redirects unauthenticated
+    // requests away from every /admin/** route except /admin/login — this
+    // branch only ever renders for the login page itself, which has no nav.
     return <>{children}</>;
   }
 
@@ -20,6 +23,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </Link>
           <Link href="/admin/classes" className="hover:text-charcoal">
             Classes
+          </Link>
+          <Link href="/admin/activity" className="hover:text-charcoal">
+            Activity
           </Link>
         </nav>
         <form

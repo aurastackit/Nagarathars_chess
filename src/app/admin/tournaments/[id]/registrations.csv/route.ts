@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireAdminApi } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
 import { toCsv } from "@/lib/csv";
 import { formatDate } from "@/lib/format";
 import { ageCategoryLabel } from "@/lib/age-category";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
+  const session = await requireAdminApi();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -48,7 +48,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       "Passport photo uploaded",
       "Age category",
       "Payment status",
+      "Amount paid",
       "Review status",
+      "Rejection reason",
       "Registered at",
     ],
     tournament.registrations.map((r) => [
@@ -77,7 +79,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       r.passportPhotoKey || r.passportPhotoData ? "Yes" : "No",
       ageCategoryLabel(r.ageCategory),
       r.paymentStatus,
+      r.amountPaid ?? "",
       r.status,
+      r.rejectionReason ?? "",
       formatDate(r.registeredAt),
     ])
   );
