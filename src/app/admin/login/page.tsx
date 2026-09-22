@@ -29,7 +29,7 @@ export default async function AdminLoginPage({
   return (
     <main className="mx-auto flex max-w-md flex-col justify-center px-4 py-20">
       <Card className="p-6">
-        <h1 className="text-2xl font-bold text-navy">Admin Login</h1>
+        <h1 className="text-2xl font-bold text-charcoal">Admin Login</h1>
         <p className="mt-1 text-sm text-foreground/60">Sign in to manage tournaments and view registrants.</p>
         <form action={loginAction} className="mt-6 space-y-4">
           <div>

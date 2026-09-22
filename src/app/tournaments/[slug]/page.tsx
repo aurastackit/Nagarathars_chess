@@ -31,11 +31,11 @@ export default async function TournamentDetailPage({
       )}
 
       <div className="flex flex-wrap gap-2">
-        <Badge tone="navy">{tournament.format}</Badge>
+        <Badge tone="charcoal">{tournament.format}</Badge>
         <Badge tone="gray">{tournament.category}</Badge>
       </div>
 
-      <h1 className="mt-3 text-3xl font-bold text-navy">{tournament.title}</h1>
+      <h1 className="mt-3 text-3xl font-bold text-charcoal">{tournament.title}</h1>
 
       <dl className="mt-4 grid grid-cols-2 gap-4 rounded-lg border border-border bg-card p-4 text-sm sm:grid-cols-4">
         <div>
@@ -63,14 +63,14 @@ export default async function TournamentDetailPage({
           href={tournament.brochurePdfUrl}
           target="_blank"
           rel="noreferrer"
-          className="mt-4 inline-block text-sm font-semibold text-navy hover:underline"
+          className="mt-4 inline-block text-sm font-semibold text-charcoal hover:underline"
         >
           Download brochure &rarr;
         </a>
       )}
 
       <section className="mt-10 rounded-lg border border-border bg-card p-6">
-        <h2 className="text-xl font-semibold text-navy">Register</h2>
+        <h2 className="text-xl font-semibold text-charcoal">Register</h2>
         {isClosed ? (
           <p className="mt-3 text-sm text-foreground/60">
             Registration for this tournament is closed.

@@ -44,7 +44,7 @@ export default async function GalleryPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-14">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-navy">Gallery</h1>
+        <h1 className="text-3xl font-bold text-charcoal">Gallery</h1>
         <p className="mx-auto mt-2 max-w-xl text-foreground/60">
           Moments from our tournaments and classes — posters, banners, and highlights as our
           community grows.

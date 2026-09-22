@@ -12,13 +12,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between border-b border-border pb-4">
         <nav className="flex gap-6 text-sm font-medium text-foreground/80">
-          <Link href="/admin" className="hover:text-navy">
+          <Link href="/admin" className="hover:text-charcoal">
             Dashboard
           </Link>
-          <Link href="/admin/tournaments" className="hover:text-navy">
+          <Link href="/admin/tournaments" className="hover:text-charcoal">
             Tournaments
           </Link>
-          <Link href="/admin/classes" className="hover:text-navy">
+          <Link href="/admin/classes" className="hover:text-charcoal">
             Classes
           </Link>
         </nav>
@@ -28,7 +28,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             await signOut({ redirectTo: "/" });
           }}
         >
-          <button type="submit" className="text-sm font-medium text-foreground/60 hover:text-navy">
+          <button type="submit" className="text-sm font-medium text-foreground/60 hover:text-charcoal">
             Sign out
           </button>
         </form>

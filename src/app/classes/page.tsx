@@ -15,7 +15,7 @@ export default async function ClassesPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-12">
-      <h1 className="text-3xl font-bold text-navy">Online Tutoring &amp; Classes</h1>
+      <h1 className="text-3xl font-bold text-charcoal">Online Tutoring &amp; Classes</h1>
       <p className="mt-2 max-w-2xl text-foreground/60">
         Structured chess coaching for every level — beginner fundamentals through advanced
         tournament preparation, taught online by experienced coaches.

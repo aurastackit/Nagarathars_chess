@@ -3,7 +3,7 @@ import Link from "next/link";
 const QUICK_LINKS = [
   { href: "/", label: "Home" },
   { href: "/classes", label: "Online Classes" },
-  { href: "/tournaments", label: "Online Tournament" },
+  { href: "/tournaments", label: "Tournaments" },
   { href: "/gallery", label: "Gallery" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
@@ -11,7 +11,7 @@ const QUICK_LINKS = [
 
 export function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-border bg-navy-dark text-sm text-white/70">
+    <footer className="mt-auto border-t border-border bg-charcoal text-sm text-white/70">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:grid-cols-3">
         <div>
           <p className="text-lg font-semibold text-white">Nagarathar&apos;s Chess Championship</p>
@@ -31,11 +31,6 @@ export function SiteFooter() {
                 </Link>
               </li>
             ))}
-            <li>
-              <Link href="/admin/login" className="transition-colors hover:text-white hover:underline">
-                Admin Login
-              </Link>
-            </li>
           </ul>
         </div>
         <div>
@@ -45,7 +40,7 @@ export function SiteFooter() {
           </p>
           <Link
             href="/contact"
-            className="mt-3 inline-block font-semibold text-orange hover:underline"
+            className="mt-3 inline-block font-semibold text-gold hover:underline"
           >
             Send us a message &rarr;
           </Link>
@@ -53,7 +48,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-white/10 py-4">
         <p className="mx-auto max-w-6xl px-4 text-xs text-white/50">
-          &copy; {new Date().getFullYear()} Nagarathar&apos;s Chess Championship. Trial build.
+          &copy; {new Date().getFullYear()} Nagarathar&apos;s Chess Championship.
         </p>
       </div>
     </footer>

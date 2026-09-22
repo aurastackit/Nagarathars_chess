@@ -33,7 +33,7 @@ async function createTournament(formData: FormData) {
 export default function NewTournamentPage() {
   return (
     <div>
-      <h1 className="text-2xl font-bold text-navy">New Tournament</h1>
+      <h1 className="text-2xl font-bold text-charcoal">New Tournament</h1>
       <Card className="mt-6 p-6">
         <form action={createTournament} className="space-y-4">
           <div>

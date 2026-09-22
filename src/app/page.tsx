@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
-import { LinkButton, Card, Badge } from "@/components/ui";
+import { LinkButton, Card, Badge, Container, SectionHeading, EmptyState } from "@/components/ui";
 import { HeroSlideshow } from "@/components/hero-slideshow";
 import { formatDateRange } from "@/lib/format";
 import { generateGalleryPlaceholders } from "@/lib/gallery-placeholders";
@@ -9,97 +9,10 @@ import { GalleryPlaceholderTile } from "@/components/gallery-tile";
 import { Reveal } from "@/components/reveal";
 import { CountUp } from "@/components/count-up";
 import { Countdown } from "@/components/countdown";
-import { ProfileGrid, type Profile } from "@/components/profile-modal";
+import { getNextTournament } from "@/lib/next-tournament";
+import { BishopIcon, KingIcon, KnightIcon, PawnIcon, QueenIcon, RookIcon, TrophyIcon } from "@/components/icons/chess-pieces";
 
 export const dynamic = "force-dynamic";
-
-const COACHES: Profile[] = [
-  {
-    id: "coach-arun",
-    name: "Coach Arun",
-    role: "Head Coach — Beginner & Group Classes",
-    initials: "CA",
-    bio: "Leads our beginner fundamentals program, covering piece movement, basic tactics, and opening principles for first-time players.",
-    facts: [
-      { label: "FIDE Rating", value: "1850" },
-      { label: "Experience", value: "6+ years" },
-      { label: "Specialty", value: "Beginners" },
-    ],
-    highlights: [
-      "Trained 100+ first-time players from zero chess knowledge",
-      "Runs the Tue–Fri group fundamentals track",
-      "Also available for 1-on-1 beginner sessions",
-    ],
-  },
-  {
-    id: "coach-priya",
-    name: "Coach Priya",
-    role: "Intermediate Tactics Coach",
-    initials: "CP",
-    bio: "Works with intermediate players on tactics, middle-game strategy, and endgame technique.",
-    facts: [
-      { label: "FIDE Rating", value: "2010" },
-      { label: "Experience", value: "8+ years" },
-      { label: "Specialty", value: "Tactics" },
-    ],
-    highlights: [
-      "Focuses on pattern recognition and calculation drills",
-      "Helps players bridge from casual to competitive play",
-      "Weekend 1-on-1 sessions available",
-    ],
-  },
-  {
-    id: "coach-karthik",
-    name: "Coach Karthik",
-    role: "Advanced Tournament Prep",
-    initials: "CK",
-    bio: "Prepares competitive players for tournaments with database-driven analysis and personalized improvement plans.",
-    facts: [
-      { label: "FIDE Rating", value: "2150" },
-      { label: "Experience", value: "10+ years" },
-      { label: "Specialty", value: "Tournament prep" },
-    ],
-    highlights: [
-      "Builds personalized opening repertoires with players",
-      "Reviews tournament games move-by-move afterward",
-      "Works closely with players ahead of state-level events",
-    ],
-  },
-  {
-    id: "coach-meena",
-    name: "Coach Meena",
-    role: "Youth & Kids Coach",
-    initials: "CM",
-    bio: "Specializes in introducing young children to chess through games, puzzles, and simple rule-based lessons.",
-    facts: [
-      { label: "FIDE Rating", value: "1720" },
-      { label: "Experience", value: "5+ years" },
-      { label: "Specialty", value: "Kids" },
-    ],
-    highlights: [
-      "Uses puzzle-based, game-first teaching for young kids",
-      "Keeps sessions short and engaging for shorter attention spans",
-      "Popular with first-time parents new to chess",
-    ],
-  },
-  {
-    id: "coach-suresh",
-    name: "Coach Suresh",
-    role: "Endgame Specialist",
-    initials: "CS",
-    bio: "Focuses on endgame studies and technique, helping players convert small advantages into full points.",
-    facts: [
-      { label: "FIDE Rating", value: "1980" },
-      { label: "Experience", value: "7+ years" },
-      { label: "Specialty", value: "Endgames" },
-    ],
-    highlights: [
-      "Runs weekly endgame study sessions",
-      "Known for turning drawn positions into wins",
-      "Sunday morning slots available",
-    ],
-  },
-];
 
 const PROMISES = [
   {
@@ -130,17 +43,17 @@ const PROMISES = [
 
 const STEPS = [
   {
-    glyph: "♞",
+    Icon: KnightIcon,
     title: "Browse what's open",
     body: "Check upcoming tournaments and class programs — dates, venues, formats, and entry fees are all listed up front.",
   },
   {
-    glyph: "♝",
+    Icon: BishopIcon,
     title: "Register in minutes",
     body: "Fill in your details, pick your age category, and submit. No FIDE rating or prior tournament experience needed.",
   },
   {
-    glyph: "♜",
+    Icon: RookIcon,
     title: "Play & keep improving",
     body: "Show up and compete, then carry the momentum into an online class to sharpen your game for the next event.",
   },
@@ -148,17 +61,17 @@ const STEPS = [
 
 const FORMATS = [
   {
-    glyph: "♚",
+    Icon: KingIcon,
     title: "Classical",
     body: "Longer time controls that reward deep calculation — the traditional tournament format.",
   },
   {
-    glyph: "♛",
+    Icon: QueenIcon,
     title: "Rapid",
     body: "Faster games that still leave room to think, ideal for one-day events and first-timers.",
   },
   {
-    glyph: "♟",
+    Icon: PawnIcon,
     title: "Blitz",
     body: "Quick-fire games for players who want fast-paced, high-energy competition.",
   },
@@ -166,22 +79,22 @@ const FORMATS = [
 
 const BENEFITS = [
   {
-    glyph: "♟",
+    Icon: PawnIcon,
     title: "Sharper focus",
     body: "Every move demands attention — regular play builds the habit of concentrating for longer stretches.",
   },
   {
-    glyph: "♞",
+    Icon: KnightIcon,
     title: "Better planning",
     body: "Thinking several moves ahead carries over into how kids and adults plan schoolwork, projects, and goals.",
   },
   {
-    glyph: "♝",
+    Icon: BishopIcon,
     title: "Patience under pressure",
     body: "Tournament games teach players to stay calm, weigh options, and avoid rushed decisions.",
   },
   {
-    glyph: "♜",
+    Icon: RookIcon,
     title: "Resilience",
     body: "Losing a game and coming back to analyze it builds comfort with setbacks — on and off the board.",
   },
@@ -227,10 +140,7 @@ export default async function HomePage() {
       orderBy: { startDate: "desc" },
       take: 3,
     }),
-    prisma.tournament.findFirst({
-      where: { status: "published", registrationDeadline: { gt: new Date() } },
-      orderBy: { registrationDeadline: "asc" },
-    }),
+    getNextTournament(),
   ]);
 
   const classes = allClasses.slice(0, 3);
@@ -239,7 +149,7 @@ export default async function HomePage() {
     { label: "Tournaments hosted", value: allPublished.length },
     { label: "Cities reached", value: cityList.length },
     { label: "Class programs", value: allClasses.length },
-  ];
+  ].filter((s) => s.value > 0);
 
   const realGalleryItems = galleryItems.slice(0, 6);
   const galleryPlaceholders = generateGalleryPlaceholders(Math.max(0, 6 - realGalleryItems.length));
@@ -252,14 +162,14 @@ export default async function HomePage() {
 
   return (
     <main>
-      <section className="relative overflow-hidden bg-navy text-white">
+      <section className="relative overflow-hidden bg-charcoal text-white">
         <HeroSlideshow />
-        <div className="absolute inset-0 bg-navy/80" />
+        <div className="absolute inset-0 bg-charcoal/80" />
         <div className="chess-pattern absolute inset-0" />
         <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-gold/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-32 left-1/3 h-80 w-80 rounded-full bg-orange/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-32 left-1/3 h-80 w-80 rounded-full bg-gold/10 blur-3xl" />
 
-        <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:py-28">
+        <Container className="relative grid gap-12 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:py-28">
           <div className="flex flex-col items-start gap-6">
             <span className="animate-fade-up inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide ring-1 ring-inset ring-white/20">
               <span className="h-1.5 w-1.5 rounded-full bg-gold" />
@@ -282,7 +192,7 @@ export default async function HomePage() {
               <LinkButton
                 href="/classes"
                 variant="outline"
-                className="border-white/40 text-white hover:bg-white hover:text-navy"
+                className="border-white/40 text-white hover:bg-white hover:text-charcoal"
               >
                 Explore Classes
               </LinkButton>
@@ -324,13 +234,13 @@ export default async function HomePage() {
                 {Array.from({ length: 64 }).map((_, i) => {
                   const row = Math.floor(i / 8);
                   const dark = (row + i) % 2 === 0;
-                  return <div key={i} className={`aspect-square ${dark ? "bg-navy-dark" : "bg-white/80"}`} />;
+                  return <div key={i} className={`aspect-square ${dark ? "bg-charcoal" : "bg-white/80"}`} />;
                 })}
               </div>
               <p className="mt-3 text-sm font-semibold text-white">Classical &middot; Rapid &middot; Blitz</p>
             </div>
 
-            <div className="absolute left-0 top-28 w-72 rotate-3 rounded-2xl border border-white/15 bg-navy-dark/80 p-5 shadow-2xl backdrop-blur-md transition-transform hover:rotate-0">
+            <div className="absolute left-0 top-28 w-72 rotate-3 rounded-2xl border border-white/15 bg-charcoal/80 p-5 shadow-2xl backdrop-blur-md transition-transform hover:rotate-0">
               {nextTournament ? (
                 <>
                   <p className="text-xs font-semibold uppercase tracking-wide text-white/60">
@@ -351,37 +261,35 @@ export default async function HomePage() {
             </div>
 
             <div className="absolute bottom-0 right-2 flex items-center gap-3 rounded-xl border border-white/15 bg-white/10 px-4 py-3 shadow-xl backdrop-blur-sm">
-              <span className="text-2xl">🏆</span>
+              <TrophyIcon className="h-7 w-7 text-gold" />
               <div>
                 <p className="text-sm font-bold text-white">Community-run</p>
                 <p className="text-xs text-white/60">Free to join</p>
               </div>
             </div>
           </div>
-        </div>
+        </Container>
       </section>
 
-      <section className="border-b border-border bg-card">
-        <div className="mx-auto grid max-w-6xl gap-6 px-4 py-10 sm:grid-cols-3">
-          {stats.map((s) => (
-            <div key={s.label} className="text-center">
-              <p className="text-3xl font-bold text-navy">
-                <CountUp value={s.value} />
-                {s.value > 0 ? "+" : ""}
-              </p>
-              <p className="mt-1 text-sm text-foreground/60">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      {stats.length > 0 && (
+        <section className="border-b border-border bg-card">
+          <Container className="grid gap-6 py-10 sm:grid-cols-3">
+            {stats.map((s) => (
+              <div key={s.label} className="text-center">
+                <p className="text-3xl font-bold text-charcoal">
+                  <CountUp value={s.value} />+
+                </p>
+                <p className="mt-1 text-sm text-foreground/60">{s.label}</p>
+              </div>
+            ))}
+          </Container>
+        </section>
+      )}
 
       <section className="chess-pattern-light bg-background py-16">
-        <div className="mx-auto max-w-6xl px-4">
-          <Reveal className="text-center">
-            <h2 className="text-2xl font-bold text-navy">How It Works</h2>
-            <p className="mx-auto mt-2 max-w-xl text-foreground/60">
-              From browsing to your first move, in three simple steps.
-            </p>
+        <Container>
+          <Reveal>
+            <SectionHeading title="How It Works" description="From browsing to your first move, in three simple steps." />
           </Reveal>
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
             {STEPS.map((s, i) => (
@@ -389,26 +297,24 @@ export default async function HomePage() {
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gold/15 text-lg font-bold text-gold">
                   {i + 1}
                 </span>
-                <span className="pointer-events-none absolute right-4 top-4 text-4xl text-navy/10" aria-hidden="true">
-                  {s.glyph}
-                </span>
+                <s.Icon className="pointer-events-none absolute right-4 top-4 h-9 w-9 text-charcoal/10" aria-hidden="true" strokeWidth={1} />
                 <h3 className="mt-4 font-semibold text-foreground">{s.title}</h3>
                 <p className="mt-2 text-sm text-foreground/60">{s.body}</p>
               </Reveal>
             ))}
           </div>
-        </div>
+        </Container>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-16">
+      <Container className="py-16">
         <div className="mb-8 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-navy">Upcoming Tournaments</h2>
-          <Link href="/tournaments" className="text-sm font-semibold text-orange hover:underline">
+          <h2 className="text-2xl font-bold text-charcoal">Upcoming Tournaments</h2>
+          <Link href="/tournaments" className="text-sm font-semibold text-gold hover:underline">
             View all &rarr;
           </Link>
         </div>
         {tournaments.length === 0 ? (
-          <p className="text-foreground/60">No tournaments published yet — check back soon.</p>
+          <EmptyState message="No tournaments published yet — check back soon." />
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {tournaments.map((t, i) => (
@@ -421,12 +327,12 @@ export default async function HomePage() {
                       </div>
                     )}
                     <div className="p-4">
-                      <Badge tone="navy">{t.format}</Badge>
+                      <Badge tone="charcoal">{t.format}</Badge>
                       <h3 className="mt-2 font-semibold text-foreground">{t.title}</h3>
                       <p className="mt-1 text-sm text-foreground/60">
                         {formatDateRange(t.startDate, t.endDate)} &middot; {t.city}
                       </p>
-                      <span className="mt-3 inline-flex items-center rounded-full bg-orange px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors group-hover:bg-orange/90">
+                      <span className="mt-3 inline-flex items-center rounded-full bg-gold px-3 py-1.5 text-xs font-semibold text-charcoal shadow-sm transition-colors group-hover:bg-gold/90">
                         {t.entryFee === 0 ? "Register — Free Entry" : `Register — ₹${t.entryFee}`}
                       </span>
                     </div>
@@ -436,21 +342,18 @@ export default async function HomePage() {
             ))}
           </div>
         )}
-      </section>
+      </Container>
 
       {levelGroups.length > 0 && (
         <section className="bg-card py-16">
-          <div className="mx-auto max-w-6xl px-4">
-            <Reveal className="text-center">
-              <h2 className="text-2xl font-bold text-navy">Programs By Level</h2>
-              <p className="mx-auto mt-2 max-w-xl text-foreground/60">
-                A structured path from your first game to tournament-ready play.
-              </p>
+          <Container>
+            <Reveal>
+              <SectionHeading title="Programs By Level" description="A structured path from your first game to tournament-ready play." />
             </Reveal>
             <div className="mt-10 grid gap-6 sm:grid-cols-3">
               {levelGroups.map((g, i) => (
                 <Reveal key={g.level} delay={i * 120} className="rounded-lg border border-border p-6 text-center shadow-sm">
-                  <Badge tone={i === 0 ? "orange" : i === 1 ? "gold" : "navy"}>{g.info.label}</Badge>
+                  <Badge tone={i === 1 ? "gold" : "charcoal"}>{g.info.label}</Badge>
                   <p className="mt-3 text-sm text-foreground/60">{g.info.body}</p>
                   <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-foreground/40">
                     {g.count} program{g.count === 1 ? "" : "s"} available
@@ -458,30 +361,30 @@ export default async function HomePage() {
                 </Reveal>
               ))}
             </div>
-          </div>
+          </Container>
         </section>
       )}
 
-      <section className="mx-auto max-w-6xl px-4 py-16">
+      <Container className="py-16">
         <div className="mb-8 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-navy">Online Tutoring &amp; Classes</h2>
-          <Link href="/classes" className="text-sm font-semibold text-orange hover:underline">
+          <h2 className="text-2xl font-bold text-charcoal">Online Tutoring &amp; Classes</h2>
+          <Link href="/classes" className="text-sm font-semibold text-gold hover:underline">
             View all &rarr;
           </Link>
         </div>
         {classes.length === 0 ? (
-          <p className="text-foreground/60">No classes published yet — check back soon.</p>
+          <EmptyState message="No classes published yet — check back soon." />
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {classes.map((c, i) => (
               <Reveal key={c.id} delay={i * 100}>
                 <Card className="h-full p-5">
-                  <Badge tone="orange">{c.level}</Badge>
+                  <Badge tone="gold">{c.level}</Badge>
                   <h3 className="mt-2 font-semibold text-foreground">{c.title}</h3>
                   <p className="mt-2 text-sm text-foreground/60">{c.scheduleText}</p>
                   <Link
                     href="/classes"
-                    className="mt-3 inline-block text-sm font-semibold text-navy hover:underline"
+                    className="mt-3 inline-block text-sm font-semibold text-charcoal hover:underline"
                   >
                     Learn more &rarr;
                   </Link>
@@ -490,32 +393,20 @@ export default async function HomePage() {
             ))}
           </div>
         )}
-      </section>
-
-      <section className="chess-pattern-light bg-background py-16">
-        <div className="mx-auto max-w-6xl px-4">
-          <Reveal className="text-center">
-            <h2 className="text-2xl font-bold text-navy">Meet Our Coaches</h2>
-            <p className="mx-auto mt-2 max-w-xl text-foreground/60">
-              Click a coach to see their background. The instructors behind our online classes.
-            </p>
-          </Reveal>
-          <ProfileGrid profiles={COACHES} layout="circle-side" />
-        </div>
-      </section>
+      </Container>
 
       <section className="mx-auto max-w-6xl px-4 py-16">
-        <Reveal className="text-center">
-          <h2 className="text-2xl font-bold text-navy">Tournament Formats</h2>
-          <p className="mx-auto mt-2 max-w-xl text-foreground/60">
-            We run events across every time control, so there&apos;s a format for how you like to play.
-          </p>
+        <Reveal>
+          <SectionHeading
+            title="Tournament Formats"
+            description="We run events across every time control, so there's a format for how you like to play."
+          />
         </Reveal>
         <div className="mt-10 grid gap-6 sm:grid-cols-3">
           {FORMATS.map((f, i) => (
             <Reveal key={f.title} delay={i * 100} className="rounded-lg border border-border bg-card p-6 text-center shadow-sm">
-              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gold/15 text-3xl text-gold">
-                {f.glyph}
+              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gold/15 text-gold">
+                <f.Icon className="h-7 w-7" strokeWidth={1.1} />
               </span>
               <h3 className="mt-4 font-semibold text-foreground">{f.title}</h3>
               <p className="mt-2 text-sm text-foreground/60">{f.body}</p>
@@ -525,39 +416,33 @@ export default async function HomePage() {
       </section>
 
       <section className="bg-card py-16">
-        <div className="mx-auto max-w-6xl px-4">
-          <Reveal className="text-center">
-            <h2 className="text-2xl font-bold text-navy">Why Chess?</h2>
-            <p className="mx-auto mt-2 max-w-xl text-foreground/60">
-              The skills chess builds carry well beyond the board.
-            </p>
+        <Container>
+          <Reveal>
+            <SectionHeading title="Why Chess?" description="The skills chess builds carry well beyond the board." />
           </Reveal>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {BENEFITS.map((b, i) => (
               <Reveal key={b.title} delay={i * 90} className="rounded-lg border border-border p-5 text-center shadow-sm">
-                <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-navy/10 text-2xl text-navy">
-                  {b.glyph}
+                <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-charcoal/10 text-charcoal">
+                  <b.Icon className="h-6 w-6" strokeWidth={1.1} />
                 </span>
                 <h3 className="mt-3 font-semibold text-foreground">{b.title}</h3>
                 <p className="mt-2 text-sm text-foreground/60">{b.body}</p>
               </Reveal>
             ))}
           </div>
-        </div>
+        </Container>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-16">
-        <Reveal className="text-center">
-          <h2 className="text-2xl font-bold text-navy">Why Choose Us</h2>
-          <p className="mx-auto mt-2 max-w-xl text-foreground/60">
-            Whatever brought you here, we&apos;ve built this around making chess accessible.
-          </p>
+      <Container className="py-16">
+        <Reveal>
+          <SectionHeading title="Why Choose Us" description="Whatever brought you here, we've built this around making chess accessible." />
         </Reveal>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {PROMISES.map((p, i) => (
             <Reveal key={p.title} delay={i * 80}>
               <Card className="h-full p-5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-orange/10 text-orange">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gold/10 text-gold">
                   ✓
                 </span>
                 <h3 className="mt-3 font-semibold text-foreground">{p.title}</h3>
@@ -566,13 +451,13 @@ export default async function HomePage() {
             </Reveal>
           ))}
         </div>
-      </section>
+      </Container>
 
       <section className="bg-card py-16">
-        <div className="mx-auto max-w-6xl px-4">
+        <Container>
           <div className="mb-8 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-navy">From Our Gallery</h2>
-            <Link href="/gallery" className="text-sm font-semibold text-orange hover:underline">
+            <h2 className="text-2xl font-bold text-charcoal">From Our Gallery</h2>
+            <Link href="/gallery" className="text-sm font-semibold text-gold hover:underline">
               View all &rarr;
             </Link>
           </div>
@@ -594,13 +479,13 @@ export default async function HomePage() {
               </Reveal>
             ))}
           </div>
-        </div>
+        </Container>
       </section>
 
       <section className="bg-card py-16">
         <div className="mx-auto max-w-3xl px-4">
-          <Reveal className="text-center">
-            <h2 className="text-2xl font-bold text-navy">Frequently Asked Questions</h2>
+          <Reveal>
+            <SectionHeading title="Frequently Asked Questions" />
           </Reveal>
           <div className="mt-10 space-y-6">
             {FAQS.map((f, i) => (
@@ -614,7 +499,7 @@ export default async function HomePage() {
       </section>
 
       <section className="mx-auto max-w-4xl px-4 py-16 text-center">
-        <h2 className="text-2xl font-bold text-navy">Our Goal</h2>
+        <h2 className="text-2xl font-bold text-charcoal">Our Goal</h2>
         <p className="mt-4 text-foreground/80">
           We want every local player who wants a first tournament experience to have one nearby,
           free of cost, and welcoming to beginners — with the coaching to keep growing long after
@@ -628,7 +513,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="chess-pattern relative overflow-hidden bg-navy-dark py-14 text-center text-white">
+      <section className="chess-pattern relative overflow-hidden bg-charcoal py-14 text-center text-white">
         <div className="relative mx-auto max-w-2xl px-4">
           <h2 className="text-2xl font-bold">Ready to make your first move?</h2>
           <p className="mt-2 text-white/70">
@@ -639,7 +524,7 @@ export default async function HomePage() {
             <LinkButton
               href="/classes"
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-navy"
+              className="border-white text-white hover:bg-white hover:text-charcoal"
             >
               Explore Classes
             </LinkButton>

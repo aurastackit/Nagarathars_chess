@@ -21,7 +21,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-navy">Dashboard</h1>
+      <h1 className="text-2xl font-bold text-charcoal">Dashboard</h1>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-4">
         <Stat label="Tournaments" value={tournamentCount} />
@@ -34,7 +34,7 @@ export default async function AdminDashboardPage() {
         <h2 className="mb-3 text-lg font-semibold text-foreground">Recent registrations</h2>
         <Card className="overflow-hidden">
           <table className="w-full text-left text-sm">
-            <thead className="bg-navy/5 text-foreground/60">
+            <thead className="bg-charcoal/5 text-foreground/60">
               <tr>
                 <th className="px-4 py-2 font-medium">Name</th>
                 <th className="px-4 py-2 font-medium">Tournament</th>
@@ -67,11 +67,11 @@ export default async function AdminDashboardPage() {
 
       <p className="mt-6 text-sm text-foreground/60">
         Manage listings under{" "}
-        <Link href="/admin/tournaments" className="font-medium text-navy hover:underline">
+        <Link href="/admin/tournaments" className="font-medium text-charcoal hover:underline">
           Tournaments
         </Link>{" "}
         and{" "}
-        <Link href="/admin/classes" className="font-medium text-navy hover:underline">
+        <Link href="/admin/classes" className="font-medium text-charcoal hover:underline">
           Classes
         </Link>
         .
@@ -84,7 +84,7 @@ function Stat({ label, value }: { label: string; value: number }) {
   return (
     <Card className="p-4">
       <p className="text-sm text-foreground/60">{label}</p>
-      <p className="mt-1 text-3xl font-bold text-navy">{value}</p>
+      <p className="mt-1 text-3xl font-bold text-charcoal">{value}</p>
     </Card>
   );
 }

@@ -51,8 +51,8 @@ export default async function ManageTournamentPage({ params }: { params: Promise
   return (
     <div>
       <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold text-navy">{tournament.title}</h1>
-        <Badge tone={tournament.status === "published" ? "navy" : "gray"}>{tournament.status}</Badge>
+        <h1 className="text-2xl font-bold text-charcoal">{tournament.title}</h1>
+        <Badge tone={tournament.status === "published" ? "charcoal" : "gray"}>{tournament.status}</Badge>
       </div>
 
       <Card className="mt-6 p-6">
@@ -167,13 +167,13 @@ export default async function ManageTournamentPage({ params }: { params: Promise
           <div className="flex gap-4">
             <a
               href={`/admin/tournaments/${tournament.id}/registrations.csv`}
-              className="text-sm font-semibold text-navy hover:underline"
+              className="text-sm font-semibold text-charcoal hover:underline"
             >
               Export CSV
             </a>
             <a
               href={`/admin/tournaments/${tournament.id}/registrations.xlsx`}
-              className="text-sm font-semibold text-navy hover:underline"
+              className="text-sm font-semibold text-charcoal hover:underline"
             >
               Export Excel
             </a>
@@ -182,7 +182,7 @@ export default async function ManageTournamentPage({ params }: { params: Promise
         <Card className="mt-3 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-navy/5 text-foreground/60">
+              <thead className="bg-charcoal/5 text-foreground/60">
                 <tr>
                   <th className="px-4 py-2 font-medium">Name</th>
                   <th className="px-4 py-2 font-medium">Email</th>

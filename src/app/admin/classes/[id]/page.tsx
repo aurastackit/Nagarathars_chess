@@ -41,8 +41,8 @@ export default async function ManageClassPage({ params }: { params: Promise<{ id
   return (
     <div>
       <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold text-navy">{classProgram.title}</h1>
-        <Badge tone="orange">{classProgram.level}</Badge>
+        <h1 className="text-2xl font-bold text-charcoal">{classProgram.title}</h1>
+        <Badge tone="gold">{classProgram.level}</Badge>
       </div>
 
       <Card className="mt-6 p-6">
@@ -143,13 +143,13 @@ export default async function ManageClassPage({ params }: { params: Promise<{ id
           <div className="flex gap-4">
             <a
               href={`/admin/classes/${classProgram.id}/enrollments.csv`}
-              className="text-sm font-semibold text-navy hover:underline"
+              className="text-sm font-semibold text-charcoal hover:underline"
             >
               Export CSV
             </a>
             <a
               href={`/admin/classes/${classProgram.id}/enrollments.xlsx`}
-              className="text-sm font-semibold text-navy hover:underline"
+              className="text-sm font-semibold text-charcoal hover:underline"
             >
               Export Excel
             </a>
@@ -158,7 +158,7 @@ export default async function ManageClassPage({ params }: { params: Promise<{ id
         <Card className="mt-3 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-navy/5 text-foreground/60">
+              <thead className="bg-charcoal/5 text-foreground/60">
                 <tr>
                   <th className="px-4 py-2 font-medium">Name</th>
                   <th className="px-4 py-2 font-medium">Email</th>

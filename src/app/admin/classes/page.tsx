@@ -13,13 +13,13 @@ export default async function AdminClassesPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-navy">Classes</h1>
+        <h1 className="text-2xl font-bold text-charcoal">Classes</h1>
         <LinkButton href="/admin/classes/new">New Class</LinkButton>
       </div>
 
       <Card className="mt-6 overflow-hidden">
         <table className="w-full text-left text-sm">
-          <thead className="bg-navy/5 text-foreground/60">
+          <thead className="bg-charcoal/5 text-foreground/60">
             <tr>
               <th className="px-4 py-2 font-medium">Title</th>
               <th className="px-4 py-2 font-medium">Level</th>
@@ -34,19 +34,19 @@ export default async function AdminClassesPage() {
               <tr key={c.id} className="border-t border-border">
                 <td className="px-4 py-2 font-medium">{c.title}</td>
                 <td className="px-4 py-2">
-                  <Badge tone="orange">{c.level}</Badge>
+                  <Badge tone="gold">{c.level}</Badge>
                 </td>
                 <td className="px-4 py-2 text-foreground/60">{c.isOnline ? "Online" : "In-person"}</td>
                 <td className="px-4 py-2 text-foreground/60">
                   ₹{c.price} &middot; {c.sessionType === "group" ? "Group" : "1-on-1"}
                 </td>
                 <td className="px-4 py-2">
-                  <Link href={`/admin/classes/${c.id}`} className="font-medium text-navy hover:underline">
+                  <Link href={`/admin/classes/${c.id}`} className="font-medium text-charcoal hover:underline">
                     {c._count.enrollments}
                   </Link>
                 </td>
                 <td className="px-4 py-2 text-right">
-                  <Link href={`/admin/classes/${c.id}`} className="text-xs font-medium text-navy hover:underline">
+                  <Link href={`/admin/classes/${c.id}`} className="text-xs font-medium text-charcoal hover:underline">
                     Manage
                   </Link>
                 </td>

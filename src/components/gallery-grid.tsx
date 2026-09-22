@@ -52,7 +52,7 @@ export function GalleryGrid({ realItems, placeholders }: { realItems: RealItem[]
           <button
             type="button"
             onClick={() => setVisible((v) => v + PAGE_SIZE)}
-            className="rounded-md border border-navy px-6 py-2.5 text-sm font-semibold text-navy transition-colors hover:bg-navy hover:text-white"
+            className="rounded-md border border-charcoal px-6 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-charcoal hover:text-white"
           >
             Load more ({items.length - visible} remaining)
           </button>

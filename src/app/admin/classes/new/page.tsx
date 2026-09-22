@@ -28,7 +28,7 @@ async function createClass(formData: FormData) {
 export default function NewClassPage() {
   return (
     <div>
-      <h1 className="text-2xl font-bold text-navy">New Class</h1>
+      <h1 className="text-2xl font-bold text-charcoal">New Class</h1>
       <Card className="mt-6 p-6">
         <form action={createClass} className="space-y-4">
           <div>

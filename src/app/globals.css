@@ -1,32 +1,35 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f7f4;
-  --foreground: #1c2430;
-  --navy: #16324f;
-  --navy-dark: #0b1e30;
-  --orange: #157a4a;
+  --background: #f6f1e7;
+  --foreground: #24201a;
+  --charcoal: #17140f;
+  --card: #fffdf9;
+  --border: #e6ddc8;
   --gold: #c8922f;
-  --card: #ffffff;
-  --border: #e2e1da;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-navy: #16324f;
-  --color-navy-dark: #0b1e30;
-  --color-orange: #157a4a;
-  --color-gold: #c8922f;
+  --color-charcoal: var(--charcoal);
   --color-card: var(--card);
   --color-border: var(--border);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-gold: var(--gold);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-display);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+  letter-spacing: -0.01em;
 }
 
 .chess-pattern {
@@ -39,8 +42,8 @@ body {
 
 .chess-pattern-light {
   background-image:
-    linear-gradient(45deg, rgba(35, 74, 124, 0.05) 25%, transparent 25%, transparent 75%, rgba(35, 74, 124, 0.05) 75%, rgba(35, 74, 124, 0.05)),
-    linear-gradient(45deg, rgba(35, 74, 124, 0.05) 25%, transparent 25%, transparent 75%, rgba(35, 74, 124, 0.05) 75%, rgba(35, 74, 124, 0.05));
+    linear-gradient(45deg, color-mix(in srgb, var(--charcoal) 5%, transparent) 25%, transparent 25%, transparent 75%, color-mix(in srgb, var(--charcoal) 5%, transparent) 75%, color-mix(in srgb, var(--charcoal) 5%, transparent)),
+    linear-gradient(45deg, color-mix(in srgb, var(--charcoal) 5%, transparent) 25%, transparent 25%, transparent 75%, color-mix(in srgb, var(--charcoal) 5%, transparent) 75%, color-mix(in srgb, var(--charcoal) 5%, transparent));
   background-size: 48px 48px;
   background-position: 0 0, 24px 24px;
 }

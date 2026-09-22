@@ -61,7 +61,7 @@ export default async function AboutPage() {
 
   return (
     <main>
-      <section className="bg-navy text-white">
+      <section className="bg-charcoal text-white">
         <div className="mx-auto max-w-4xl px-4 py-16 text-center">
           <h1 className="animate-fade-up text-3xl font-bold sm:text-4xl">About us</h1>
           <p className="animate-fade-up mx-auto mt-3 max-w-2xl text-white/80" style={{ animationDelay: "100ms" }}>
@@ -76,7 +76,7 @@ export default async function AboutPage() {
           {stats.map((s, i) => (
             <Reveal key={s.label} delay={i * 90}>
               <Card className="p-5 text-center">
-                <p className="text-3xl font-bold text-navy">{s.value}</p>
+                <p className="text-3xl font-bold text-charcoal">{s.value}</p>
                 <p className="mt-1 text-sm text-foreground/60">{s.label}</p>
               </Card>
             </Reveal>
@@ -87,7 +87,7 @@ export default async function AboutPage() {
       <section className="bg-card py-14">
         <div className="mx-auto max-w-4xl px-4">
           <Reveal>
-            <h2 className="text-2xl font-bold text-navy">Our story</h2>
+            <h2 className="text-2xl font-bold text-charcoal">Our story</h2>
             <p className="mt-4 text-foreground/80">
               Nagarathar&apos;s Chess Championship started as a simple idea: chess shouldn&apos;t be
               gated behind ratings, entry fees, or travel to far-off venues. We organize tournaments
@@ -104,7 +104,7 @@ export default async function AboutPage() {
 
       <section className="mx-auto max-w-6xl px-4 py-14">
         <Reveal>
-          <h2 className="text-2xl font-bold text-navy">Our promise</h2>
+          <h2 className="text-2xl font-bold text-charcoal">Our promise</h2>
         </Reveal>
         <div className="mt-8 grid gap-6 sm:grid-cols-2">
           {PROMISES.map((p, i) => (
@@ -121,7 +121,7 @@ export default async function AboutPage() {
       <section className="chess-pattern-light bg-background py-14">
         <div className="mx-auto max-w-6xl px-4">
           <Reveal className="text-center">
-            <h2 className="text-2xl font-bold text-navy">Our Committee</h2>
+            <h2 className="text-2xl font-bold text-charcoal">Our Committee</h2>
             <p className="mx-auto mt-2 max-w-xl text-foreground/60">
               Click a member to read more about them.
             </p>
@@ -130,10 +130,10 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="bg-navy/5 py-14">
+      <section className="bg-charcoal/5 py-14">
         <div className="mx-auto max-w-4xl px-4">
           <Reveal>
-            <h2 className="text-2xl font-bold text-navy">Our goal</h2>
+            <h2 className="text-2xl font-bold text-charcoal">Our goal</h2>
             <p className="mt-4 text-foreground/80">
               In the near term, we want every local player who wants a first tournament experience
               to have one nearby, free of cost, and welcoming to beginners. Longer term, we want our
@@ -142,7 +142,7 @@ export default async function AboutPage() {
             </p>
             {upcomingTournaments.length > 0 && (
               <p className="mt-4 text-foreground/80">
-                Right now we have <span className="font-semibold text-navy">{upcomingTournaments.length}</span>{" "}
+                Right now we have <span className="font-semibold text-charcoal">{upcomingTournaments.length}</span>{" "}
                 upcoming tournament{upcomingTournaments.length === 1 ? "" : "s"} open for registration.
               </p>
             )}

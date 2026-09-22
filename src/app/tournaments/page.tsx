@@ -24,7 +24,7 @@ export default async function TournamentsPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-12">
-      <h1 className="text-3xl font-bold text-navy">Tournaments</h1>
+      <h1 className="text-3xl font-bold text-charcoal">Tournaments</h1>
       <p className="mt-2 text-foreground/60">
         Browse upcoming local tournaments and register — free entry, open to non-rated players.
       </p>
@@ -63,7 +63,7 @@ function TournamentGrid({
                 )}
                 <div className="p-4">
                   <div className="flex gap-2">
-                    <Badge tone="navy">{t.format}</Badge>
+                    <Badge tone="charcoal">{t.format}</Badge>
                     <Badge tone="gray">{t.category}</Badge>
                   </div>
                   <h3 className="mt-2 font-semibold text-foreground">{t.title}</h3>
@@ -71,7 +71,7 @@ function TournamentGrid({
                     {formatDateRange(t.startDate, t.endDate)} &middot; {t.venue}, {t.city}
                   </p>
                   <div className="mt-3 flex items-center justify-between">
-                    <span className="inline-flex items-center rounded-full bg-orange px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors group-hover:bg-orange/90">
+                    <span className="inline-flex items-center rounded-full bg-gold px-3 py-1.5 text-xs font-semibold text-charcoal shadow-sm transition-colors group-hover:bg-gold/90">
                       {t.entryFee === 0 ? "Register — Free Entry" : `Register — ₹${t.entryFee}`}
                     </span>
                     <p className="text-xs text-foreground/50">{t._count.registrations} registered</p>

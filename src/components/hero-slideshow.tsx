@@ -1,24 +1,26 @@
+import { BishopIcon, KingIcon, KnightIcon, QueenIcon, RookIcon } from "@/components/icons/chess-pieces";
+
 const SLIDES = [
-  { glyph: "♔", from: "#16294f", to: "#234a7c" },
-  { glyph: "♕", from: "#234a7c", to: "#2f5c92" },
-  { glyph: "♖", from: "#16294f", to: "#3a3a3a" },
-  { glyph: "♗", from: "#234a7c", to: "#16294f" },
-  { glyph: "♘", from: "#1c2430", to: "#234a7c" },
+  { Icon: KingIcon, from: "var(--charcoal)", to: "color-mix(in srgb, var(--charcoal), var(--gold) 25%)" },
+  { Icon: QueenIcon, from: "color-mix(in srgb, var(--charcoal), var(--gold) 25%)", to: "color-mix(in srgb, var(--charcoal), var(--gold) 40%)" },
+  { Icon: RookIcon, from: "var(--charcoal)", to: "color-mix(in srgb, var(--charcoal), black 20%)" },
+  { Icon: BishopIcon, from: "color-mix(in srgb, var(--charcoal), var(--gold) 20%)", to: "var(--charcoal)" },
+  { Icon: KnightIcon, from: "color-mix(in srgb, var(--charcoal), black 15%)", to: "color-mix(in srgb, var(--charcoal), var(--gold) 25%)" },
 ];
 
 export function HeroSlideshow() {
   return (
     <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-      {SLIDES.map((s, i) => (
+      {SLIDES.map(({ Icon, from, to }, i) => (
         <div
           key={i}
           className="hero-slide absolute inset-0 flex items-center justify-center"
           style={{
-            background: `linear-gradient(135deg, ${s.from}, ${s.to})`,
+            background: `linear-gradient(135deg, ${from}, ${to})`,
             animationDelay: `${i * -5}s`,
           }}
         >
-          <span className="hero-slide-glyph select-none">{s.glyph}</span>
+          <Icon className="hero-slide-glyph" style={{ color: "rgba(255, 255, 255, 0.14)" }} />
         </div>
       ))}
       <style>{`
@@ -27,9 +29,9 @@ export function HeroSlideshow() {
           animation: heroCrossfade 25s infinite;
         }
         .hero-slide-glyph {
-          font-size: min(46vw, 26rem);
-          line-height: 1;
-          color: rgba(255, 255, 255, 0.14);
+          width: min(46vw, 26rem);
+          height: min(46vw, 26rem);
+          stroke-width: 0.6;
         }
         @keyframes heroCrossfade {
           0% { opacity: 0; }
