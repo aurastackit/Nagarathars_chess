@@ -7,6 +7,7 @@ import { requireAdminPage } from "@/lib/require-admin";
 import { logAdminAction } from "@/lib/audit-log";
 import { sendRegistrationDecisionEmail } from "@/lib/notify";
 import { RegistrantsPanel } from "@/components/admin/registrants-panel";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -132,9 +133,14 @@ export default async function ManageTournamentPage({
 
   return (
     <div>
-      <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold text-charcoal">{tournament.title}</h1>
-        <Badge tone={tournament.status === "published" ? "charcoal" : "gray"}>{tournament.status}</Badge>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-charcoal">{tournament.title}</h1>
+          <Badge tone={tournament.status === "published" ? "charcoal" : "gray"}>{tournament.status}</Badge>
+        </div>
+        <Link href={`/admin/tournaments/${tournament.id}/results`} className="text-sm font-semibold text-gold hover:underline">
+          Manage results &rarr;
+        </Link>
       </div>
 
       <Card className="mt-6 p-6">

@@ -31,6 +31,9 @@ export default async function RegistrationStatusPage({ params }: { params: Promi
   if (!registration) notFound();
 
   const statusMeta = STATUS_META[registration.status] ?? STATUS_META.pending;
+  const isConfirmed = registration.status === "confirmed" || registration.status === "registered";
+  const tournamentConcluded = new Date() >= registration.tournament.endDate;
+  const certificateAvailable = isConfirmed && tournamentConcluded;
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-14">
@@ -66,6 +69,19 @@ export default async function RegistrationStatusPage({ params }: { params: Promi
           <LinkButton href={`/tournaments/${registration.tournament.slug}`} variant="outline">
             View tournament
           </LinkButton>
+          {certificateAvailable && (
+            <a
+              href={`/api/registration/${registration.id}/certificate`}
+              className="rounded-md bg-gold px-4 py-2 text-sm font-semibold text-charcoal transition-colors hover:bg-gold/90"
+            >
+              Download Certificate
+            </a>
+          )}
+          {registration.tournament.resultsPublished && (
+            <LinkButton href={`/tournaments/${registration.tournament.slug}/results`} variant="outline">
+              View Results
+            </LinkButton>
+          )}
         </div>
 
         {registration.status === "pending" && (

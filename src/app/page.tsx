@@ -10,6 +10,7 @@ import { CountUp } from "@/components/count-up";
 import { Countdown } from "@/components/countdown";
 import { getNextTournament } from "@/lib/next-tournament";
 import { TournamentCard } from "@/components/tournament-card";
+import { getHallOfChampions } from "@/lib/hall-of-champions";
 import { BishopIcon, KingIcon, KnightIcon, PawnIcon, QueenIcon, RookIcon, TrophyIcon } from "@/components/icons/chess-pieces";
 
 export const dynamic = "force-dynamic";
@@ -143,6 +144,8 @@ export default async function HomePage() {
     }),
     getNextTournament(),
   ]);
+
+  const hallOfChampions = await getHallOfChampions();
 
   const classes = allClasses.slice(0, 3);
   const cityList = [...new Set(allPublished.map((t) => t.city))];
@@ -397,6 +400,46 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {hallOfChampions.length > 0 && (
+        <section className="chess-pattern relative overflow-hidden bg-charcoal py-16 text-white">
+          <Container>
+            <Reveal>
+              <SectionHeading
+                eyebrow="Hall of Champions"
+                title="Recent Winners"
+                description="Champions from our most recently concluded tournaments."
+                className="[&_h2]:text-white [&_p]:text-white/70"
+              />
+            </Reveal>
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {hallOfChampions.map((entry, i) => (
+                <Reveal
+                  key={entry.tournament.slug}
+                  delay={i * 100}
+                  className="rounded-lg border border-white/15 bg-white/5 p-6 backdrop-blur-sm"
+                >
+                  <Link href={`/tournaments/${entry.tournament.slug}/results`} className="block">
+                    <TrophyIcon className="h-8 w-8 text-gold" />
+                    <h3 className="mt-3 font-semibold text-white">{entry.tournament.title}</h3>
+                    <p className="mt-1 text-sm text-gold">{entry.champion} &middot; Champion</p>
+                  </Link>
+                  {entry.categoryChampions.length > 0 && (
+                    <ul className="mt-4 space-y-1 border-t border-white/10 pt-3">
+                      {entry.categoryChampions.map((c) => (
+                        <li key={c.label} className="flex justify-between text-xs text-white/60">
+                          <span>{c.label}</span>
+                          <span className="font-medium text-white/85">{c.name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </Reveal>
+              ))}
+            </div>
+          </Container>
+        </section>
+      )}
 
       <section className="bg-card py-16">
         <Container>

@@ -34,9 +34,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
           throw new Error("FULL");
         }
       }
+      const playerEmail = data.email.trim().toLowerCase();
+      const player = await tx.player.upsert({
+        where: { email: playerEmail },
+        update: { fullName: data.fullName, dob: data.dob },
+        create: { email: playerEmail, fullName: data.fullName, dob: data.dob },
+      });
       const registration = await tx.registration.create({
         data: {
           tournamentId: tournament.id,
+          playerId: player.id,
           fullName: data.fullName,
           email: data.email,
           phone: data.phone,

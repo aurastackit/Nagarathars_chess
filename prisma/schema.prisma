@@ -29,9 +29,11 @@ model Tournament {
   prizeStructure       String?
   rulesText            String?
   status               String         @default("draft")
+  resultsPublished     Boolean        @default(false)
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
   registrations        Registration[]
+  resultRounds         Round[]
 }
 
 model Registration {
@@ -75,9 +77,50 @@ model Registration {
   amountPaid         Int?
   razorpayOrderId    String?
   razorpayPaymentId  String?
+  player             Player?    @relation(fields: [playerId], references: [id])
+  playerId           String?
   registeredAt       DateTime   @default(now())
 
   @@unique([tournamentId, email, dob])
+}
+
+/** A person who has played in tournaments, matched across tournaments by email. */
+model Player {
+  id            String         @id @default(cuid())
+  fullName      String
+  email         String         @unique
+  dob           DateTime?
+  createdAt     DateTime       @default(now())
+  registrations Registration[]
+  whiteGames    Pairing[]      @relation("WhitePairings")
+  blackGames    Pairing[]      @relation("BlackPairings")
+}
+
+model Round {
+  id           String     @id @default(cuid())
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  tournamentId String
+  number       Int
+  createdAt    DateTime   @default(now())
+  pairings     Pairing[]
+
+  @@unique([tournamentId, number])
+}
+
+/** One board's game for a round. `blackPlayerId` null means `whitePlayer` had a bye. */
+model Pairing {
+  id            String   @id @default(cuid())
+  round         Round    @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  roundId       String
+  board         Int?
+  whitePlayer   Player?  @relation("WhitePairings", fields: [whitePlayerId], references: [id])
+  whitePlayerId String?
+  blackPlayer   Player?  @relation("BlackPairings", fields: [blackPlayerId], references: [id])
+  blackPlayerId String?
+  // "1-0" | "0-1" | "0.5-0.5" | "BYE" | null (not yet played)
+  result        String?
+
+  @@index([roundId])
 }
 
 model ClassProgram {

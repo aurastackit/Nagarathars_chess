@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui";
@@ -96,6 +97,14 @@ export default async function TournamentDetailPage({
           <p className="mt-2 text-white/70">
             {formatDateRange(tournament.startDate, tournament.endDate)} &middot; {capitalizeWords(tournament.venue)}, {capitalizeWords(tournament.city)}
           </p>
+          {tournament.resultsPublished && (
+            <Link
+              href={`/tournaments/${tournament.slug}/results`}
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-gold hover:underline"
+            >
+              View results &amp; standings &rarr;
+            </Link>
+          )}
         </div>
       </section>
 
