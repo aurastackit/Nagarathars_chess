@@ -4,6 +4,7 @@ import { Badge, Card } from "@/components/ui";
 import { formatDateRange } from "@/lib/format";
 import { capitalizeWords } from "@/lib/text";
 import { getTournamentStatus, TOURNAMENT_STATUS_LABEL } from "@/lib/tournament-status";
+import { isValidImageUrl } from "@/lib/image-url";
 
 export type TournamentCardData = {
   id: string;
@@ -24,14 +25,22 @@ export type TournamentCardData = {
 export function TournamentCard({ tournament: t }: { tournament: TournamentCardData }) {
   const status = getTournamentStatus(t);
   const seatsUsed = t._count.registrations;
-  const seatsPct = t.maxParticipants ? Math.min(100, Math.round((seatsUsed / t.maxParticipants) * 100)) : null;
+  const seatsPct = t.maxParticipants
+    ? Math.min(100, Math.round((seatsUsed / t.maxParticipants) * 100))
+    : null;
 
   return (
     <Link href={`/tournaments/${t.slug}`}>
       <Card className="group flex h-full flex-col overflow-hidden transition-shadow hover:shadow-md">
-        {t.posterImageUrl ? (
+        {isValidImageUrl(t.posterImageUrl) ? (
           <div className="relative h-40 w-full bg-gray-100">
-            <Image src={t.posterImageUrl} alt={t.title} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-contain" />
+            <Image
+              src={t.posterImageUrl}
+              alt={t.title}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-contain"
+            />
           </div>
         ) : (
           <div className="chess-pattern flex h-40 w-full items-center justify-center bg-charcoal">
@@ -42,14 +51,15 @@ export function TournamentCard({ tournament: t }: { tournament: TournamentCardDa
         <div className="flex flex-1 flex-col p-4">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="charcoal">{t.format}</Badge>
-            {status === "closing-soon" && <Badge tone="gold">Closing soon</Badge>}
+            {status === "closing-soon" && <Badge tone="gold-ink">Closing soon</Badge>}
             {status === "closed" && <Badge tone="gray">Registration closed</Badge>}
             {status === "completed" && <Badge tone="gray">Completed</Badge>}
           </div>
 
           <h3 className="mt-2 font-semibold text-foreground">{t.title}</h3>
           <p className="mt-1 text-sm text-foreground/60">
-            {formatDateRange(t.startDate, t.endDate)} &middot; {capitalizeWords(t.venue)}, {capitalizeWords(t.city)}
+            {formatDateRange(t.startDate, t.endDate)} &middot; {capitalizeWords(t.venue)},{" "}
+            {capitalizeWords(t.city)}
           </p>
 
           {t.maxParticipants && seatsPct !== null && (

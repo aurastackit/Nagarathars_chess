@@ -50,7 +50,10 @@ export function ProfileGrid({
   if (layout === "circle") {
     return (
       <div className="relative mx-auto mt-8 aspect-square w-full max-w-sm sm:max-w-md">
-        <div className="absolute inset-[10%] rounded-full border-2 border-dashed border-charcoal/15" aria-hidden="true" />
+        <div
+          className="absolute inset-[10%] rounded-full border-2 border-dashed border-charcoal/15"
+          aria-hidden="true"
+        />
 
         <div className="absolute inset-[19%] flex items-center justify-center rounded-full bg-card p-4 text-center shadow-md">
           {active && (
@@ -62,11 +65,14 @@ export function ProfileGrid({
                 {active.initials}
               </span>
               <h3 className="mt-1.5 text-sm font-bold text-foreground">{active.name}</h3>
-              <p className="text-xs font-medium text-gold">{active.role}</p>
+              <p className="text-xs font-medium text-gold-ink">{active.role}</p>
               {active.facts.length > 0 && (
                 <div className="mt-1.5 flex flex-wrap justify-center gap-1">
                   {active.facts.map((f) => (
-                    <span key={f.label} className="rounded-full bg-charcoal/5 px-2 py-0.5 text-[10px] font-semibold text-charcoal">
+                    <span
+                      key={f.label}
+                      className="rounded-full bg-charcoal/5 px-2 py-0.5 text-[10px] font-semibold text-charcoal"
+                    >
                       {f.label}: {f.value}
                     </span>
                   ))}
@@ -95,7 +101,11 @@ export function ProfileGrid({
               className="absolute w-16 sm:w-20"
               style={{ left: `${x}%`, top: `${y}%`, transform: "translate(-50%, -50%)" }}
             >
-              <button type="button" onClick={() => setActiveIndex(i)} className="flex w-full flex-col items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setActiveIndex(i)}
+                className="flex w-full flex-col items-center gap-1"
+              >
                 <span
                   className={`flex h-11 w-11 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm ring-4 transition-transform hover:scale-105 sm:h-12 sm:w-12 ${
                     isActive ? "ring-gold scale-110" : "ring-card"
@@ -104,7 +114,9 @@ export function ProfileGrid({
                 >
                   {p.initials}
                 </span>
-                <span className="text-center text-[10px] font-semibold leading-tight text-foreground">{p.name}</span>
+                <span className="text-center text-[10px] font-semibold leading-tight text-foreground">
+                  {p.name}
+                </span>
               </button>
             </Reveal>
           );
@@ -129,7 +141,9 @@ export function ProfileGrid({
                   type="button"
                   onClick={() => setActiveIndex(i)}
                   className={`flex w-full items-center gap-3 rounded-full border px-3 py-2 text-left transition-colors ${
-                    isActive ? "border-charcoal bg-charcoal/5" : "border-border bg-card hover:bg-background"
+                    isActive
+                      ? "border-charcoal bg-charcoal/5"
+                      : "border-border bg-card hover:bg-background"
                   }`}
                 >
                   <span
@@ -139,7 +153,9 @@ export function ProfileGrid({
                     {p.initials}
                   </span>
                   <span className="min-w-0">
-                    <span className="block truncate text-sm font-semibold text-foreground">{p.name}</span>
+                    <span className="block truncate text-sm font-semibold text-foreground">
+                      {p.name}
+                    </span>
                     <span className="block truncate text-xs text-foreground/50">{p.role}</span>
                   </span>
                 </button>
@@ -157,7 +173,10 @@ export function ProfileGrid({
     return (
       <div className="mt-10 flex flex-col items-center gap-8 md:flex-row md:items-center">
         <div className="relative mx-auto aspect-square w-full max-w-[18rem] flex-none sm:max-w-xs">
-          <div className="absolute inset-[10%] rounded-full border-2 border-dashed border-charcoal/15" aria-hidden="true" />
+          <div
+            className="absolute inset-[10%] rounded-full border-2 border-dashed border-charcoal/15"
+            aria-hidden="true"
+          />
           <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
             <QueenIcon className="h-16 w-16 text-charcoal/10" strokeWidth={0.7} />
           </div>
@@ -173,7 +192,11 @@ export function ProfileGrid({
                 className="absolute w-16 sm:w-20"
                 style={{ left: `${x}%`, top: `${y}%`, transform: "translate(-50%, -50%)" }}
               >
-                <button type="button" onClick={() => setActiveIndex(i)} className="flex w-full flex-col items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setActiveIndex(i)}
+                  className="flex w-full flex-col items-center gap-1"
+                >
                   <span
                     className={`flex h-11 w-11 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm ring-4 transition-transform hover:scale-105 sm:h-12 sm:w-12 ${
                       isActive ? "ring-gold scale-110" : "ring-card"
@@ -182,7 +205,9 @@ export function ProfileGrid({
                   >
                     {p.initials}
                   </span>
-                  <span className="text-center text-[10px] font-semibold leading-tight text-foreground">{p.name}</span>
+                  <span className="text-center text-[10px] font-semibold leading-tight text-foreground">
+                    {p.name}
+                  </span>
                 </button>
               </Reveal>
             );
@@ -213,12 +238,22 @@ export function ProfileGrid({
           </Reveal>
         ))}
       </div>
-      {modalProfile && <ProfileModalOverlay profile={modalProfile} onClose={() => setModalProfile(null)} />}
+      {modalProfile && (
+        <ProfileModalOverlay profile={modalProfile} onClose={() => setModalProfile(null)} />
+      )}
     </>
   );
 }
 
-function DetailPanel({ profile, colorIndex, className = "" }: { profile: Profile; colorIndex: number; className?: string }) {
+function DetailPanel({
+  profile,
+  colorIndex,
+  className = "",
+}: {
+  profile: Profile;
+  colorIndex: number;
+  className?: string;
+}) {
   return (
     <div className={`rounded-xl border border-border bg-card p-6 shadow-sm ${className}`}>
       <div className="flex items-center gap-4">
@@ -230,7 +265,7 @@ function DetailPanel({ profile, colorIndex, className = "" }: { profile: Profile
         </span>
         <div>
           <h3 className="text-lg font-bold text-foreground">{profile.name}</h3>
-          <p className="text-sm font-medium text-gold">{profile.role}</p>
+          <p className="text-sm font-medium text-gold-ink">{profile.role}</p>
         </div>
       </div>
       <p className="mt-4 text-sm text-foreground/70">{profile.bio}</p>
@@ -246,11 +281,13 @@ function DetailPanel({ profile, colorIndex, className = "" }: { profile: Profile
       )}
       {profile.highlights && profile.highlights.length > 0 && (
         <div className="mt-4 border-t border-border pt-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">Highlights</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">
+            Highlights
+          </p>
           <ul className="mt-3 space-y-2">
             {profile.highlights.map((h) => (
               <li key={h} className="flex items-start gap-2 text-sm text-foreground/70">
-                <span className="mt-0.5 text-gold">✓</span>
+                <span className="mt-0.5 text-gold-ink">✓</span>
                 {h}
               </li>
             ))}
@@ -268,8 +305,14 @@ function DetailPanel({ profile, colorIndex, className = "" }: { profile: Profile
 
 function ProfileModalOverlay({ profile, onClose }: { profile: Profile; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-xl bg-card p-6 shadow-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-start justify-between">
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-charcoal text-lg font-bold text-white">
             {profile.initials}
@@ -284,7 +327,7 @@ function ProfileModalOverlay({ profile, onClose }: { profile: Profile; onClose: 
           </button>
         </div>
         <h3 className="mt-4 text-lg font-semibold text-foreground">{profile.name}</h3>
-        <p className="text-sm font-medium text-gold">{profile.role}</p>
+        <p className="text-sm font-medium text-gold-ink">{profile.role}</p>
         <p className="mt-3 text-sm text-foreground/70">{profile.bio}</p>
         {profile.facts.length > 0 && (
           <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-border pt-4">

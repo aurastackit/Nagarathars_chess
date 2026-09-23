@@ -22,7 +22,12 @@ export function useS3Upload(tournamentSlug: string) {
 
     setUploading((s) => ({ ...s, [kind]: true }));
     try {
-      const compressed = kind === "passportPhoto" ? await compressIfImage(file) : file.type.startsWith("image/") ? await compressIfImage(file) : file;
+      const compressed =
+        kind === "passportPhoto"
+          ? await compressIfImage(file)
+          : file.type.startsWith("image/")
+            ? await compressIfImage(file)
+            : file;
 
       if (compressed.size > MAX_SIZE_BYTES[kind]) {
         const maxMb = MAX_SIZE_BYTES[kind] / (1024 * 1024);

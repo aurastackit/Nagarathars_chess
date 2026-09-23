@@ -7,6 +7,7 @@ import { createEnrollmentSchema, type EnrollmentInput } from "@/lib/validations"
 import { WizardProgressBar } from "@/components/registration-wizard/progress-bar";
 import { StepSection, TextAreaField, TextField } from "@/components/registration-wizard/fields";
 import { CheckIcon } from "@/components/form-fields";
+import { HONEYPOT_FIELD } from "@/lib/honeypot";
 
 const STEPS = ["Your details", "Confirm"] as const;
 
@@ -33,14 +34,16 @@ export function ClassEnrollWizard({ classSlug, level }: { classSlug: string; lev
     if (valid) setStep(1);
   }
 
-  async function onSubmit(values: EnrollmentInput) {
+  async function onSubmit(values: EnrollmentInput, event?: React.BaseSyntheticEvent) {
     setSubmitError(null);
     setSubmitting(true);
     try {
+      const form = event?.target instanceof HTMLFormElement ? event.target : null;
+      const honeypot = form ? String(new FormData(form).get(HONEYPOT_FIELD) ?? "") : "";
       const res = await fetch(`/api/classes/${classSlug}/enroll`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({ ...values, [HONEYPOT_FIELD]: honeypot }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
@@ -48,7 +51,9 @@ export function ClassEnrollWizard({ classSlug, level }: { classSlug: string; lev
       }
       setSuccess(true);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setSubmitError(
+        err instanceof Error ? err.message : "Something went wrong. Please try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -58,7 +63,9 @@ export function ClassEnrollWizard({ classSlug, level }: { classSlug: string; lev
     return (
       <div className="rounded-md border border-green-200 bg-green-50 p-4 text-center">
         <CheckIcon className="mx-auto h-6 w-6 text-green-600" />
-        <p className="mt-2 text-sm font-semibold text-green-800">Thanks! We&apos;ll reach out about this class shortly.</p>
+        <p className="mt-2 text-sm font-semibold text-green-800">
+          Thanks! We&apos;ll reach out about this class shortly.
+        </p>
       </div>
     );
   }
@@ -66,12 +73,43 @@ export function ClassEnrollWizard({ classSlug, level }: { classSlug: string; lev
   return (
     <div className="rounded-lg border border-border bg-background p-4">
       <WizardProgressBar current={step} steps={STEPS} />
-      <form onSubmit={step === 1 ? handleSubmit(onSubmit) : (e) => e.preventDefault()} className="mt-5 space-y-4">
+      <form
+        onSubmit={step === 1 ? handleSubmit(onSubmit) : (e) => e.preventDefault()}
+        className="mt-5 space-y-4"
+      >
+        <div className="hidden" aria-hidden="true">
+          <label htmlFor={HONEYPOT_FIELD}>Leave this field blank</label>
+          <input
+            id={HONEYPOT_FIELD}
+            name={HONEYPOT_FIELD}
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+          />
+        </div>
         {step === 0 && (
           <StepSection title="Your details">
-            <TextField label="Full name" registration={register("fullName")} error={errors.fullName} required className="sm:col-span-2" />
-            <TextField label="Email" type="email" registration={register("email")} error={errors.email} required />
-            <TextField label="Phone" type="tel" registration={register("phone")} error={errors.phone} required />
+            <TextField
+              label="Full name"
+              registration={register("fullName")}
+              error={errors.fullName}
+              required
+              className="sm:col-span-2"
+            />
+            <TextField
+              label="Email"
+              type="email"
+              registration={register("email")}
+              error={errors.email}
+              required
+            />
+            <TextField
+              label="Phone"
+              type="tel"
+              registration={register("phone")}
+              error={errors.phone}
+              required
+            />
             <TextField
               label={`FIDE ID${fideRequired ? "" : " (optional)"}`}
               registration={register("fideId")}
@@ -83,7 +121,13 @@ export function ClassEnrollWizard({ classSlug, level }: { classSlug: string; lev
         )}
         {step === 1 && (
           <StepSection title="Anything we should know?">
-            <TextAreaField label="Message" registration={register("message")} error={errors.message} placeholder="Optional" className="sm:col-span-2" />
+            <TextAreaField
+              label="Message"
+              registration={register("message")}
+              error={errors.message}
+              placeholder="Optional"
+              className="sm:col-span-2"
+            />
           </StepSection>
         )}
 

@@ -6,12 +6,16 @@ import { Badge, Card, EmptyState } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 import { ageCategoryLabel } from "@/lib/age-category";
 import { getPlayerTournamentResults } from "@/lib/player-results";
-import { ScoreHistoryChart } from "@/components/player/score-history-chart";
 import { TrophyIcon } from "@/components/icons/chess-pieces";
+import { ScoreHistoryChart } from "@/components/player/score-history-chart-lazy";
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
   const { id } = await params;
   const player = await prisma.player.findUnique({ where: { id } });
   if (!player) return {};
@@ -44,7 +48,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
           <p className="mt-1 text-xs text-foreground/60">Tournaments played</p>
         </Card>
         <Card className="p-4 text-center">
-          <TrophyIcon className="mx-auto h-5 w-5 text-gold" />
+          <TrophyIcon className="mx-auto h-5 w-5 text-gold-ink" />
           <p className="mt-1 text-2xl font-bold text-charcoal">{tournamentWins}</p>
           <p className="mt-1 text-xs text-foreground/60">Tournament wins</p>
         </Card>
@@ -73,17 +77,23 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
             {results.map((r) => (
               <Card key={r.tournament.id} className="flex items-center justify-between p-4">
                 <div>
-                  <Link href={`/tournaments/${r.tournament.slug}`} className="font-semibold text-charcoal hover:underline">
+                  <Link
+                    href={`/tournaments/${r.tournament.slug}`}
+                    className="font-semibold text-charcoal hover:underline"
+                  >
                     {r.tournament.title}
                   </Link>
                   <p className="text-xs text-foreground/50">
-                    {formatDate(r.tournament.startDate)} &middot; {r.tournament.venue}, {r.tournament.city}
+                    {formatDate(r.tournament.startDate)} &middot; {r.tournament.venue},{" "}
+                    {r.tournament.city}
                     {r.ageCategory && ` · ${ageCategoryLabel(r.ageCategory)}`}
                   </p>
                 </div>
                 {r.standing ? (
                   <div className="text-right">
-                    <Badge tone={r.standing.rank === 1 ? "gold" : "charcoal"}>Rank {r.standing.rank} / {r.totalPlayers}</Badge>
+                    <Badge tone={r.standing.rank === 1 ? "gold" : "charcoal"}>
+                      Rank {r.standing.rank} / {r.totalPlayers}
+                    </Badge>
                     <p className="mt-1 text-xs text-foreground/50">Score {r.standing.score}</p>
                   </div>
                 ) : (

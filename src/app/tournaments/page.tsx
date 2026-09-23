@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { TournamentFilters } from "@/components/tournament-filters";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Tournaments",
+  description:
+    "Browse local chess tournaments and register — free entry to most events, open to non-rated players of every age.",
+};
 
 export default async function TournamentsPage() {
   const tournaments = await prisma.tournament.findMany({

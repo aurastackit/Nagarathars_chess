@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { AGE_CATEGORY_VALUES, ageAt, isAgeCategoryAllowed, naturalAgeCategory, type AgeCategoryValue } from "@/lib/age-category";
+import {
+  AGE_CATEGORY_VALUES,
+  ageAt,
+  isAgeCategoryAllowed,
+  naturalAgeCategory,
+  type AgeCategoryValue,
+} from "@/lib/age-category";
 
 const optionalText = z.string().trim().optional().or(z.literal(""));
 
@@ -29,7 +35,9 @@ export function createRegistrationWizardSchema(tournamentStartDate: Date) {
       fullName: z.string().trim().min(2, "Enter your full name"),
       email: z.string().trim().email("Enter a valid email"),
       phone: z.string().trim().regex(INDIAN_PHONE, "Enter a valid 10-digit Indian mobile number"),
-      dob: z.coerce.date({ error: "Enter your date of birth" }).max(new Date(), "Date of birth can't be in the future"),
+      dob: z.coerce
+        .date({ error: "Enter your date of birth" })
+        .max(new Date(), "Date of birth can't be in the future"),
       gender: optionalText,
       city: optionalText,
       address: optionalText,
@@ -138,13 +146,27 @@ export type RegistrationWizardValues = {
 /** The schema's parsed/coerced output — what the submit handler receives. */
 export type RegistrationWizardOutput = z.infer<ReturnType<typeof createRegistrationWizardSchema>>;
 
-export const REGISTRATION_STEPS = ["Player", "Category", "Family", "Community", "Documents", "Review & Pay"] as const;
+export const REGISTRATION_STEPS = [
+  "Player",
+  "Category",
+  "Family",
+  "Community",
+  "Documents",
+  "Review & Pay",
+] as const;
 
 export const STEP_FIELDS: Record<number, (keyof RegistrationWizardValues)[]> = {
   0: ["fullName", "email", "phone", "dob", "gender", "city", "address"],
   1: ["ageCategory", "rating", "fideId"],
   2: ["fatherName", "motherName", "fatherGrandparents", "motherGrandparents"],
   3: ["native", "kovil", "pirivu", "motherNative", "motherKovil", "motherPirivu", "sangamMember"],
-  4: ["ageProofType", "ageProofKey", "passportPhotoKey", "consentAccepted", "guardianName", "guardianConsent"],
+  4: [
+    "ageProofType",
+    "ageProofKey",
+    "passportPhotoKey",
+    "consentAccepted",
+    "guardianName",
+    "guardianConsent",
+  ],
   5: [],
 };

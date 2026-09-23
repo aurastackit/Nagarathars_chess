@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
+import {
+  type ButtonHTMLAttributes,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
+} from "react";
 
 export function Button({
   className = "",
@@ -39,9 +45,17 @@ export function LinkButton({
   );
 }
 
-export function Card({ className = "", children }: { className?: string; children: React.ReactNode }) {
+export function Card({
+  className = "",
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className={`rounded-lg border border-border bg-card shadow-sm ${className}`}>{children}</div>
+    <div className={`rounded-lg border border-border bg-card shadow-sm ${className}`}>
+      {children}
+    </div>
   );
 }
 
@@ -80,10 +94,20 @@ export function Label({ children, htmlFor }: { children: React.ReactNode; htmlFo
   );
 }
 
-export function Badge({ children, tone = "charcoal" }: { children: React.ReactNode; tone?: "charcoal" | "gold" | "gray" }) {
+export function Badge({
+  children,
+  tone = "charcoal",
+}: {
+  children: React.ReactNode;
+  // "gold" reads fine on a dark surface (e.g. the tournament hero); on a
+  // light surface use "gold-ink" instead — plain "gold" text fails contrast
+  // there (see globals.css's --gold-ink token for why).
+  tone?: "charcoal" | "gold" | "gold-ink" | "gray";
+}) {
   const tones = {
     charcoal: "bg-charcoal/10 text-charcoal",
     gold: "bg-gold/10 text-gold",
+    "gold-ink": "bg-gold/10 text-gold-ink",
     gray: "bg-gray-200 text-gray-700",
   };
   return (
@@ -94,7 +118,13 @@ export function Badge({ children, tone = "charcoal" }: { children: React.ReactNo
 }
 
 /** Page-width wrapper used to keep content aligned to the site's max content width. */
-export function Container({ className = "", children }: { className?: string; children: React.ReactNode }) {
+export function Container({
+  className = "",
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
   return <div className={`mx-auto max-w-6xl px-4 ${className}`}>{children}</div>;
 }
 
@@ -116,11 +146,13 @@ export function SectionHeading({
   return (
     <div className={`${alignment} ${className}`}>
       {eyebrow && (
-        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">{eyebrow}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold-ink">{eyebrow}</p>
       )}
       <h2 className={`font-bold text-charcoal ${eyebrow ? "mt-2" : ""} text-2xl`}>{title}</h2>
       {description && (
-        <p className={`mt-2 text-foreground/60 ${align === "center" ? "mx-auto max-w-xl" : "max-w-xl"}`}>
+        <p
+          className={`mt-2 text-foreground/60 ${align === "center" ? "mx-auto max-w-xl" : "max-w-xl"}`}
+        >
           {description}
         </p>
       )}

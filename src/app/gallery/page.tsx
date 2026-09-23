@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { generateGalleryPlaceholders } from "@/lib/gallery-placeholders";
 import { GalleryGrid } from "@/components/gallery-grid";
+import { isValidImageUrl } from "@/lib/image-url";
 
 export const dynamic = "force-dynamic";
 
@@ -25,18 +26,22 @@ export default async function GalleryPage() {
   ]);
 
   const realItems = [
-    ...tournaments.map((t) => ({
-      id: `tournament-${t.id}`,
-      src: t.posterImageUrl!,
-      title: t.title,
-      caption: t.city,
-    })),
-    ...classes.map((c) => ({
-      id: `class-${c.id}`,
-      src: c.bannerImageUrl!,
-      title: c.title,
-      caption: "Online class",
-    })),
+    ...tournaments
+      .filter((t) => isValidImageUrl(t.posterImageUrl))
+      .map((t) => ({
+        id: `tournament-${t.id}`,
+        src: t.posterImageUrl!,
+        title: t.title,
+        caption: t.city,
+      })),
+    ...classes
+      .filter((c) => isValidImageUrl(c.bannerImageUrl))
+      .map((c) => ({
+        id: `class-${c.id}`,
+        src: c.bannerImageUrl!,
+        title: c.title,
+        caption: "Online class",
+      })),
   ];
 
   const placeholders = generateGalleryPlaceholders(Math.max(0, GALLERY_TARGET - realItems.length));

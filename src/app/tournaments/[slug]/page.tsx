@@ -9,10 +9,11 @@ import { capitalizeWords } from "@/lib/text";
 import { getTournamentStatus, TOURNAMENT_STATUS_LABEL } from "@/lib/tournament-status";
 import { parseRules } from "@/lib/rules";
 import { SITE_URL } from "@/lib/site";
-import { RegistrationWizard } from "@/components/registration-wizard/registration-wizard";
+import { isValidImageUrl } from "@/lib/image-url";
 import { RulesAccordion } from "@/components/rules-accordion";
 import { VenueMap } from "@/components/venue-map";
 import { CalendarIcon, WhatsAppIcon } from "@/components/icons/misc";
+import { RegistrationWizard } from "@/components/registration-wizard/registration-wizard-lazy";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,11 @@ export async function generateMetadata({
   const tournament = await prisma.tournament.findUnique({ where: { slug } });
   if (!tournament || tournament.status === "draft") return {};
 
-  const description = `${formatDateRange(tournament.startDate, tournament.endDate)} at ${tournament.venue}, ${tournament.city}. ${tournament.description}`.slice(0, 160);
+  const description =
+    `${formatDateRange(tournament.startDate, tournament.endDate)} at ${tournament.venue}, ${tournament.city}. ${tournament.description}`.slice(
+      0,
+      160
+    );
 
   return {
     title: `${tournament.title} | Nagarathar's Chess Championship`,
@@ -55,7 +60,8 @@ export default async function TournamentDetailPage({
   }
 
   const status = getTournamentStatus(tournament);
-  const canRegister = tournament.status === "published" && status !== "closed" && status !== "completed";
+  const canRegister =
+    tournament.status === "published" && status !== "closed" && status !== "completed";
   const rules = parseRules(tournament.rulesText);
   const seatsUsed = tournament._count.registrations;
   const seatsPct = tournament.maxParticipants
@@ -74,12 +80,56 @@ export default async function TournamentDetailPage({
     `${tournament.title} — ${formatDateRange(tournament.startDate, tournament.endDate)} at ${tournament.venue}, ${tournament.city}. ${detailUrl}`
   );
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SportsEvent",
+    name: tournament.title,
+    description: tournament.description,
+    startDate: tournament.startDate.toISOString(),
+    endDate: tournament.endDate.toISOString(),
+    eventStatus: "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    location: {
+      "@type": "Place",
+      name: capitalizeWords(tournament.venue),
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: capitalizeWords(tournament.city),
+        addressCountry: "IN",
+      },
+    },
+    ...(isValidImageUrl(tournament.posterImageUrl) ? { image: [tournament.posterImageUrl] } : {}),
+    organizer: {
+      "@type": "Organization",
+      name: "Nagarathar's Chess Championship",
+      url: SITE_URL,
+    },
+    offers: {
+      "@type": "Offer",
+      url: detailUrl,
+      price: tournament.entryFee,
+      priceCurrency: "INR",
+      availability: canRegister ? "https://schema.org/InStock" : "https://schema.org/SoldOut",
+    },
+  };
+
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <section className="relative overflow-hidden bg-charcoal text-white">
-        {tournament.posterImageUrl ? (
+        {isValidImageUrl(tournament.posterImageUrl) ? (
           <div className="relative h-64 w-full sm:h-80">
-            <Image src={tournament.posterImageUrl} alt={tournament.title} fill className="object-cover opacity-40" />
+            <Image
+              src={tournament.posterImageUrl}
+              alt={tournament.title}
+              fill
+              sizes="100vw"
+              priority
+              className="object-cover opacity-40"
+            />
             <div className="absolute inset-0 bg-charcoal/60" />
           </div>
         ) : (
@@ -95,7 +145,8 @@ export default async function TournamentDetailPage({
           </div>
           <h1 className="mt-3 max-w-2xl text-3xl font-bold sm:text-4xl">{tournament.title}</h1>
           <p className="mt-2 text-white/70">
-            {formatDateRange(tournament.startDate, tournament.endDate)} &middot; {capitalizeWords(tournament.venue)}, {capitalizeWords(tournament.city)}
+            {formatDateRange(tournament.startDate, tournament.endDate)} &middot;{" "}
+            {capitalizeWords(tournament.venue)}, {capitalizeWords(tournament.city)}
           </p>
           {tournament.resultsPublished && (
             <Link
@@ -112,7 +163,9 @@ export default async function TournamentDetailPage({
         <dl className="grid grid-cols-2 gap-4 rounded-lg border border-border bg-card p-4 text-sm sm:grid-cols-4">
           <div>
             <dt className="text-foreground/50">Dates</dt>
-            <dd className="font-medium">{formatDateRange(tournament.startDate, tournament.endDate)}</dd>
+            <dd className="font-medium">
+              {formatDateRange(tournament.startDate, tournament.endDate)}
+            </dd>
           </div>
           <div>
             <dt className="text-foreground/50">Venue</dt>
@@ -122,7 +175,9 @@ export default async function TournamentDetailPage({
           </div>
           <div>
             <dt className="text-foreground/50">Entry fee</dt>
-            <dd className="font-medium">{tournament.entryFee === 0 ? "Free" : `₹${tournament.entryFee}`}</dd>
+            <dd className="font-medium">
+              {tournament.entryFee === 0 ? "Free" : `₹${tournament.entryFee}`}
+            </dd>
           </div>
           <div>
             <dt className="text-foreground/50">Registration closes</dt>
@@ -210,7 +265,9 @@ export default async function TournamentDetailPage({
                       passed ? "bg-charcoal/30" : "bg-gold"
                     }`}
                   />
-                  <p className={`text-sm font-semibold ${passed ? "text-foreground/50" : "text-foreground"}`}>
+                  <p
+                    className={`text-sm font-semibold ${passed ? "text-foreground/50" : "text-foreground"}`}
+                  >
                     {step.label}
                   </p>
                   <p className="text-sm text-foreground/60">{formatDate(step.date)}</p>
@@ -250,7 +307,9 @@ export default async function TournamentDetailPage({
           {!canRegister ? (
             <div className="mt-3 rounded-lg border border-dashed border-border bg-background p-6 text-center">
               <p className="font-semibold text-charcoal">
-                {status === "completed" ? "This tournament has concluded" : "Registration is closed"}
+                {status === "completed"
+                  ? "This tournament has concluded"
+                  : "Registration is closed"}
               </p>
               <p className="mt-1 text-sm text-foreground/60">
                 {status === "completed"

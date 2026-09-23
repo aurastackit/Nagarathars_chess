@@ -15,7 +15,8 @@ function loadScript(): Promise<void> {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Could not load the payment gateway. Check your connection and try again."));
+    script.onerror = () =>
+      reject(new Error("Could not load the payment gateway. Check your connection and try again."));
     document.body.appendChild(script);
   });
 }
@@ -28,7 +29,11 @@ export async function openRazorpayCheckout(params: {
   name: string;
   description: string;
   prefill: { name: string; email: string; contact: string };
-}): Promise<{ razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }> {
+}): Promise<{
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}> {
   await loadScript();
   return new Promise((resolve, reject) => {
     const rzp = new window.Razorpay({
@@ -40,7 +45,11 @@ export async function openRazorpayCheckout(params: {
       description: params.description,
       prefill: params.prefill,
       theme: { color: "#c8922f" },
-      handler: (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+      handler: (response: {
+        razorpay_order_id: string;
+        razorpay_payment_id: string;
+        razorpay_signature: string;
+      }) => {
         resolve(response);
       },
       modal: {

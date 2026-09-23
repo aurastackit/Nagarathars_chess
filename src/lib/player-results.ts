@@ -2,7 +2,14 @@ import { prisma } from "@/lib/prisma";
 import { computeStandings, categoryWinners, type Standing } from "@/lib/standings";
 
 export type PlayerTournamentResult = {
-  tournament: { id: string; slug: string; title: string; startDate: Date; venue: string; city: string };
+  tournament: {
+    id: string;
+    slug: string;
+    title: string;
+    startDate: Date;
+    venue: string;
+    city: string;
+  };
   ageCategory: string | null;
   standing: Standing | null; // null when results aren't published yet
   totalPlayers: number;
@@ -11,7 +18,9 @@ export type PlayerTournamentResult = {
 };
 
 /** Every tournament a player has a confirmed registration in, with their standing where results are published. */
-export async function getPlayerTournamentResults(playerId: string): Promise<PlayerTournamentResult[]> {
+export async function getPlayerTournamentResults(
+  playerId: string
+): Promise<PlayerTournamentResult[]> {
   const registrations = await prisma.registration.findMany({
     where: { playerId, status: { in: ["confirmed", "registered"] } },
     include: { tournament: true },
@@ -45,7 +54,10 @@ export async function getPlayerTournamentResults(playerId: string): Promise<Play
     const players = registrants
       .filter((r) => r.player)
       .map((r) => ({ id: r.player!.id, fullName: r.player!.fullName, ageCategory: r.ageCategory }));
-    const standings = computeStandings(players, rounds.flatMap((r) => r.pairings));
+    const standings = computeStandings(
+      players,
+      rounds.flatMap((r) => r.pairings)
+    );
     const mine = standings.find((s) => s.player.id === playerId) ?? null;
     const winners = categoryWinners(standings);
 
@@ -55,7 +67,9 @@ export async function getPlayerTournamentResults(playerId: string): Promise<Play
       standing: mine,
       totalPlayers: standings.length,
       isOverallWinner: mine?.rank === 1,
-      isCategoryWinner: Boolean(mine && reg.ageCategory && winners[reg.ageCategory]?.player.id === playerId),
+      isCategoryWinner: Boolean(
+        mine && reg.ageCategory && winners[reg.ageCategory]?.player.id === playerId
+      ),
     });
   }
 

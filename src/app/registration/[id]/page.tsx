@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -6,8 +7,13 @@ import { LinkButton } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
+export const metadata: Metadata = {
+  title: "Registration status",
+  robots: { index: false, follow: false },
+};
+
 const STATUS_META: Record<string, { label: string; tone: string }> = {
-  pending: { label: "Pending review", tone: "bg-gold/15 text-gold" },
+  pending: { label: "Pending review", tone: "bg-gold/15 text-gold-ink" },
   confirmed: { label: "Confirmed", tone: "bg-green-100 text-green-700" },
   rejected: { label: "Rejected", tone: "bg-red-100 text-red-700" },
   // Legacy rows created before the review workflow existed.
@@ -21,7 +27,11 @@ const PAYMENT_META: Record<string, string> = {
   not_required: "Free entry",
 };
 
-export default async function RegistrationStatusPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function RegistrationStatusPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   const registration = await prisma.registration.findUnique({
     where: { id },
@@ -38,14 +48,16 @@ export default async function RegistrationStatusPage({ params }: { params: Promi
   return (
     <main className="mx-auto max-w-2xl px-4 py-14">
       <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-        <span className={`inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${statusMeta.tone}`}>
+        <span
+          className={`inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${statusMeta.tone}`}
+        >
           {statusMeta.label}
         </span>
         <h1 className="mt-4 text-2xl font-bold text-charcoal">{registration.fullName}</h1>
         <p className="mt-1 text-foreground/60">{registration.tournament.title}</p>
         <p className="mt-1 text-sm text-foreground/50">
-          {formatDateRange(registration.tournament.startDate, registration.tournament.endDate)} &middot;{" "}
-          {registration.tournament.venue}, {registration.tournament.city}
+          {formatDateRange(registration.tournament.startDate, registration.tournament.endDate)}{" "}
+          &middot; {registration.tournament.venue}, {registration.tournament.city}
         </p>
 
         <dl className="mt-6 grid grid-cols-2 gap-4 rounded-lg border border-border bg-background p-4 text-left text-sm">
@@ -55,7 +67,9 @@ export default async function RegistrationStatusPage({ params }: { params: Promi
           </div>
           <div>
             <dt className="text-foreground/50">Payment</dt>
-            <dd className="font-medium">{PAYMENT_META[registration.paymentStatus] ?? registration.paymentStatus}</dd>
+            <dd className="font-medium">
+              {PAYMENT_META[registration.paymentStatus] ?? registration.paymentStatus}
+            </dd>
           </div>
         </dl>
 
@@ -78,7 +92,10 @@ export default async function RegistrationStatusPage({ params }: { params: Promi
             </a>
           )}
           {registration.tournament.resultsPublished && (
-            <LinkButton href={`/tournaments/${registration.tournament.slug}/results`} variant="outline">
+            <LinkButton
+              href={`/tournaments/${registration.tournament.slug}/results`}
+              variant="outline"
+            >
               View Results
             </LinkButton>
           )}
@@ -86,14 +103,15 @@ export default async function RegistrationStatusPage({ params }: { params: Promi
 
         {registration.status === "pending" && (
           <p className="mt-6 text-xs text-foreground/50">
-            Organizers review new registrations before confirming them — check back here for updates.
+            Organizers review new registrations before confirming them — check back here for
+            updates.
           </p>
         )}
       </div>
 
       <p className="mt-6 text-center text-sm text-foreground/50">
         Questions about your registration?{" "}
-        <Link href="/contact" className="font-semibold text-gold hover:underline">
+        <Link href="/contact" className="font-semibold text-gold-ink hover:underline">
           Contact us
         </Link>
         .

@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { Button, Input, Label } from "@/components/ui";
+import { HoneypotField } from "@/components/honeypot-field";
 
 export function ClassWaitlistForm() {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
@@ -32,15 +33,23 @@ export function ClassWaitlistForm() {
     return (
       <div className="rounded-lg border border-dashed border-border bg-card/50 px-6 py-10 text-center">
         <p className="font-semibold text-charcoal">You&apos;re on the list!</p>
-        <p className="mt-1 text-sm text-foreground/60">We&apos;ll email you the moment classes open up.</p>
+        <p className="mt-1 text-sm text-foreground/60">
+          We&apos;ll email you the moment classes open up.
+        </p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-lg border border-dashed border-border bg-card/50 p-6 text-center">
+    <form
+      onSubmit={handleSubmit}
+      className="rounded-lg border border-dashed border-border bg-card/50 p-6 text-center"
+    >
+      <HoneypotField />
       <p className="font-semibold text-charcoal">No classes open right now</p>
-      <p className="mt-1 text-sm text-foreground/60">Leave your details and we&apos;ll notify you the moment new classes are published.</p>
+      <p className="mt-1 text-sm text-foreground/60">
+        Leave your details and we&apos;ll notify you the moment new classes are published.
+      </p>
       <div className="mx-auto mt-4 grid max-w-sm gap-3 text-left sm:grid-cols-2">
         <div>
           <Label htmlFor="waitlist-email">Email</Label>

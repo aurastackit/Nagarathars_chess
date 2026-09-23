@@ -1,16 +1,24 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { Card, Input, Label, Textarea, Button, Badge } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 import { requireAdminPage } from "@/lib/require-admin";
 import { logAdminAction } from "@/lib/audit-log";
+import { isValidImageUrl } from "@/lib/image-url";
 
 export const dynamic = "force-dynamic";
 
-export default async function ManageClassPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ManageClassPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string }>;
+}) {
   await requireAdminPage();
   const { id } = await params;
+  const { error } = await searchParams;
   const classProgram = await prisma.classProgram.findUnique({
     where: { id },
     include: { enrollments: { orderBy: { enrolledAt: "desc" } } },
@@ -21,6 +29,12 @@ export default async function ManageClassPage({ params }: { params: Promise<{ id
   async function updateClass(formData: FormData) {
     "use server";
     const session = await requireAdminPage();
+    const bannerImageUrl = String(formData.get("bannerImageUrl") ?? "").trim() || null;
+    if (bannerImageUrl && !isValidImageUrl(bannerImageUrl)) {
+      redirect(
+        `/admin/classes/${id}?error=${encodeURIComponent("Enter a valid image URL (starting with http:// or https://)")}`
+      );
+    }
     await prisma.classProgram.update({
       where: { id },
       data: {
@@ -33,7 +47,7 @@ export default async function ManageClassPage({ params }: { params: Promise<{ id
         description: String(formData.get("description") ?? ""),
         scheduleText: String(formData.get("scheduleText") ?? ""),
         instructorName: String(formData.get("instructorName") ?? ""),
-        bannerImageUrl: String(formData.get("bannerImageUrl") ?? "") || null,
+        bannerImageUrl,
         isOnline: formData.get("isOnline") === "on",
       },
     });
@@ -53,8 +67,14 @@ export default async function ManageClassPage({ params }: { params: Promise<{ id
     <div>
       <div className="flex items-center gap-3">
         <h1 className="text-2xl font-bold text-charcoal">{classProgram.title}</h1>
-        <Badge tone="gold">{classProgram.level}</Badge>
+        <Badge tone="gold-ink">{classProgram.level}</Badge>
       </div>
+
+      {error && (
+        <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       <Card className="mt-6 p-6">
         <form action={updateClass} className="space-y-4">
@@ -102,7 +122,13 @@ export default async function ManageClassPage({ params }: { params: Promise<{ id
             </div>
             <div>
               <Label htmlFor="price">Price (₹ per session)</Label>
-              <Input id="price" name="price" type="number" min={0} defaultValue={classProgram.price} />
+              <Input
+                id="price"
+                name="price"
+                type="number"
+                min={0}
+                defaultValue={classProgram.price}
+              />
             </div>
             <div>
               <Label htmlFor="maxGroupSize">Max group size</Label>
@@ -128,19 +154,39 @@ export default async function ManageClassPage({ params }: { params: Promise<{ id
           </div>
           <div>
             <Label htmlFor="description">Description</Label>
-            <Textarea id="description" name="description" rows={4} defaultValue={classProgram.description} required />
+            <Textarea
+              id="description"
+              name="description"
+              rows={4}
+              defaultValue={classProgram.description}
+              required
+            />
           </div>
           <div>
             <Label htmlFor="scheduleText">Schedule</Label>
-            <Input id="scheduleText" name="scheduleText" defaultValue={classProgram.scheduleText} required />
+            <Input
+              id="scheduleText"
+              name="scheduleText"
+              defaultValue={classProgram.scheduleText}
+              required
+            />
           </div>
           <div>
             <Label htmlFor="instructorName">Instructor name</Label>
-            <Input id="instructorName" name="instructorName" defaultValue={classProgram.instructorName} required />
+            <Input
+              id="instructorName"
+              name="instructorName"
+              defaultValue={classProgram.instructorName}
+              required
+            />
           </div>
           <div>
             <Label htmlFor="bannerImageUrl">Banner image URL</Label>
-            <Input id="bannerImageUrl" name="bannerImageUrl" defaultValue={classProgram.bannerImageUrl ?? ""} />
+            <Input
+              id="bannerImageUrl"
+              name="bannerImageUrl"
+              defaultValue={classProgram.bannerImageUrl ?? ""}
+            />
           </div>
           <Button type="submit">Save changes</Button>
         </form>

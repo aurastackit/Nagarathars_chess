@@ -3,23 +3,41 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { createRegistrationWizardSchema } from "@/lib/registration-schema";
 import { sendRegistrationConfirmationEmail } from "@/lib/notify";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { isHoneypotTriggered } from "@/lib/honeypot";
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  if (!checkRateLimit(`register:${getClientIp(req)}`, 8, 60_000)) {
+    return NextResponse.json(
+      { error: "Too many requests — please try again shortly." },
+      { status: 429 }
+    );
+  }
+
   const body = await req.json().catch(() => null);
+  if (isHoneypotTriggered(body)) {
+    return NextResponse.json({ id: "ok", requiresPayment: false, amount: 0 }, { status: 201 });
+  }
 
   const tournament = await prisma.tournament.findUnique({ where: { slug } });
   if (!tournament || tournament.status !== "published") {
     return NextResponse.json({ error: "Tournament not found" }, { status: 404 });
   }
   if (new Date() > tournament.registrationDeadline) {
-    return NextResponse.json({ error: "Registration is closed for this tournament" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Registration is closed for this tournament" },
+      { status: 400 }
+    );
   }
 
   const schema = createRegistrationWizardSchema(tournament.startDate);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? "Invalid input" },
+      { status: 400 }
+    );
   }
   const data = parsed.data;
 
@@ -83,7 +101,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     }
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
       return NextResponse.json(
-        { error: "You've already registered for this tournament with this email and date of birth" },
+        {
+          error: "You've already registered for this tournament with this email and date of birth",
+        },
         { status: 409 }
       );
     }
@@ -99,5 +119,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     });
   }
 
-  return NextResponse.json({ id: registrationId, requiresPayment, amount: tournament.entryFee }, { status: 201 });
+  return NextResponse.json(
+    { id: registrationId, requiresPayment, amount: tournament.entryFee },
+    { status: 201 }
+  );
 }

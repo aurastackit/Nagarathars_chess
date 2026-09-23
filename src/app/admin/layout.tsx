@@ -1,5 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -34,7 +39,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             await signOut({ redirectTo: "/" });
           }}
         >
-          <button type="submit" className="text-sm font-medium text-foreground/60 hover:text-charcoal">
+          <button
+            type="submit"
+            className="text-sm font-medium text-foreground/60 hover:text-charcoal"
+          >
             Sign out
           </button>
         </form>

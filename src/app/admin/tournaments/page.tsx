@@ -71,27 +71,44 @@ export default async function AdminTournamentsPage() {
             {tournaments.map((t) => (
               <tr key={t.id} className="border-t border-border">
                 <td className="px-4 py-2 font-medium">{t.title}</td>
-                <td className="px-4 py-2 text-foreground/60">{formatDateRange(t.startDate, t.endDate)}</td>
+                <td className="px-4 py-2 text-foreground/60">
+                  {formatDateRange(t.startDate, t.endDate)}
+                </td>
                 <td className="px-4 py-2">
                   <Badge tone={t.status === "published" ? "charcoal" : "gray"}>{t.status}</Badge>
                 </td>
                 <td className="px-4 py-2">
-                  <Link href={`/admin/tournaments/${t.id}`} className="font-medium text-charcoal hover:underline">
+                  <Link
+                    href={`/admin/tournaments/${t.id}`}
+                    className="font-medium text-charcoal hover:underline"
+                  >
                     {t._count.registrations}
                   </Link>
                 </td>
                 <td className="space-x-3 px-4 py-2 text-right">
-                  <form action={togglePublish.bind(null, t.id, t.status, t.title)} className="inline">
-                    <button type="submit" className="text-xs font-medium text-charcoal hover:underline">
+                  <form
+                    action={togglePublish.bind(null, t.id, t.status, t.title)}
+                    className="inline"
+                  >
+                    <button
+                      type="submit"
+                      className="text-xs font-medium text-charcoal hover:underline"
+                    >
                       {t.status === "published" ? "Unpublish" : "Publish"}
                     </button>
                   </form>
-                  <Link href={`/admin/tournaments/${t.id}`} className="text-xs font-medium text-charcoal hover:underline">
+                  <Link
+                    href={`/admin/tournaments/${t.id}`}
+                    className="text-xs font-medium text-charcoal hover:underline"
+                  >
                     Manage
                   </Link>
                   {t._count.registrations === 0 && (
                     <form action={deleteTournament.bind(null, t.id, t.title)} className="inline">
-                      <button type="submit" className="text-xs font-medium text-red-600 hover:underline">
+                      <button
+                        type="submit"
+                        className="text-xs font-medium text-red-600 hover:underline"
+                      >
                         Delete
                       </button>
                     </form>

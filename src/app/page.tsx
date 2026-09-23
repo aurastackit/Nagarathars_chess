@@ -9,10 +9,19 @@ import { Reveal } from "@/components/reveal";
 import { CountUp } from "@/components/count-up";
 import { Countdown } from "@/components/countdown";
 import { getNextTournament } from "@/lib/next-tournament";
+import { isValidImageUrl } from "@/lib/image-url";
 import { TournamentCard } from "@/components/tournament-card";
 import { getHallOfChampions } from "@/lib/hall-of-champions";
 import { ClassWaitlistForm } from "@/components/class-waitlist-form";
-import { BishopIcon, KingIcon, KnightIcon, PawnIcon, QueenIcon, RookIcon, TrophyIcon } from "@/components/icons/chess-pieces";
+import {
+  BishopIcon,
+  KingIcon,
+  KnightIcon,
+  PawnIcon,
+  QueenIcon,
+  RookIcon,
+  TrophyIcon,
+} from "@/components/icons/chess-pieces";
 
 export const dynamic = "force-dynamic";
 
@@ -103,9 +112,18 @@ const BENEFITS = [
 ];
 
 const LEVEL_INFO: Record<string, { label: string; body: string }> = {
-  beginner: { label: "Beginner", body: "Piece movement, basic tactics, opening principles, and the rules of the game." },
-  intermediate: { label: "Intermediate", body: "Deeper tactics, middle-game strategy, endgame technique, and opening theory." },
-  advanced: { label: "Advanced", body: "Database-driven preparation, complex endgames, and tournament-ready coaching." },
+  beginner: {
+    label: "Beginner",
+    body: "Piece movement, basic tactics, opening principles, and the rules of the game.",
+  },
+  intermediate: {
+    label: "Intermediate",
+    body: "Deeper tactics, middle-game strategy, endgame technique, and opening theory.",
+  },
+  advanced: {
+    label: "Advanced",
+    body: "Database-driven preparation, complex endgames, and tournament-ready coaching.",
+  },
 };
 const LEVEL_ORDER = ["beginner", "intermediate", "advanced"];
 
@@ -156,7 +174,9 @@ export default async function HomePage() {
     { label: "Class programs", value: allClasses.length },
   ].filter((s) => s.value > 0);
 
-  const realGalleryItems = galleryItems.slice(0, 6);
+  const realGalleryItems = galleryItems
+    .filter((t) => isValidImageUrl(t.posterImageUrl))
+    .slice(0, 6);
   const galleryPlaceholders = generateGalleryPlaceholders(Math.max(0, 6 - realGalleryItems.length));
 
   const levelGroups = LEVEL_ORDER.map((level) => ({
@@ -186,11 +206,17 @@ export default async function HomePage() {
             >
               Chess tournaments and coaching, built for your community.
             </h1>
-            <p className="animate-fade-up max-w-lg text-lg text-white/75" style={{ animationDelay: "160ms" }}>
-              Register for upcoming local tournaments, join online chess classes, and represent
-              your community — no rating required to get started.
+            <p
+              className="animate-fade-up max-w-lg text-lg text-white/75"
+              style={{ animationDelay: "160ms" }}
+            >
+              Register for upcoming local tournaments, join online chess classes, and represent your
+              community — no rating required to get started.
             </p>
-            <div className="animate-fade-up flex flex-wrap gap-4" style={{ animationDelay: "240ms" }}>
+            <div
+              className="animate-fade-up flex flex-wrap gap-4"
+              style={{ animationDelay: "240ms" }}
+            >
               <LinkButton href="/tournaments" className="shadow-lg shadow-black/20">
                 View Tournaments
               </LinkButton>
@@ -232,17 +258,29 @@ export default async function HomePage() {
             )}
           </div>
 
-          <div className="animate-fade-up relative hidden min-h-[360px] lg:block" style={{ animationDelay: "200ms" }}>
+          <div
+            className="animate-fade-up relative hidden min-h-[360px] lg:block"
+            style={{ animationDelay: "200ms" }}
+          >
             <div className="absolute right-4 top-0 w-64 -rotate-6 rounded-2xl border border-white/15 bg-white/10 p-4 shadow-2xl backdrop-blur-sm transition-transform hover:rotate-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Live Formats</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-white/60">
+                Live Formats
+              </p>
               <div className="mt-3 grid grid-cols-8 gap-[2px] overflow-hidden rounded-md">
                 {Array.from({ length: 64 }).map((_, i) => {
                   const row = Math.floor(i / 8);
                   const dark = (row + i) % 2 === 0;
-                  return <div key={i} className={`aspect-square ${dark ? "bg-charcoal" : "bg-white/80"}`} />;
+                  return (
+                    <div
+                      key={i}
+                      className={`aspect-square ${dark ? "bg-charcoal" : "bg-white/80"}`}
+                    />
+                  );
                 })}
               </div>
-              <p className="mt-3 text-sm font-semibold text-white">Classical &middot; Rapid &middot; Blitz</p>
+              <p className="mt-3 text-sm font-semibold text-white">
+                Classical &middot; Rapid &middot; Blitz
+              </p>
             </div>
 
             <div className="absolute left-0 top-28 w-72 rotate-3 rounded-2xl border border-white/15 bg-charcoal/80 p-5 shadow-2xl backdrop-blur-md transition-transform hover:rotate-0">
@@ -257,7 +295,9 @@ export default async function HomePage() {
                 </>
               ) : (
                 <>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Get started</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-white/60">
+                    Get started
+                  </p>
                   <p className="mt-2 text-lg font-semibold text-white">
                     Your first tournament is free to enter.
                   </p>
@@ -294,15 +334,26 @@ export default async function HomePage() {
       <section className="chess-pattern-light bg-background py-16">
         <Container>
           <Reveal>
-            <SectionHeading title="How It Works" description="From browsing to your first move, in three simple steps." />
+            <SectionHeading
+              title="How It Works"
+              description="From browsing to your first move, in three simple steps."
+            />
           </Reveal>
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
             {STEPS.map((s, i) => (
-              <Reveal key={s.title} delay={i * 120} className="relative rounded-lg border border-border bg-card p-6 shadow-sm">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gold/15 text-lg font-bold text-gold">
+              <Reveal
+                key={s.title}
+                delay={i * 120}
+                className="relative rounded-lg border border-border bg-card p-6 shadow-sm"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gold/15 text-lg font-bold text-gold-ink">
                   {i + 1}
                 </span>
-                <s.Icon className="pointer-events-none absolute right-4 top-4 h-9 w-9 text-charcoal/10" aria-hidden="true" strokeWidth={1} />
+                <s.Icon
+                  className="pointer-events-none absolute right-4 top-4 h-9 w-9 text-charcoal/10"
+                  aria-hidden="true"
+                  strokeWidth={1}
+                />
                 <h3 className="mt-4 font-semibold text-foreground">{s.title}</h3>
                 <p className="mt-2 text-sm text-foreground/60">{s.body}</p>
               </Reveal>
@@ -314,7 +365,7 @@ export default async function HomePage() {
       <Container className="py-16">
         <div className="mb-8 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-charcoal">Upcoming Tournaments</h2>
-          <Link href="/tournaments" className="text-sm font-semibold text-gold hover:underline">
+          <Link href="/tournaments" className="text-sm font-semibold text-gold-ink hover:underline">
             View all &rarr;
           </Link>
         </div>
@@ -335,12 +386,19 @@ export default async function HomePage() {
         <section className="bg-card py-16">
           <Container>
             <Reveal>
-              <SectionHeading title="Programs By Level" description="A structured path from your first game to tournament-ready play." />
+              <SectionHeading
+                title="Programs By Level"
+                description="A structured path from your first game to tournament-ready play."
+              />
             </Reveal>
             <div className="mt-10 grid gap-6 sm:grid-cols-3">
               {levelGroups.map((g, i) => (
-                <Reveal key={g.level} delay={i * 120} className="rounded-lg border border-border p-6 text-center shadow-sm">
-                  <Badge tone={i === 1 ? "gold" : "charcoal"}>{g.info.label}</Badge>
+                <Reveal
+                  key={g.level}
+                  delay={i * 120}
+                  className="rounded-lg border border-border p-6 text-center shadow-sm"
+                >
+                  <Badge tone={i === 1 ? "gold-ink" : "charcoal"}>{g.info.label}</Badge>
                   <p className="mt-3 text-sm text-foreground/60">{g.info.body}</p>
                   <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-foreground/40">
                     {g.count} program{g.count === 1 ? "" : "s"} available
@@ -355,7 +413,7 @@ export default async function HomePage() {
       <Container className="py-16">
         <div className="mb-8 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-charcoal">Online Tutoring &amp; Classes</h2>
-          <Link href="/classes" className="text-sm font-semibold text-gold hover:underline">
+          <Link href="/classes" className="text-sm font-semibold text-gold-ink hover:underline">
             View all &rarr;
           </Link>
         </div>
@@ -366,7 +424,7 @@ export default async function HomePage() {
             {classes.map((c, i) => (
               <Reveal key={c.id} delay={i * 100}>
                 <Card className="h-full p-5">
-                  <Badge tone="gold">{c.level}</Badge>
+                  <Badge tone="gold-ink">{c.level}</Badge>
                   <h3 className="mt-2 font-semibold text-foreground">{c.title}</h3>
                   <p className="mt-2 text-sm text-foreground/60">{c.scheduleText}</p>
                   <Link
@@ -391,8 +449,12 @@ export default async function HomePage() {
         </Reveal>
         <div className="mt-10 grid gap-6 sm:grid-cols-3">
           {FORMATS.map((f, i) => (
-            <Reveal key={f.title} delay={i * 100} className="rounded-lg border border-border bg-card p-6 text-center shadow-sm">
-              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gold/15 text-gold">
+            <Reveal
+              key={f.title}
+              delay={i * 100}
+              className="rounded-lg border border-border bg-card p-6 text-center shadow-sm"
+            >
+              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gold/15 text-gold-ink">
                 <f.Icon className="h-7 w-7" strokeWidth={1.1} />
               </span>
               <h3 className="mt-4 font-semibold text-foreground">{f.title}</h3>
@@ -445,11 +507,18 @@ export default async function HomePage() {
       <section className="bg-card py-16">
         <Container>
           <Reveal>
-            <SectionHeading title="Why Chess?" description="The skills chess builds carry well beyond the board." />
+            <SectionHeading
+              title="Why Chess?"
+              description="The skills chess builds carry well beyond the board."
+            />
           </Reveal>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {BENEFITS.map((b, i) => (
-              <Reveal key={b.title} delay={i * 90} className="rounded-lg border border-border p-5 text-center shadow-sm">
+              <Reveal
+                key={b.title}
+                delay={i * 90}
+                className="rounded-lg border border-border p-5 text-center shadow-sm"
+              >
                 <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-charcoal/10 text-charcoal">
                   <b.Icon className="h-6 w-6" strokeWidth={1.1} />
                 </span>
@@ -463,13 +532,16 @@ export default async function HomePage() {
 
       <Container className="py-16">
         <Reveal>
-          <SectionHeading title="Why Choose Us" description="Whatever brought you here, we've built this around making chess accessible." />
+          <SectionHeading
+            title="Why Choose Us"
+            description="Whatever brought you here, we've built this around making chess accessible."
+          />
         </Reveal>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {PROMISES.map((p, i) => (
             <Reveal key={p.title} delay={i * 80}>
               <Card className="h-full p-5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gold/10 text-gold">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gold/10 text-gold-ink">
                   ✓
                 </span>
                 <h3 className="mt-3 font-semibold text-foreground">{p.title}</h3>
@@ -484,23 +556,35 @@ export default async function HomePage() {
         <Container>
           <div className="mb-8 flex items-center justify-between">
             <h2 className="text-2xl font-bold text-charcoal">From Our Gallery</h2>
-            <Link href="/gallery" className="text-sm font-semibold text-gold hover:underline">
+            <Link href="/gallery" className="text-sm font-semibold text-gold-ink hover:underline">
               View all &rarr;
             </Link>
           </div>
           <div className="grid gap-6 sm:grid-cols-3">
             {realGalleryItems.map((t, i) => (
               <Reveal key={t.id} delay={i * 90}>
-                <Link href="/gallery" className="block overflow-hidden rounded-lg border border-border bg-background">
+                <Link
+                  href="/gallery"
+                  className="block overflow-hidden rounded-lg border border-border bg-background"
+                >
                   <div className="relative h-40 w-full bg-gray-100">
-                    <Image src={t.posterImageUrl!} alt={t.title} fill className="object-contain" />
+                    <Image
+                      src={t.posterImageUrl!}
+                      alt={t.title}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 33vw"
+                      className="object-contain"
+                    />
                   </div>
                 </Link>
               </Reveal>
             ))}
             {galleryPlaceholders.map((p, i) => (
               <Reveal key={p.id} delay={(realGalleryItems.length + i) * 90}>
-                <Link href="/gallery" className="block h-40 overflow-hidden rounded-lg border border-border">
+                <Link
+                  href="/gallery"
+                  className="block h-40 overflow-hidden rounded-lg border border-border"
+                >
                   <GalleryPlaceholderTile {...p} />
                 </Link>
               </Reveal>
@@ -516,7 +600,11 @@ export default async function HomePage() {
           </Reveal>
           <div className="mt-10 space-y-6">
             {FAQS.map((f, i) => (
-              <Reveal key={f.q} delay={i * 80} className="border-b border-border pb-6 last:border-0">
+              <Reveal
+                key={f.q}
+                delay={i * 80}
+                className="border-b border-border pb-6 last:border-0"
+              >
                 <h3 className="font-semibold text-foreground">{f.q}</h3>
                 <p className="mt-2 text-sm text-foreground/60">{f.a}</p>
               </Reveal>

@@ -26,7 +26,10 @@ export function SiteFooter() {
           <ul className="mt-3 space-y-2">
             {QUICK_LINKS.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="transition-colors hover:text-white hover:underline">
+                <Link
+                  href={link.href}
+                  className="transition-colors hover:text-white hover:underline"
+                >
                   {link.label}
                 </Link>
               </li>

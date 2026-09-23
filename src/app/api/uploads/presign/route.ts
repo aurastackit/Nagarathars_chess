@@ -12,7 +12,10 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const parsed = presignSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid request" }, { status: 400 });
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? "Invalid request" },
+      { status: 400 }
+    );
   }
 
   try {

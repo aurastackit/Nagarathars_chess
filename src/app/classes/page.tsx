@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { ClassFilters } from "@/components/class-filters";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Online Classes",
+  description:
+    "Structured online chess coaching for every level — beginner fundamentals through advanced tournament preparation, group or 1-on-1.",
+};
 
 export default async function ClassesPage() {
   const classes = await prisma.classProgram.findMany({ orderBy: { createdAt: "asc" } });

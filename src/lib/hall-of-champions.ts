@@ -23,19 +23,29 @@ export async function getHallOfChampions(limit = 3): Promise<ChampionEntry[]> {
         where: { tournamentId: tournament.id, status: { in: ["confirmed", "registered"] } },
         include: { player: true },
       }),
-      prisma.round.findMany({ where: { tournamentId: tournament.id }, include: { pairings: true } }),
+      prisma.round.findMany({
+        where: { tournamentId: tournament.id },
+        include: { pairings: true },
+      }),
     ]);
     const players = registrants
       .filter((r) => r.player)
       .map((r) => ({ id: r.player!.id, fullName: r.player!.fullName, ageCategory: r.ageCategory }));
     if (players.length === 0) continue;
 
-    const standings = computeStandings(players, rounds.flatMap((r) => r.pairings));
+    const standings = computeStandings(
+      players,
+      rounds.flatMap((r) => r.pairings)
+    );
     if (standings.length === 0 || standings[0].played === 0) continue;
 
     const winners = categoryWinners(standings);
     entries.push({
-      tournament: { slug: tournament.slug, title: tournament.title, startDate: tournament.startDate },
+      tournament: {
+        slug: tournament.slug,
+        title: tournament.title,
+        startDate: tournament.startDate,
+      },
       champion: standings[0].player.fullName,
       categoryChampions: Object.entries(winners).map(([cat, s]) => ({
         label: ageCategoryLabel(cat),

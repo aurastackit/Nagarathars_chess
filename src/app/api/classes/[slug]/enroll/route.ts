@@ -3,14 +3,30 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { enrollmentSchema } from "@/lib/validations";
 import { notifyRegistration } from "@/lib/notify";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { isHoneypotTriggered } from "@/lib/honeypot";
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  if (!checkRateLimit(`enroll:${getClientIp(req)}`, 5, 60_000)) {
+    return NextResponse.json(
+      { error: "Too many requests — please try again shortly." },
+      { status: 429 }
+    );
+  }
+
   const body = await req.json().catch(() => null);
+  if (isHoneypotTriggered(body)) {
+    return NextResponse.json({ ok: true }, { status: 201 });
+  }
+
   const parsed = enrollmentSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? "Invalid input" },
+      { status: 400 }
+    );
   }
 
   const classProgram = await prisma.classProgram.findUnique({ where: { slug } });
@@ -40,7 +56,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     });
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-      return NextResponse.json({ error: "You've already enrolled interest with this email" }, { status: 409 });
+      return NextResponse.json(
+        { error: "You've already enrolled interest with this email" },
+        { status: 409 }
+      );
     }
     throw err;
   }

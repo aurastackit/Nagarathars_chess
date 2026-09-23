@@ -47,14 +47,23 @@ export function RegistrantsPanel({
     });
   }, [registrations, search, category, status, kovil]);
 
-  const kovilsUsed = useMemo(() => [...new Set(registrations.map((r) => r.kovil).filter(Boolean))] as string[], [registrations]);
+  const kovilsUsed = useMemo(
+    () => [...new Set(registrations.map((r) => r.kovil).filter(Boolean))] as string[],
+    [registrations]
+  );
 
   return (
     <div className="mt-3">
       <div className="grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-4">
         <div>
-          <label className="mb-1 block text-xs font-medium text-foreground/60">Search</label>
+          <label
+            htmlFor="registrants-filter-search"
+            className="mb-1 block text-xs font-medium text-foreground/60"
+          >
+            Search
+          </label>
           <input
+            id="registrants-filter-search"
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -63,8 +72,17 @@ export function RegistrantsPanel({
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-foreground/60">Category</label>
-          <Select value={category} onChange={(e) => setCategory(e.target.value)}>
+          <label
+            htmlFor="registrants-filter-category"
+            className="mb-1 block text-xs font-medium text-foreground/60"
+          >
+            Category
+          </label>
+          <Select
+            id="registrants-filter-category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
             <option value="all">All categories</option>
             {AGE_CATEGORIES.map((c) => (
               <option key={c.value} value={c.value}>
@@ -74,8 +92,17 @@ export function RegistrantsPanel({
           </Select>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-foreground/60">Status</label>
-          <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+          <label
+            htmlFor="registrants-filter-status"
+            className="mb-1 block text-xs font-medium text-foreground/60"
+          >
+            Status
+          </label>
+          <Select
+            id="registrants-filter-status"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
             <option value="all">All statuses</option>
             {STATUS_OPTIONS.map((s) => (
               <option key={s.value} value={s.value}>
@@ -85,8 +112,17 @@ export function RegistrantsPanel({
           </Select>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-foreground/60">Kovil</label>
-          <Select value={kovil} onChange={(e) => setKovil(e.target.value)}>
+          <label
+            htmlFor="registrants-filter-kovil"
+            className="mb-1 block text-xs font-medium text-foreground/60"
+          >
+            Kovil
+          </label>
+          <Select
+            id="registrants-filter-kovil"
+            value={kovil}
+            onChange={(e) => setKovil(e.target.value)}
+          >
             <option value="all">All kovils</option>
             {KOVILS.filter((k) => kovilsUsed.includes(k.label)).map((k) => (
               <option key={k.value} value={k.label}>
@@ -149,18 +185,35 @@ export function RegistrantsPanel({
                     <td className="px-4 py-2">
                       <div className="flex flex-col gap-0.5">
                         {r.ageProofKey && (
-                          <a href={`/api/admin/uploads?key=${encodeURIComponent(r.ageProofKey)}`} target="_blank" rel="noreferrer" className="text-charcoal hover:underline">
+                          <a
+                            href={`/api/admin/uploads?key=${encodeURIComponent(r.ageProofKey)}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-charcoal hover:underline"
+                          >
                             Age proof
                           </a>
                         )}
                         {r.passportPhotoKey && (
-                          <a href={`/api/admin/uploads?key=${encodeURIComponent(r.passportPhotoKey)}`} target="_blank" rel="noreferrer" className="text-charcoal hover:underline">
+                          <a
+                            href={`/api/admin/uploads?key=${encodeURIComponent(r.passportPhotoKey)}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-charcoal hover:underline"
+                          >
                             Photo
                           </a>
                         )}
-                        {!r.ageProofKey && !r.passportPhotoKey && (r.aadhaarImageData || r.passportPhotoData
-                          ? [r.aadhaarImageData && "Aadhaar (legacy)", r.passportPhotoData && "Photo (legacy)"].filter(Boolean).join(", ")
-                          : "—")}
+                        {!r.ageProofKey &&
+                          !r.passportPhotoKey &&
+                          (r.aadhaarImageData || r.passportPhotoData
+                            ? [
+                                r.aadhaarImageData && "Aadhaar (legacy)",
+                                r.passportPhotoData && "Photo (legacy)",
+                              ]
+                                .filter(Boolean)
+                                .join(", ")
+                            : "—")}
                       </div>
                     </td>
                     <td className="px-4 py-2">{ageCategoryLabel(r.ageCategory)}</td>
@@ -171,7 +224,9 @@ export function RegistrantsPanel({
                     <td className="px-4 py-2">
                       <Badge tone={statusTone(r.status)}>{r.status}</Badge>
                       {r.status === "rejected" && r.rejectionReason && (
-                        <p className="mt-1 max-w-[160px] text-xs text-foreground/50">{r.rejectionReason}</p>
+                        <p className="mt-1 max-w-[160px] text-xs text-foreground/50">
+                          {r.rejectionReason}
+                        </p>
                       )}
                     </td>
                     <td className="px-4 py-2">{formatDate(r.registeredAt)}</td>
@@ -182,7 +237,10 @@ export function RegistrantsPanel({
                             <form action={setRegistrationStatus}>
                               <input type="hidden" name="registrationId" value={r.id} />
                               <input type="hidden" name="next" value="confirmed" />
-                              <button type="submit" className="text-xs font-semibold text-gold hover:underline">
+                              <button
+                                type="submit"
+                                className="text-xs font-semibold text-gold-ink hover:underline"
+                              >
                                 Confirm
                               </button>
                             </form>
@@ -204,7 +262,10 @@ export function RegistrantsPanel({
                                 rows={2}
                                 className="w-40 rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-charcoal"
                               />
-                              <button type="submit" className="self-start text-xs font-semibold text-red-600 hover:underline">
+                              <button
+                                type="submit"
+                                className="self-start text-xs font-semibold text-red-600 hover:underline"
+                              >
                                 Confirm reject
                               </button>
                             </form>

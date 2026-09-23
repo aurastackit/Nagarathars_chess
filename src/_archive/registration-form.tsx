@@ -104,7 +104,10 @@ export function RegistrationForm({ tournamentSlug }: { tournamentSlug: string })
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 rounded-2xl border border-[#e5ddc8] bg-white p-6 shadow-sm sm:p-8">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-8 rounded-2xl border border-[#e5ddc8] bg-white p-6 shadow-sm sm:p-8"
+    >
       <Section index={1} title="Personal details">
         <TextField label="Full name" name="fullName" required className="sm:col-span-2" />
         <TextField label="Email" name="email" type="email" required />
@@ -117,7 +120,12 @@ export function RegistrationForm({ tournamentSlug }: { tournamentSlug: string })
           <option value="other">Other</option>
         </SelectField>
         <TextField label="City" name="city" placeholder="Optional" />
-        <TextAreaField label="Resident address" name="address" placeholder="Optional" className="sm:col-span-2" />
+        <TextAreaField
+          label="Resident address"
+          name="address"
+          placeholder="Optional"
+          className="sm:col-span-2"
+        />
       </Section>
 
       <Section index={2} title="Tournament category">
@@ -131,7 +139,13 @@ export function RegistrationForm({ tournamentSlug }: { tournamentSlug: string })
             </option>
           ))}
         </SelectField>
-        <TextField label="Rating" name="rating" type="number" min={0} placeholder="Optional — local/state rating" />
+        <TextField
+          label="Rating"
+          name="rating"
+          type="number"
+          min={0}
+          placeholder="Optional — local/state rating"
+        />
         <TextField label="FIDE ID" name="fideId" placeholder="Optional — leave blank if unrated" />
         <p className="text-xs text-[#8a8471] sm:col-span-2 sm:-mt-3">
           You can play up in an older category if you&apos;d like, but not down.
@@ -141,13 +155,26 @@ export function RegistrationForm({ tournamentSlug }: { tournamentSlug: string })
       <Section index={3} title="Family details">
         <TextField label="Father name" name="fatherName" placeholder="Optional" />
         <TextField label="Mother name" name="motherName" placeholder="Optional" />
-        <TextField label="Father side grandparents name" name="fatherGrandparents" placeholder="Eg: Grandfather / Grandmother" />
-        <TextField label="Mother side grandparents name" name="motherGrandparents" placeholder="Eg: Grandfather / Grandmother" />
+        <TextField
+          label="Father side grandparents name"
+          name="fatherGrandparents"
+          placeholder="Eg: Grandfather / Grandmother"
+        />
+        <TextField
+          label="Mother side grandparents name"
+          name="motherGrandparents"
+          placeholder="Eg: Grandfather / Grandmother"
+        />
       </Section>
 
       <Section index={4} title="Community details (self)">
         <TextField label="Native" name="native" placeholder="Optional" />
-        <SelectField label="Kovil" name="kovil" value={kovilLabel} onChange={(e) => setKovilLabel(e.target.value)}>
+        <SelectField
+          label="Kovil"
+          name="kovil"
+          value={kovilLabel}
+          onChange={(e) => setKovilLabel(e.target.value)}
+        >
           <option value="">Optional — select your Kovil</option>
           {KOVILS.map((k) => (
             <option key={k.value} value={k.label}>
@@ -199,7 +226,12 @@ export function RegistrationForm({ tournamentSlug }: { tournamentSlug: string })
             <option value="">NA</option>
           </SelectField>
         ) : (
-          <SelectField key={motherKovilLabel} label="Mother Pirivu" name="motherPirivu" defaultValue="">
+          <SelectField
+            key={motherKovilLabel}
+            label="Mother Pirivu"
+            name="motherPirivu"
+            defaultValue=""
+          >
             <option value="">Optional — select Pirivu</option>
             {motherPirivuOptions.map((p) => (
               <option key={p} value={p}>

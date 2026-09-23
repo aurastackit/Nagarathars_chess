@@ -7,17 +7,31 @@ function Row({ label, value }: { label: string; value?: string | number | boolea
   return (
     <div className="flex justify-between gap-4 py-1 text-sm">
       <span className="text-foreground/50">{label}</span>
-      <span className="text-right font-medium text-foreground">{value === true ? "Yes" : value}</span>
+      <span className="text-right font-medium text-foreground">
+        {value === true ? "Yes" : value}
+      </span>
     </div>
   );
 }
 
-function ReviewGroup({ title, onEdit, children }: { title: string; onEdit: () => void; children: React.ReactNode }) {
+function ReviewGroup({
+  title,
+  onEdit,
+  children,
+}: {
+  title: string;
+  onEdit: () => void;
+  children: React.ReactNode;
+}) {
   return (
     <div className="rounded-lg border border-border bg-card p-4">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold text-charcoal">{title}</h4>
-        <button type="button" onClick={onEdit} className="text-xs font-semibold text-gold hover:underline">
+        <button
+          type="button"
+          onClick={onEdit}
+          className="text-xs font-semibold text-gold-ink hover:underline"
+        >
           Edit
         </button>
       </div>
@@ -39,14 +53,20 @@ export function ReviewStep({ onEditStep }: { onEditStep: (step: number) => void 
         <Row label="Full name" value={v.fullName} />
         <Row label="Email" value={v.email} />
         <Row label="Phone" value={v.phone} />
-        <Row label="Date of birth" value={dob && !isNaN(dob.getTime()) ? dob.toLocaleDateString("en-IN") : undefined} />
+        <Row
+          label="Date of birth"
+          value={dob && !isNaN(dob.getTime()) ? dob.toLocaleDateString("en-IN") : undefined}
+        />
         <Row label="Gender" value={v.gender} />
         <Row label="City" value={v.city} />
         <Row label="Address" value={v.address} />
       </ReviewGroup>
 
       <ReviewGroup title="Category" onEdit={() => onEditStep(1)}>
-        <Row label="Age category" value={AGE_CATEGORIES.find((c) => c.value === v.ageCategory)?.label} />
+        <Row
+          label="Age category"
+          value={AGE_CATEGORIES.find((c) => c.value === v.ageCategory)?.label}
+        />
         <Row label="Rating" value={v.rating} />
         <Row label="FIDE ID" value={v.fideId} />
       </ReviewGroup>
@@ -69,7 +89,10 @@ export function ReviewStep({ onEditStep }: { onEditStep: (step: number) => void 
       </ReviewGroup>
 
       <ReviewGroup title="Documents" onEdit={() => onEditStep(4)}>
-        <Row label="Age proof type" value={AGE_PROOF_TYPES.find((t) => t.value === v.ageProofType)?.label} />
+        <Row
+          label="Age proof type"
+          value={AGE_PROOF_TYPES.find((t) => t.value === v.ageProofType)?.label}
+        />
         <Row label="Age proof uploaded" value={Boolean(v.ageProofKey)} />
         <Row label="Photo uploaded" value={Boolean(v.passportPhotoKey)} />
         <Row label="Guardian" value={v.guardianName} />

@@ -16,14 +16,22 @@ const RESULT_LABEL: Record<string, string> = {
   BYE: "Bye",
 };
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
   const { slug } = await params;
   const tournament = await prisma.tournament.findUnique({ where: { slug } });
   if (!tournament || !tournament.resultsPublished) return {};
   return { title: `Results — ${tournament.title} | Nagarathar's Chess Championship` };
 }
 
-export default async function TournamentResultsPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function TournamentResultsPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   const tournament = await prisma.tournament.findUnique({ where: { slug } });
   if (!tournament || !tournament.resultsPublished) notFound();
@@ -36,7 +44,9 @@ export default async function TournamentResultsPage({ params }: { params: Promis
     prisma.round.findMany({
       where: { tournamentId: tournament.id },
       orderBy: { number: "asc" },
-      include: { pairings: { include: { whitePlayer: true, blackPlayer: true }, orderBy: { board: "asc" } } },
+      include: {
+        pairings: { include: { whitePlayer: true, blackPlayer: true }, orderBy: { board: "asc" } },
+      },
     }),
   ]);
 
@@ -51,21 +61,29 @@ export default async function TournamentResultsPage({ params }: { params: Promis
   return (
     <main className="mx-auto max-w-4xl px-4 py-12">
       <p className="text-sm">
-        <Link href={`/tournaments/${tournament.slug}`} className="font-semibold text-gold hover:underline">
+        <Link
+          href={`/tournaments/${tournament.slug}`}
+          className="font-semibold text-gold-ink hover:underline"
+        >
           &larr; {tournament.title}
         </Link>
       </p>
       <h1 className="mt-2 text-3xl font-bold text-charcoal">Results</h1>
 
       {standings.length === 0 ? (
-        <EmptyState className="mt-8" message="Results haven't been recorded yet — check back soon." />
+        <EmptyState
+          className="mt-8"
+          message="Results haven't been recorded yet — check back soon."
+        />
       ) : (
         <>
           <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {champion && (
               <Card className="p-4 text-center">
-                <TrophyIcon className="mx-auto h-6 w-6 text-gold" />
-                <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-foreground/50">Champion</p>
+                <TrophyIcon className="mx-auto h-6 w-6 text-gold-ink" />
+                <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-foreground/50">
+                  Champion
+                </p>
                 <p className="mt-1 font-semibold text-charcoal">{champion.player.fullName}</p>
               </Card>
             )}
@@ -100,7 +118,10 @@ export default async function TournamentResultsPage({ params }: { params: Promis
                       <tr key={s.player.id} className="border-t border-border">
                         <td className="px-4 py-2 font-semibold">{s.rank}</td>
                         <td className="px-4 py-2">
-                          <Link href={`/players/${s.player.id}`} className="text-charcoal hover:underline">
+                          <Link
+                            href={`/players/${s.player.id}`}
+                            className="text-charcoal hover:underline"
+                          >
                             {s.player.fullName}
                           </Link>
                         </td>
@@ -139,7 +160,9 @@ export default async function TournamentResultsPage({ params }: { params: Promis
                           <td className="py-1.5 pr-3">{p.board ?? "—"}</td>
                           <td className="py-1.5 pr-3">{p.whitePlayer?.fullName ?? "—"}</td>
                           <td className="py-1.5 pr-3">{p.blackPlayer?.fullName ?? "Bye"}</td>
-                          <td className="py-1.5">{p.result ? RESULT_LABEL[p.result] ?? p.result : "—"}</td>
+                          <td className="py-1.5">
+                            {p.result ? (RESULT_LABEL[p.result] ?? p.result) : "—"}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

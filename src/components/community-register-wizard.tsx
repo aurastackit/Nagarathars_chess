@@ -2,7 +2,15 @@
 
 import { useState, type FormEvent } from "react";
 import { KOVILS } from "@/lib/kovils";
-import { CheckIcon, FileField, PrimaryButton, Section, SelectField, TextAreaField, TextField } from "@/components/form-fields";
+import {
+  CheckIcon,
+  FileField,
+  PrimaryButton,
+  Section,
+  SelectField,
+  TextAreaField,
+  TextField,
+} from "@/components/form-fields";
 
 const SECTIONS = [
   { id: "personal", label: "Personal details" },
@@ -79,10 +87,18 @@ export function CommunityRegisterWizard() {
         </nav>
       </aside>
 
-      <form onSubmit={handleSubmitForm} className="space-y-10 rounded-2xl border border-[#e5ddc8] bg-white p-6 shadow-sm sm:p-8">
+      <form
+        onSubmit={handleSubmitForm}
+        className="space-y-10 rounded-2xl border border-[#e5ddc8] bg-white p-6 shadow-sm sm:p-8"
+      >
         <div id="personal" className="scroll-mt-6">
           <Section index={1} title="Personal details">
-            <TextField label="Full name (as per Aadhaar)" name="fullName" required placeholder="Eg: John Deo" />
+            <TextField
+              label="Full name (as per Aadhaar)"
+              name="fullName"
+              required
+              placeholder="Eg: John Deo"
+            />
             <SelectField label="Gender" name="gender" required>
               <option value="">Select</option>
               <option value="male">Male</option>
@@ -90,8 +106,19 @@ export function CommunityRegisterWizard() {
               <option value="other">Other</option>
             </SelectField>
             <TextField label="Date of birth (as per Aadhaar)" name="dob" type="date" required />
-            <TextField label="Mobile" name="mobile" type="tel" required placeholder="10-digit mobile number" />
-            <TextAreaField label="Resident address" name="address" required className="sm:col-span-2" />
+            <TextField
+              label="Mobile"
+              name="mobile"
+              type="tel"
+              required
+              placeholder="10-digit mobile number"
+            />
+            <TextAreaField
+              label="Resident address"
+              name="address"
+              required
+              className="sm:col-span-2"
+            />
           </Section>
         </div>
 
@@ -157,7 +184,12 @@ export function CommunityRegisterWizard() {
 
         <div id="community-mother" className="scroll-mt-6">
           <Section index={5} title="Community details (mother)">
-            <TextField label="Mother native" name="motherNative" required placeholder="Eg: Devakottai" />
+            <TextField
+              label="Mother native"
+              name="motherNative"
+              required
+              placeholder="Eg: Devakottai"
+            />
             <SelectField
               label="Mother Kovil"
               name="motherKovil"
@@ -177,7 +209,11 @@ export function CommunityRegisterWizard() {
               name="motherPirivu"
               required={!!selectedMotherKovil?.pirivus.length}
               disabled={!selectedMotherKovil?.pirivus.length}
-              helper={selectedMotherKovil ? "Required if Pirivu exists for selected Mother Kovil" : undefined}
+              helper={
+                selectedMotherKovil
+                  ? "Required if Pirivu exists for selected Mother Kovil"
+                  : undefined
+              }
             >
               <option value="">{selectedMotherKovil?.pirivus.length ? "Select" : "NA"}</option>
               {selectedMotherKovil?.pirivus.map((p) => (

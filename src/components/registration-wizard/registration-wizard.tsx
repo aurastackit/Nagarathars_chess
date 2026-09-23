@@ -20,6 +20,7 @@ import { FamilyStep } from "@/components/registration-wizard/steps/family-step";
 import { CommunityStep } from "@/components/registration-wizard/steps/community-step";
 import { DocumentsStep } from "@/components/registration-wizard/steps/documents-step";
 import { ReviewStep } from "@/components/registration-wizard/steps/review-step";
+import { HONEYPOT_FIELD } from "@/lib/honeypot";
 
 const DEFAULT_VALUES: Partial<RegistrationWizardValues> = {
   fullName: "",
@@ -73,7 +74,11 @@ export function RegistrationWizard({
   // The schema's input types are narrower than the raw HTML form state it
   // validates (e.g. `ageProofType` has no "" option, `dob` isn't a plain
   // string) — cast the resolver rather than fight zod's inference for that.
-  const resolver = zodResolver(schema) as unknown as Resolver<RegistrationWizardValues, unknown, RegistrationWizardOutput>;
+  const resolver = zodResolver(schema) as unknown as Resolver<
+    RegistrationWizardValues,
+    unknown,
+    RegistrationWizardOutput
+  >;
   const methods = useForm<RegistrationWizardValues, unknown, RegistrationWizardOutput>({
     resolver,
     defaultValues: DEFAULT_VALUES,
@@ -134,16 +139,18 @@ export function RegistrationWizard({
     }
   }
 
-  async function onSubmit(values: RegistrationWizardOutput) {
+  async function onSubmit(values: RegistrationWizardOutput, event?: React.BaseSyntheticEvent) {
     setSubmitError(null);
     setSubmitting(true);
     try {
+      const form = event?.target instanceof HTMLFormElement ? event.target : null;
+      const honeypot = form ? String(new FormData(form).get(HONEYPOT_FIELD) ?? "") : "";
       let id = registrationId;
       if (!id) {
         const res = await fetch(`/api/tournaments/${tournamentSlug}/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(values),
+          body: JSON.stringify({ ...values, [HONEYPOT_FIELD]: honeypot }),
         });
         if (!res.ok) {
           const body = await res.json().catch(() => null);
@@ -161,7 +168,9 @@ export function RegistrationWizard({
       clearDraft(storageKey);
       router.push(`/registration/${id}`);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setSubmitError(
+        err instanceof Error ? err.message : "Something went wrong. Please try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -176,6 +185,16 @@ export function RegistrationWizard({
           onSubmit={isLastStep ? handleSubmit(onSubmit) : (e) => e.preventDefault()}
           className="mt-8 space-y-8"
         >
+          <div className="hidden" aria-hidden="true">
+            <label htmlFor={HONEYPOT_FIELD}>Leave this field blank</label>
+            <input
+              id={HONEYPOT_FIELD}
+              name={HONEYPOT_FIELD}
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+            />
+          </div>
           {step === 0 && <PlayerStep />}
           {step === 1 && <CategoryStep tournamentStartDate={tournamentStartDate} />}
           {step === 2 && <FamilyStep />}

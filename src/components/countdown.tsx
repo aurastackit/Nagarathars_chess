@@ -39,8 +39,13 @@ export function Countdown({ target }: { target: string }) {
   return (
     <div className="flex gap-3">
       {units.map((u) => (
-        <div key={u.label} className="flex min-w-[60px] flex-col items-center rounded-lg bg-white/10 px-3 py-2">
-          <span className="text-xl font-bold tabular-nums sm:text-2xl">{String(u.value).padStart(2, "0")}</span>
+        <div
+          key={u.label}
+          className="flex min-w-[60px] flex-col items-center rounded-lg bg-white/10 px-3 py-2"
+        >
+          <span className="text-xl font-bold tabular-nums sm:text-2xl">
+            {String(u.value).padStart(2, "0")}
+          </span>
           <span className="text-[10px] uppercase tracking-wide text-white/60">{u.label}</span>
         </div>
       ))}

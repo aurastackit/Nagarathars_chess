@@ -3,10 +3,16 @@ export type PieceKey = (typeof PIECE_KEYS)[number];
 
 const TONES: [string, string][] = [
   ["var(--charcoal)", "color-mix(in srgb, var(--charcoal), var(--gold) 20%)"],
-  ["color-mix(in srgb, var(--charcoal), var(--gold) 15%)", "color-mix(in srgb, var(--charcoal), var(--gold) 35%)"],
+  [
+    "color-mix(in srgb, var(--charcoal), var(--gold) 15%)",
+    "color-mix(in srgb, var(--charcoal), var(--gold) 35%)",
+  ],
   ["var(--gold)", "color-mix(in srgb, var(--gold), white 15%)"],
   ["color-mix(in srgb, var(--charcoal), black 15%)", "var(--charcoal)"],
-  ["color-mix(in srgb, var(--charcoal), var(--gold) 30%)", "color-mix(in srgb, var(--gold), var(--charcoal) 40%)"],
+  [
+    "color-mix(in srgb, var(--charcoal), var(--gold) 30%)",
+    "color-mix(in srgb, var(--gold), var(--charcoal) 40%)",
+  ],
 ];
 
 const CAPTIONS = [

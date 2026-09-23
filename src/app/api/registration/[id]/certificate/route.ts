@@ -7,7 +7,10 @@ import { renderCertificatePdf, type CertificateKind } from "@/lib/certificate-pd
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const registration = await prisma.registration.findUnique({ where: { id }, include: { tournament: true } });
+  const registration = await prisma.registration.findUnique({
+    where: { id },
+    include: { tournament: true },
+  });
 
   if (!registration) {
     return NextResponse.json({ error: "Registration not found" }, { status: 404 });
@@ -16,7 +19,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "This registration isn't confirmed" }, { status: 403 });
   }
   if (new Date() < registration.tournament.endDate) {
-    return NextResponse.json({ error: "The certificate is available once the tournament concludes" }, { status: 403 });
+    return NextResponse.json(
+      { error: "The certificate is available once the tournament concludes" },
+      { status: 403 }
+    );
   }
 
   let kind: CertificateKind = "participation";
@@ -25,21 +31,33 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (registration.tournament.resultsPublished && registration.playerId) {
     const [registrants, rounds] = await Promise.all([
       prisma.registration.findMany({
-        where: { tournamentId: registration.tournamentId, status: { in: ["confirmed", "registered"] } },
+        where: {
+          tournamentId: registration.tournamentId,
+          status: { in: ["confirmed", "registered"] },
+        },
         include: { player: true },
       }),
-      prisma.round.findMany({ where: { tournamentId: registration.tournamentId }, include: { pairings: true } }),
+      prisma.round.findMany({
+        where: { tournamentId: registration.tournamentId },
+        include: { pairings: true },
+      }),
     ]);
     const players = registrants
       .filter((r) => r.player)
       .map((r) => ({ id: r.player!.id, fullName: r.player!.fullName, ageCategory: r.ageCategory }));
-    const standings = computeStandings(players, rounds.flatMap((r) => r.pairings));
+    const standings = computeStandings(
+      players,
+      rounds.flatMap((r) => r.pairings)
+    );
     const mine = standings.find((s) => s.player.id === registration.playerId);
     const winners = categoryWinners(standings);
 
     if (mine?.rank === 1) {
       kind = "overall_winner";
-    } else if (registration.ageCategory && winners[registration.ageCategory]?.player.id === registration.playerId) {
+    } else if (
+      registration.ageCategory &&
+      winners[registration.ageCategory]?.player.id === registration.playerId
+    ) {
       kind = "category_winner";
       categoryLabel = ageCategoryLabel(registration.ageCategory);
     }
@@ -50,7 +68,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     categoryLabel,
     playerName: registration.fullName,
     tournamentTitle: registration.tournament.title,
-    tournamentDateLabel: formatDateRange(registration.tournament.startDate, registration.tournament.endDate),
+    tournamentDateLabel: formatDateRange(
+      registration.tournament.startDate,
+      registration.tournament.endDate
+    ),
     venueLabel: `${registration.tournament.venue}, ${registration.tournament.city}`,
     registrationId: registration.id,
     issuedOn: formatDate(new Date()),

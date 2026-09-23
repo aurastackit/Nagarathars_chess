@@ -73,11 +73,17 @@ export default async function TournamentResultsPage({
     const session = await requireAdminPage();
     const number = Number(formData.get("number"));
     if (!Number.isInteger(number) || number < 1) {
-      redirect(`/admin/tournaments/${id}/results?error=${encodeURIComponent("Enter a valid round number")}`);
+      redirect(
+        `/admin/tournaments/${id}/results?error=${encodeURIComponent("Enter a valid round number")}`
+      );
     }
-    const round = await prisma.round.create({ data: { tournamentId: id, number } }).catch(() => null);
+    const round = await prisma.round
+      .create({ data: { tournamentId: id, number } })
+      .catch(() => null);
     if (!round) {
-      redirect(`/admin/tournaments/${id}/results?error=${encodeURIComponent(`Round ${number} already exists`)}`);
+      redirect(
+        `/admin/tournaments/${id}/results?error=${encodeURIComponent(`Round ${number} already exists`)}`
+      );
     }
     await logAdminAction({
       actorEmail: session.user!.email!,
@@ -99,11 +105,15 @@ export default async function TournamentResultsPage({
     const result = String(formData.get("result") ?? "");
 
     if (!roundId || !whitePlayerId || !result) {
-      redirect(`/admin/tournaments/${id}/results?error=${encodeURIComponent("Fill in white player and result")}`);
+      redirect(
+        `/admin/tournaments/${id}/results?error=${encodeURIComponent("Fill in white player and result")}`
+      );
     }
     const isBye = blackPlayerId === "" || blackPlayerId === "BYE";
     if (isBye && result !== "BYE") {
-      redirect(`/admin/tournaments/${id}/results?error=${encodeURIComponent("A pairing with no black player must use result BYE")}`);
+      redirect(
+        `/admin/tournaments/${id}/results?error=${encodeURIComponent("A pairing with no black player must use result BYE")}`
+      );
     }
 
     await prisma.pairing.create({
@@ -142,9 +152,15 @@ export default async function TournamentResultsPage({
   async function togglePublish() {
     "use server";
     const session = await requireAdminPage();
-    const current = await prisma.tournament.findUnique({ where: { id }, select: { resultsPublished: true, title: true } });
+    const current = await prisma.tournament.findUnique({
+      where: { id },
+      select: { resultsPublished: true, title: true },
+    });
     if (!current) return;
-    await prisma.tournament.update({ where: { id }, data: { resultsPublished: !current.resultsPublished } });
+    await prisma.tournament.update({
+      where: { id },
+      data: { resultsPublished: !current.resultsPublished },
+    });
     await logAdminAction({
       actorEmail: session.user!.email!,
       action: current.resultsPublished ? "tournament.unpublish" : "tournament.publish",
@@ -166,14 +182,18 @@ export default async function TournamentResultsPage({
     const text = await file!.text();
     const { rows, errors } = parseResultsCsv(text);
     if (errors.length > 0) {
-      redirect(`/admin/tournaments/${id}/results?error=${encodeURIComponent(errors.slice(0, 3).join("; "))}`);
+      redirect(
+        `/admin/tournaments/${id}/results?error=${encodeURIComponent(errors.slice(0, 3).join("; "))}`
+      );
     }
 
     const regs = await prisma.registration.findMany({
       where: { tournamentId: id, status: { in: ["confirmed", "registered"] } },
       include: { player: true },
     });
-    const playerByEmail = new Map(regs.filter((r) => r.player).map((r) => [r.email.trim().toLowerCase(), r.player!]));
+    const playerByEmail = new Map(
+      regs.filter((r) => r.player).map((r) => [r.email.trim().toLowerCase(), r.player!])
+    );
 
     const importErrors: string[] = [];
     let created = 0;
@@ -181,11 +201,15 @@ export default async function TournamentResultsPage({
       const white = playerByEmail.get(row.whiteEmail);
       const black = row.blackEmail ? playerByEmail.get(row.blackEmail) : null;
       if (!white) {
-        importErrors.push(`Round ${row.round}: no confirmed registrant with email ${row.whiteEmail}`);
+        importErrors.push(
+          `Round ${row.round}: no confirmed registrant with email ${row.whiteEmail}`
+        );
         continue;
       }
       if (row.blackEmail && !black) {
-        importErrors.push(`Round ${row.round}: no confirmed registrant with email ${row.blackEmail}`);
+        importErrors.push(
+          `Round ${row.round}: no confirmed registrant with email ${row.blackEmail}`
+        );
         continue;
       }
       const round = await prisma.round.upsert({
@@ -228,11 +252,16 @@ export default async function TournamentResultsPage({
         <div>
           <h1 className="text-2xl font-bold text-charcoal">Results — {tournament.title}</h1>
           <p className="mt-1 text-sm text-foreground/60">
-            {tournament.resultsPublished ? "Results are live on the public site." : "Results are not public yet."}
+            {tournament.resultsPublished
+              ? "Results are live on the public site."
+              : "Results are not public yet."}
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href={`/admin/tournaments/${id}`} className="text-sm font-semibold text-charcoal hover:underline">
+          <Link
+            href={`/admin/tournaments/${id}`}
+            className="text-sm font-semibold text-charcoal hover:underline"
+          >
             Back to tournament
           </Link>
           <form action={togglePublish}>
@@ -243,7 +272,11 @@ export default async function TournamentResultsPage({
         </div>
       </div>
 
-      {error && <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+      {error && (
+        <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
       {imported && (
         <div className="mt-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
           Imported {imported} pairing(s).
@@ -255,8 +288,14 @@ export default async function TournamentResultsPage({
           <h2 className="text-sm font-semibold text-charcoal">Add a round</h2>
           <form action={addRound} className="mt-3 flex items-end gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-foreground/60">Round number</label>
+              <label
+                htmlFor="round-number"
+                className="mb-1 block text-xs font-medium text-foreground/60"
+              >
+                Round number
+              </label>
               <input
+                id="round-number"
                 type="number"
                 name="number"
                 min={1}
@@ -271,11 +310,26 @@ export default async function TournamentResultsPage({
         <Card className="p-5">
           <h2 className="text-sm font-semibold text-charcoal">Import results (CSV)</h2>
           <p className="mt-1 text-xs text-foreground/50">
-            Columns: round,board,white_email,black_email,result. Result is one of 1-0, 0-1, 0.5-0.5, BYE (leave
-            black_email empty for a bye).
+            Columns: round,board,white_email,black_email,result. Result is one of 1-0, 0-1, 0.5-0.5,
+            BYE (leave black_email empty for a bye).
           </p>
           <form action={importCsv} className="mt-3 flex items-end gap-3">
-            <input type="file" name="file" accept=".csv,text/csv" required className="text-sm" />
+            <div>
+              <label
+                htmlFor="pairings-csv"
+                className="mb-1 block text-xs font-medium text-foreground/60"
+              >
+                CSV file
+              </label>
+              <input
+                id="pairings-csv"
+                type="file"
+                name="file"
+                accept=".csv,text/csv"
+                required
+                className="text-sm"
+              />
+            </div>
             <Button type="submit">Import</Button>
           </form>
         </Card>
@@ -306,10 +360,15 @@ export default async function TournamentResultsPage({
                         <td className="py-1.5 pr-3">{p.board ?? "—"}</td>
                         <td className="py-1.5 pr-3">{p.whitePlayer?.fullName ?? "—"}</td>
                         <td className="py-1.5 pr-3">{p.blackPlayer?.fullName ?? "Bye"}</td>
-                        <td className="py-1.5 pr-3">{p.result ? RESULT_LABEL[p.result] ?? p.result : "—"}</td>
+                        <td className="py-1.5 pr-3">
+                          {p.result ? (RESULT_LABEL[p.result] ?? p.result) : "—"}
+                        </td>
                         <td className="py-1.5">
                           <form action={deletePairing.bind(null, p.id)}>
-                            <button type="submit" className="text-xs font-medium text-red-600 hover:underline">
+                            <button
+                              type="submit"
+                              className="text-xs font-medium text-red-600 hover:underline"
+                            >
                               Delete
                             </button>
                           </form>
@@ -326,15 +385,39 @@ export default async function TournamentResultsPage({
                   </tbody>
                 </table>
 
-                <form action={addPairing} className="mt-4 flex flex-wrap items-end gap-3 border-t border-border pt-4">
+                <form
+                  action={addPairing}
+                  className="mt-4 flex flex-wrap items-end gap-3 border-t border-border pt-4"
+                >
                   <input type="hidden" name="roundId" value={round.id} />
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-foreground/60">Board</label>
-                    <input type="number" name="board" min={1} className="w-16 rounded-md border border-border bg-card px-2 py-1.5 text-sm" />
+                    <label
+                      htmlFor={`board-${round.id}`}
+                      className="mb-1 block text-xs font-medium text-foreground/60"
+                    >
+                      Board
+                    </label>
+                    <input
+                      id={`board-${round.id}`}
+                      type="number"
+                      name="board"
+                      min={1}
+                      className="w-16 rounded-md border border-border bg-card px-2 py-1.5 text-sm"
+                    />
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-foreground/60">White</label>
-                    <select name="whitePlayerId" required className="rounded-md border border-border bg-card px-2 py-1.5 text-sm">
+                    <label
+                      htmlFor={`white-${round.id}`}
+                      className="mb-1 block text-xs font-medium text-foreground/60"
+                    >
+                      White
+                    </label>
+                    <select
+                      id={`white-${round.id}`}
+                      name="whitePlayerId"
+                      required
+                      className="rounded-md border border-border bg-card px-2 py-1.5 text-sm"
+                    >
                       <option value="">Select player</option>
                       {registrants.map((r) => (
                         <option key={r.id} value={r.player?.id}>
@@ -344,8 +427,17 @@ export default async function TournamentResultsPage({
                     </select>
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-foreground/60">Black</label>
-                    <select name="blackPlayerId" className="rounded-md border border-border bg-card px-2 py-1.5 text-sm">
+                    <label
+                      htmlFor={`black-${round.id}`}
+                      className="mb-1 block text-xs font-medium text-foreground/60"
+                    >
+                      Black
+                    </label>
+                    <select
+                      id={`black-${round.id}`}
+                      name="blackPlayerId"
+                      className="rounded-md border border-border bg-card px-2 py-1.5 text-sm"
+                    >
                       <option value="">Bye</option>
                       {registrants.map((r) => (
                         <option key={r.id} value={r.player?.id}>
@@ -355,8 +447,18 @@ export default async function TournamentResultsPage({
                     </select>
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-foreground/60">Result</label>
-                    <select name="result" required className="rounded-md border border-border bg-card px-2 py-1.5 text-sm">
+                    <label
+                      htmlFor={`result-${round.id}`}
+                      className="mb-1 block text-xs font-medium text-foreground/60"
+                    >
+                      Result
+                    </label>
+                    <select
+                      id={`result-${round.id}`}
+                      name="result"
+                      required
+                      className="rounded-md border border-border bg-card px-2 py-1.5 text-sm"
+                    >
                       <option value="1-0">1 – 0</option>
                       <option value="0.5-0.5">½ – ½</option>
                       <option value="0-1">0 – 1</option>

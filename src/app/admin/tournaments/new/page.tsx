@@ -30,7 +30,9 @@ async function createTournament(formData: FormData) {
   });
 
   if (!parsed.success) {
-    redirect(`/admin/tournaments/new?error=${encodeURIComponent(parsed.error.issues[0]?.message ?? "Invalid input")}`);
+    redirect(
+      `/admin/tournaments/new?error=${encodeURIComponent(parsed.error.issues[0]?.message ?? "Invalid input")}`
+    );
   }
 
   const data = parsed.data;
@@ -80,7 +82,9 @@ export default async function NewTournamentPage({
       <h1 className="text-2xl font-bold text-charcoal">New Tournament</h1>
       <Card className="mt-6 p-6">
         {error && (
-          <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+          <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
         )}
         <form action={createTournament} className="space-y-4">
           <div>
@@ -98,7 +102,11 @@ export default async function NewTournamentPage({
             </div>
             <div>
               <Label htmlFor="format">Format</Label>
-              <select id="format" name="format" className="w-full rounded-md border border-border bg-white px-3 py-2 text-sm">
+              <select
+                id="format"
+                name="format"
+                className="w-full rounded-md border border-border bg-white px-3 py-2 text-sm"
+              >
                 <option value="classical">Classical</option>
                 <option value="rapid">Rapid</option>
                 <option value="blitz">Blitz</option>
@@ -132,7 +140,13 @@ export default async function NewTournamentPage({
             </div>
             <div>
               <Label htmlFor="maxParticipants">Max participants</Label>
-              <Input id="maxParticipants" name="maxParticipants" type="number" min={1} placeholder="Optional" />
+              <Input
+                id="maxParticipants"
+                name="maxParticipants"
+                type="number"
+                min={1}
+                placeholder="Optional"
+              />
             </div>
             <div>
               <Label htmlFor="registrationDeadline">Registration deadline</Label>
@@ -143,7 +157,11 @@ export default async function NewTournamentPage({
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="posterImageUrl">Poster image URL</Label>
-              <Input id="posterImageUrl" name="posterImageUrl" placeholder="/images/sample-tournament-poster.jpg" />
+              <Input
+                id="posterImageUrl"
+                name="posterImageUrl"
+                placeholder="/images/sample-tournament-poster.jpg"
+              />
             </div>
             <div>
               <Label htmlFor="brochurePdfUrl">Brochure PDF URL</Label>
@@ -153,7 +171,11 @@ export default async function NewTournamentPage({
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="timeControl">Time control</Label>
-              <Input id="timeControl" name="timeControl" placeholder="e.g. 90 min + 30 sec increment" />
+              <Input
+                id="timeControl"
+                name="timeControl"
+                placeholder="e.g. 90 min + 30 sec increment"
+              />
             </div>
             <div>
               <Label htmlFor="rounds">Rounds</Label>
@@ -175,9 +197,13 @@ export default async function NewTournamentPage({
               id="rulesText"
               name="rulesText"
               rows={4}
-              placeholder={"Eligibility|Open to all age categories, no FIDE rating required.\nTiebreaks|Standard FIDE tiebreak rules apply."}
+              placeholder={
+                "Eligibility|Open to all age categories, no FIDE rating required.\nTiebreaks|Standard FIDE tiebreak rules apply."
+              }
             />
-            <p className="mt-1 text-xs text-foreground/50">One rule per line, formatted as Title|Details.</p>
+            <p className="mt-1 text-xs text-foreground/50">
+              One rule per line, formatted as Title|Details.
+            </p>
           </div>
           <Button type="submit">Create tournament</Button>
         </form>

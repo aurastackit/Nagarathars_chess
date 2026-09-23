@@ -1,4 +1,10 @@
-export function WizardProgressBar({ current, steps }: { current: number; steps: readonly string[] }) {
+export function WizardProgressBar({
+  current,
+  steps,
+}: {
+  current: number;
+  steps: readonly string[];
+}) {
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -16,12 +22,16 @@ export function WizardProgressBar({ current, steps }: { current: number; steps: 
               >
                 {i < current ? "✓" : i + 1}
               </span>
-              <span className={`hidden text-[11px] font-medium sm:block ${i === current ? "text-charcoal" : "text-foreground/40"}`}>
+              <span
+                className={`hidden text-[11px] font-medium sm:block ${i === current ? "text-charcoal" : "text-foreground/40"}`}
+              >
                 {label}
               </span>
             </div>
             {i < steps.length - 1 && (
-              <div className={`mx-2 h-0.5 flex-1 rounded-full ${i < current ? "bg-gold" : "bg-charcoal/10"}`} />
+              <div
+                className={`mx-2 h-0.5 flex-1 rounded-full ${i < current ? "bg-gold" : "bg-charcoal/10"}`}
+              />
             )}
           </div>
         ))}

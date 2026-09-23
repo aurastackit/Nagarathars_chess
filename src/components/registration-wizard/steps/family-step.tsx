@@ -10,8 +10,18 @@ export function FamilyStep() {
 
   return (
     <StepSection title="Family details">
-      <TextField label="Father name" registration={register("fatherName")} error={errors.fatherName} placeholder="Optional" />
-      <TextField label="Mother name" registration={register("motherName")} error={errors.motherName} placeholder="Optional" />
+      <TextField
+        label="Father name"
+        registration={register("fatherName")}
+        error={errors.fatherName}
+        placeholder="Optional"
+      />
+      <TextField
+        label="Mother name"
+        registration={register("motherName")}
+        error={errors.motherName}
+        placeholder="Optional"
+      />
       <TextField
         label="Father side grandparents name"
         registration={register("fatherGrandparents")}

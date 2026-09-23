@@ -5,7 +5,11 @@ import { prisma } from "@/lib/prisma";
  * person's registrations and results together across different tournaments.
  * Refreshes name/DOB on an existing record so it stays current.
  */
-export async function getOrCreatePlayer(params: { email: string; fullName: string; dob?: Date | null }) {
+export async function getOrCreatePlayer(params: {
+  email: string;
+  fullName: string;
+  dob?: Date | null;
+}) {
   const email = params.email.trim().toLowerCase();
   return prisma.player.upsert({
     where: { email },

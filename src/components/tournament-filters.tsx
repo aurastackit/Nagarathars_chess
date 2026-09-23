@@ -3,7 +3,11 @@
 import { useMemo, useState } from "react";
 import { EmptyState, Select } from "@/components/ui";
 import { TournamentCard, type TournamentCardData } from "@/components/tournament-card";
-import { getTournamentStatus, TOURNAMENT_STATUS_LABEL, type TournamentStatus } from "@/lib/tournament-status";
+import {
+  getTournamentStatus,
+  TOURNAMENT_STATUS_LABEL,
+  type TournamentStatus,
+} from "@/lib/tournament-status";
 import { capitalizeWords } from "@/lib/text";
 
 const monthFormatter = new Intl.DateTimeFormat("en-IN", { month: "short", year: "numeric" });
@@ -39,18 +43,33 @@ export function TournamentFilters({ tournaments }: { tournaments: TournamentCard
       .filter((t) => city === "all" || t.city === city)
       .filter((t) => month === "all" || monthKey(t.startDate) === month)
       .filter((t) => fee === "all" || (fee === "free" ? t.entryFee === 0 : t.entryFee > 0))
-      .filter((t) => status === "all" || getTournamentStatus(t, new Date(now)) === (status as TournamentStatus))
-      .sort((a, b) => Math.abs(a.startDate.getTime() - now) - Math.abs(b.startDate.getTime() - now));
+      .filter(
+        (t) =>
+          status === "all" || getTournamentStatus(t, new Date(now)) === (status as TournamentStatus)
+      )
+      .sort(
+        (a, b) => Math.abs(a.startDate.getTime() - now) - Math.abs(b.startDate.getTime() - now)
+      );
   }, [tournaments, format, city, month, fee, status, now]);
 
-  const hasActiveFilters = format !== "all" || city !== "all" || month !== "all" || fee !== "all" || status !== "all";
+  const hasActiveFilters =
+    format !== "all" || city !== "all" || month !== "all" || fee !== "all" || status !== "all";
 
   return (
     <div>
       <div className="grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-5">
         <div>
-          <label className="mb-1 block text-xs font-medium text-foreground/60">Format</label>
-          <Select value={format} onChange={(e) => setFormat(e.target.value)}>
+          <label
+            htmlFor="tournament-filter-format"
+            className="mb-1 block text-xs font-medium text-foreground/60"
+          >
+            Format
+          </label>
+          <Select
+            id="tournament-filter-format"
+            value={format}
+            onChange={(e) => setFormat(e.target.value)}
+          >
             <option value="all">All formats</option>
             <option value="classical">Classical</option>
             <option value="rapid">Rapid</option>
@@ -58,8 +77,17 @@ export function TournamentFilters({ tournaments }: { tournaments: TournamentCard
           </Select>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-foreground/60">City</label>
-          <Select value={city} onChange={(e) => setCity(e.target.value)}>
+          <label
+            htmlFor="tournament-filter-city"
+            className="mb-1 block text-xs font-medium text-foreground/60"
+          >
+            City
+          </label>
+          <Select
+            id="tournament-filter-city"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+          >
             <option value="all">All cities</option>
             {cities.map((c) => (
               <option key={c} value={c}>
@@ -69,8 +97,17 @@ export function TournamentFilters({ tournaments }: { tournaments: TournamentCard
           </Select>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-foreground/60">Month</label>
-          <Select value={month} onChange={(e) => setMonth(e.target.value)}>
+          <label
+            htmlFor="tournament-filter-month"
+            className="mb-1 block text-xs font-medium text-foreground/60"
+          >
+            Month
+          </label>
+          <Select
+            id="tournament-filter-month"
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+          >
             <option value="all">All months</option>
             {months.map(([key, date]) => (
               <option key={key} value={key}>
@@ -80,16 +117,30 @@ export function TournamentFilters({ tournaments }: { tournaments: TournamentCard
           </Select>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-foreground/60">Fee</label>
-          <Select value={fee} onChange={(e) => setFee(e.target.value)}>
+          <label
+            htmlFor="tournament-filter-fee"
+            className="mb-1 block text-xs font-medium text-foreground/60"
+          >
+            Fee
+          </label>
+          <Select id="tournament-filter-fee" value={fee} onChange={(e) => setFee(e.target.value)}>
             <option value="all">Free &amp; paid</option>
             <option value="free">Free</option>
             <option value="paid">Paid</option>
           </Select>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-foreground/60">Status</label>
-          <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+          <label
+            htmlFor="tournament-filter-status"
+            className="mb-1 block text-xs font-medium text-foreground/60"
+          >
+            Status
+          </label>
+          <Select
+            id="tournament-filter-status"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
             <option value="all">Any status</option>
             {(Object.keys(TOURNAMENT_STATUS_LABEL) as TournamentStatus[]).map((s) => (
               <option key={s} value={s}>
@@ -108,7 +159,7 @@ export function TournamentFilters({ tournaments }: { tournaments: TournamentCard
             &middot;{" "}
             <button
               type="button"
-              className="font-semibold text-gold hover:underline"
+              className="font-semibold text-gold-ink hover:underline"
               onClick={() => {
                 setFormat("all");
                 setCity("all");
@@ -124,7 +175,10 @@ export function TournamentFilters({ tournaments }: { tournaments: TournamentCard
       </p>
 
       {filtered.length === 0 ? (
-        <EmptyState className="mt-4" message="No tournaments match these filters — try widening your search." />
+        <EmptyState
+          className="mt-4"
+          message="No tournaments match these filters — try widening your search."
+        />
       ) : (
         <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((t) => (

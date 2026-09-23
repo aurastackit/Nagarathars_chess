@@ -1,6 +1,11 @@
 import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
-import { AGE_CATEGORIES, ageAt, naturalAgeCategory, type AgeCategoryValue } from "@/lib/age-category";
+import {
+  AGE_CATEGORIES,
+  ageAt,
+  naturalAgeCategory,
+  type AgeCategoryValue,
+} from "@/lib/age-category";
 import type { RegistrationWizardValues } from "@/lib/registration-schema";
 import { SelectField, StepSection, TextField } from "@/components/registration-wizard/fields";
 
@@ -35,7 +40,9 @@ export function CategoryStep({ tournamentStartDate }: { tournamentStartDate: Dat
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [natural]);
 
-  const eligibleCategories = AGE_CATEGORIES.filter((c) => !natural || RANK[c.value] >= RANK[natural]);
+  const eligibleCategories = AGE_CATEGORIES.filter(
+    (c) => !natural || RANK[c.value] >= RANK[natural]
+  );
 
   return (
     <StepSection title="Tournament category">
@@ -46,17 +53,36 @@ export function CategoryStep({ tournamentStartDate }: { tournamentStartDate: Dat
             <strong>{AGE_CATEGORIES.find((c) => c.value === natural)?.label}</strong>.
           </p>
         )}
-        <SelectField label="Age category" registration={register("ageCategory")} error={errors.ageCategory} required>
+        <SelectField
+          label="Age category"
+          registration={register("ageCategory")}
+          error={errors.ageCategory}
+          required
+        >
           {eligibleCategories.map((c) => (
             <option key={c.value} value={c.value}>
               {c.label}
             </option>
           ))}
         </SelectField>
-        <p className="mt-1 text-xs text-foreground/50">You can play up in an older category, but not down.</p>
+        <p className="mt-1 text-xs text-foreground/50">
+          You can play up in an older category, but not down.
+        </p>
       </div>
-      <TextField label="Rating" type="number" min={0} registration={register("rating")} error={errors.rating} placeholder="Optional — local/state rating" />
-      <TextField label="FIDE ID" registration={register("fideId")} error={errors.fideId} placeholder="Optional — leave blank if unrated" />
+      <TextField
+        label="Rating"
+        type="number"
+        min={0}
+        registration={register("rating")}
+        error={errors.rating}
+        placeholder="Optional — local/state rating"
+      />
+      <TextField
+        label="FIDE ID"
+        registration={register("fideId")}
+        error={errors.fideId}
+        placeholder="Optional — leave blank if unrated"
+      />
     </StepSection>
   );
 }

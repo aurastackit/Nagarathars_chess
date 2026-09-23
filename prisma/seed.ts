@@ -49,7 +49,11 @@ async function main() {
   const testPlayerDob = new Date("2010-01-01");
   await prisma.registration.upsert({
     where: {
-      tournamentId_email_dob: { tournamentId: tournament1.id, email: "test.player@example.com", dob: testPlayerDob },
+      tournamentId_email_dob: {
+        tournamentId: tournament1.id,
+        email: "test.player@example.com",
+        dob: testPlayerDob,
+      },
     },
     update: {},
     create: {
@@ -71,7 +75,11 @@ async function main() {
   const sampleChildDob = new Date("2016-06-15");
   await prisma.registration.upsert({
     where: {
-      tournamentId_email_dob: { tournamentId: tournament2.id, email: "sample.child@example.com", dob: sampleChildDob },
+      tournamentId_email_dob: {
+        tournamentId: tournament2.id,
+        email: "sample.child@example.com",
+        dob: sampleChildDob,
+      },
     },
     update: {},
     create: {
@@ -98,7 +106,8 @@ async function main() {
       price: 800,
       maxGroupSize: 5,
       durationMinutes: 60,
-      description: "Piece movement, basic tactics, opening principles, and chess rules for newcomers and kids.",
+      description:
+        "Piece movement, basic tactics, opening principles, and chess rules for newcomers and kids.",
       scheduleText: "Tue–Fri 5:00 PM – 6:00 PM (online)",
       instructorName: "Coach Arun",
     },
@@ -110,7 +119,8 @@ async function main() {
       price: 800,
       maxGroupSize: null,
       durationMinutes: 60,
-      description: "Personalized one-on-one sessions covering the same beginner fundamentals at your own pace.",
+      description:
+        "Personalized one-on-one sessions covering the same beginner fundamentals at your own pace.",
       scheduleText: "By appointment (online)",
       instructorName: "Coach Arun",
     },
@@ -122,7 +132,8 @@ async function main() {
       price: 900,
       maxGroupSize: null,
       durationMinutes: 60,
-      description: "Advanced tactics, middle-game strategy, endgame technique, and deeper opening theory. FIDE rating required.",
+      description:
+        "Advanced tactics, middle-game strategy, endgame technique, and deeper opening theory. FIDE rating required.",
       scheduleText: "Sat 9:30 AM – 1:00 PM (online)",
       instructorName: "Coach Priya",
     },
@@ -134,7 +145,8 @@ async function main() {
       price: 1000,
       maxGroupSize: null,
       durationMinutes: 60,
-      description: "Database-driven preparation, complex endgames, and personalized improvement for competitive players. FIDE rating required.",
+      description:
+        "Database-driven preparation, complex endgames, and personalized improvement for competitive players. FIDE rating required.",
       scheduleText: "Sun 9:30 AM – 1:00 PM (online)",
       instructorName: "Coach Arun",
     },
@@ -148,9 +160,13 @@ async function main() {
     });
   }
 
-  const firstClass = await prisma.classProgram.findUniqueOrThrow({ where: { slug: "beginner-fundamentals" } });
+  const firstClass = await prisma.classProgram.findUniqueOrThrow({
+    where: { slug: "beginner-fundamentals" },
+  });
   await prisma.classEnrollment.upsert({
-    where: { classProgramId_email: { classProgramId: firstClass.id, email: "sample.student@example.com" } },
+    where: {
+      classProgramId_email: { classProgramId: firstClass.id, email: "sample.student@example.com" },
+    },
     update: {},
     create: {
       classProgramId: firstClass.id,

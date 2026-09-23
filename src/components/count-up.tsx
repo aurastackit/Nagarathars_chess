@@ -7,7 +7,15 @@ import { useEffect, useRef, useState } from "react";
  * no "0" flash on first paint), then animates from 0 up to `value` the first
  * time the element scrolls into view.
  */
-export function CountUp({ value, duration = 1200, suffix = "" }: { value: number; duration?: number; suffix?: string }) {
+export function CountUp({
+  value,
+  duration = 1200,
+  suffix = "",
+}: {
+  value: number;
+  duration?: number;
+  suffix?: string;
+}) {
   const [display, setDisplay] = useState(value);
   const ref = useRef<HTMLSpanElement>(null);
   const started = useRef(false);

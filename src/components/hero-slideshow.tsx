@@ -1,11 +1,33 @@
-import { BishopIcon, KingIcon, KnightIcon, QueenIcon, RookIcon } from "@/components/icons/chess-pieces";
+import {
+  BishopIcon,
+  KingIcon,
+  KnightIcon,
+  QueenIcon,
+  RookIcon,
+} from "@/components/icons/chess-pieces";
 
 const SLIDES = [
-  { Icon: KingIcon, from: "var(--charcoal)", to: "color-mix(in srgb, var(--charcoal), var(--gold) 25%)" },
-  { Icon: QueenIcon, from: "color-mix(in srgb, var(--charcoal), var(--gold) 25%)", to: "color-mix(in srgb, var(--charcoal), var(--gold) 40%)" },
+  {
+    Icon: KingIcon,
+    from: "var(--charcoal)",
+    to: "color-mix(in srgb, var(--charcoal), var(--gold) 25%)",
+  },
+  {
+    Icon: QueenIcon,
+    from: "color-mix(in srgb, var(--charcoal), var(--gold) 25%)",
+    to: "color-mix(in srgb, var(--charcoal), var(--gold) 40%)",
+  },
   { Icon: RookIcon, from: "var(--charcoal)", to: "color-mix(in srgb, var(--charcoal), black 20%)" },
-  { Icon: BishopIcon, from: "color-mix(in srgb, var(--charcoal), var(--gold) 20%)", to: "var(--charcoal)" },
-  { Icon: KnightIcon, from: "color-mix(in srgb, var(--charcoal), black 15%)", to: "color-mix(in srgb, var(--charcoal), var(--gold) 25%)" },
+  {
+    Icon: BishopIcon,
+    from: "color-mix(in srgb, var(--charcoal), var(--gold) 20%)",
+    to: "var(--charcoal)",
+  },
+  {
+    Icon: KnightIcon,
+    from: "color-mix(in srgb, var(--charcoal), black 15%)",
+    to: "color-mix(in srgb, var(--charcoal), var(--gold) 25%)",
+  },
 ];
 
 export function HeroSlideshow() {

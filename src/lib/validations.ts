@@ -1,6 +1,10 @@
 import { z } from "zod";
+import { isValidImageUrl } from "@/lib/image-url";
 
 const optionalText = z.string().trim().optional().or(z.literal(""));
+const optionalImageUrl = optionalText.refine((v) => !v || isValidImageUrl(v), {
+  error: "Enter a valid image URL (starting with http:// or https://)",
+});
 
 export const enrollmentSchema = z.object({
   fullName: z.string().trim().min(2, "Enter your full name"),
@@ -48,7 +52,7 @@ export const tournamentSchema = z
     entryFee: z.coerce.number().int().min(0),
     maxParticipants: z.coerce.number().int().min(1).optional().nullable(),
     registrationDeadline: z.coerce.date({ error: "Enter a valid registration deadline" }),
-    posterImageUrl: optionalText,
+    posterImageUrl: optionalImageUrl,
     brochurePdfUrl: optionalText,
     timeControl: optionalText,
     rounds: z.coerce.number().int().min(1).optional().nullable(),

@@ -56,7 +56,7 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
 
     const container = menuRef.current;
     const focusable = container
-      ? Array.from(container.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'))
+      ? Array.from(container.querySelectorAll<HTMLElement>("a[href], button:not([disabled])"))
       : [];
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
@@ -107,7 +107,14 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <Link href="/" className="flex items-center gap-3" onClick={() => setMenuOpen(false)}>
-            <Image src="/images/logo.png" alt="Logo" width={40} height={40} className="h-10 w-10 object-contain" />
+            <Image
+              src="/images/logo.png"
+              alt="Logo"
+              width={40}
+              height={40}
+              priority
+              className="h-10 w-10 object-contain"
+            />
             <span className="font-semibold text-charcoal leading-tight">
               Nagarathar&apos;s Chess
               <span className="block text-xs font-normal text-foreground/60">Championship</span>
@@ -154,8 +161,19 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
             onClick={() => setMenuOpen((open) => !open)}
           >
             <span className="sr-only">Toggle menu</span>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="h-5 w-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"
+              />
             </svg>
           </button>
         </div>
@@ -171,7 +189,13 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
         >
           <div className="flex items-center justify-between px-4 py-3">
             <Link href="/" className="flex items-center gap-3" onClick={() => setMenuOpen(false)}>
-              <Image src="/images/logo.png" alt="Logo" width={36} height={36} className="h-9 w-9 object-contain" />
+              <Image
+                src="/images/logo.png"
+                alt="Logo"
+                width={36}
+                height={36}
+                className="h-9 w-9 object-contain"
+              />
               <span className="font-semibold leading-tight">
                 Nagarathar&apos;s Chess
                 <span className="block text-xs font-normal text-white/60">Championship</span>
@@ -186,7 +210,14 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
                 menuButtonRef.current?.focus();
               }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="h-5 w-5"
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
               </svg>
             </button>

@@ -49,7 +49,13 @@ export function TextField({
   registration: UseFormRegisterReturn;
 } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <FieldShell label={label} htmlFor={registration.name} helper={helper} error={error} className={className}>
+    <FieldShell
+      label={label}
+      htmlFor={registration.name}
+      helper={helper}
+      error={error}
+      className={className}
+    >
       <input id={registration.name} className={inputClasses} {...registration} {...props} />
     </FieldShell>
   );
@@ -70,8 +76,20 @@ export function TextAreaField({
   registration: UseFormRegisterReturn;
 } & React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
-    <FieldShell label={label} htmlFor={registration.name} helper={helper} error={error} className={className}>
-      <textarea id={registration.name} rows={2} className={inputClasses} {...registration} {...props} />
+    <FieldShell
+      label={label}
+      htmlFor={registration.name}
+      helper={helper}
+      error={error}
+      className={className}
+    >
+      <textarea
+        id={registration.name}
+        rows={2}
+        className={inputClasses}
+        {...registration}
+        {...props}
+      />
     </FieldShell>
   );
 }
@@ -93,7 +111,13 @@ export function SelectField({
   children: ReactNode;
 } & React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
-    <FieldShell label={label} htmlFor={registration.name} helper={helper} error={error} className={className}>
+    <FieldShell
+      label={label}
+      htmlFor={registration.name}
+      helper={helper}
+      error={error}
+      className={className}
+    >
       <select id={registration.name} className={inputClasses} {...registration} {...props}>
         {children}
       </select>

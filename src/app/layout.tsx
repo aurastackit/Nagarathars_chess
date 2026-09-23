@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { getNextTournament } from "@/lib/next-tournament";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
@@ -18,19 +19,24 @@ const playfairDisplay = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Nagarathar's Chess Championship",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Nagarathar's Chess Championship",
+    template: "%s | Nagarathar's Chess Championship",
+  },
   description:
     "Chess tournaments and online coaching for local, non-rated players — register for upcoming tournaments and classes.",
+  openGraph: {
+    siteName: "Nagarathar's Chess Championship",
+    type: "website",
+  },
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const nextTournament = await getNextTournament();
 
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${playfairDisplay.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${inter.variable} ${playfairDisplay.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <SiteHeader
           nextTournament={

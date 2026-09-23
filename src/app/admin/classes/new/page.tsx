@@ -4,11 +4,18 @@ import { slugify } from "@/lib/slug";
 import { Card, Input, Label, Textarea, Button } from "@/components/ui";
 import { requireAdminPage } from "@/lib/require-admin";
 import { logAdminAction } from "@/lib/audit-log";
+import { isValidImageUrl } from "@/lib/image-url";
 
 async function createClass(formData: FormData) {
   "use server";
   const session = await requireAdminPage();
   const title = String(formData.get("title") ?? "");
+  const bannerImageUrl = String(formData.get("bannerImageUrl") ?? "").trim() || null;
+  if (bannerImageUrl && !isValidImageUrl(bannerImageUrl)) {
+    redirect(
+      `/admin/classes/new?error=${encodeURIComponent("Enter a valid image URL (starting with http:// or https://)")}`
+    );
+  }
   const classProgram = await prisma.classProgram.create({
     data: {
       title,
@@ -21,7 +28,7 @@ async function createClass(formData: FormData) {
       description: String(formData.get("description") ?? ""),
       scheduleText: String(formData.get("scheduleText") ?? ""),
       instructorName: String(formData.get("instructorName") ?? ""),
-      bannerImageUrl: String(formData.get("bannerImageUrl") ?? "") || null,
+      bannerImageUrl,
       isOnline: formData.get("isOnline") === "on",
     },
   });
@@ -35,11 +42,21 @@ async function createClass(formData: FormData) {
   redirect(`/admin/classes/${classProgram.id}`);
 }
 
-export default async function NewClassPage() {
+export default async function NewClassPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   await requireAdminPage();
+  const { error } = await searchParams;
   return (
     <div>
       <h1 className="text-2xl font-bold text-charcoal">New Class</h1>
+      {error && (
+        <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
       <Card className="mt-6 p-6">
         <form action={createClass} className="space-y-4">
           <div>
@@ -49,21 +66,35 @@ export default async function NewClassPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="level">Level</Label>
-              <select id="level" name="level" className="w-full rounded-md border border-border bg-white px-3 py-2 text-sm">
+              <select
+                id="level"
+                name="level"
+                className="w-full rounded-md border border-border bg-white px-3 py-2 text-sm"
+              >
                 <option value="beginner">Beginner</option>
                 <option value="intermediate">Intermediate</option>
                 <option value="advanced">Advanced</option>
               </select>
             </div>
             <div className="flex items-end gap-2 pb-2">
-              <input id="isOnline" name="isOnline" type="checkbox" defaultChecked className="h-4 w-4" />
+              <input
+                id="isOnline"
+                name="isOnline"
+                type="checkbox"
+                defaultChecked
+                className="h-4 w-4"
+              />
               <Label htmlFor="isOnline">Online class</Label>
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-4">
             <div>
               <Label htmlFor="sessionType">Session type</Label>
-              <select id="sessionType" name="sessionType" className="w-full rounded-md border border-border bg-white px-3 py-2 text-sm">
+              <select
+                id="sessionType"
+                name="sessionType"
+                className="w-full rounded-md border border-border bg-white px-3 py-2 text-sm"
+              >
                 <option value="group">Group</option>
                 <option value="individual">1-on-1</option>
               </select>
@@ -74,11 +105,23 @@ export default async function NewClassPage() {
             </div>
             <div>
               <Label htmlFor="maxGroupSize">Max group size</Label>
-              <Input id="maxGroupSize" name="maxGroupSize" type="number" min={1} placeholder="Group sessions only" />
+              <Input
+                id="maxGroupSize"
+                name="maxGroupSize"
+                type="number"
+                min={1}
+                placeholder="Group sessions only"
+              />
             </div>
             <div>
               <Label htmlFor="durationMinutes">Duration (min)</Label>
-              <Input id="durationMinutes" name="durationMinutes" type="number" min={15} defaultValue={60} />
+              <Input
+                id="durationMinutes"
+                name="durationMinutes"
+                type="number"
+                min={15}
+                defaultValue={60}
+              />
             </div>
           </div>
           <div>
@@ -87,7 +130,12 @@ export default async function NewClassPage() {
           </div>
           <div>
             <Label htmlFor="scheduleText">Schedule</Label>
-            <Input id="scheduleText" name="scheduleText" placeholder="e.g. Tue–Fri 5–8 PM" required />
+            <Input
+              id="scheduleText"
+              name="scheduleText"
+              placeholder="e.g. Tue–Fri 5–8 PM"
+              required
+            />
           </div>
           <div>
             <Label htmlFor="instructorName">Instructor name</Label>

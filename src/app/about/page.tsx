@@ -32,13 +32,62 @@ const PROMISES = [
 
 // Placeholder committee roster — replace names, roles, bios, and photos with your real committee members.
 const COMMITTEE: Profile[] = [
-  { id: "m1", name: "Member Name 1", role: "President", initials: "M1", bio: "Placeholder bio — add background and involvement with the community here.", facts: [{ label: "Since", value: "2020" }] },
-  { id: "m2", name: "Member Name 2", role: "Vice President", initials: "M2", bio: "Placeholder bio — add background and involvement with the community here.", facts: [{ label: "Since", value: "2021" }] },
-  { id: "m3", name: "Member Name 3", role: "Secretary", initials: "M3", bio: "Placeholder bio — add background and involvement with the community here.", facts: [{ label: "Since", value: "2021" }] },
-  { id: "m4", name: "Member Name 4", role: "Treasurer", initials: "M4", bio: "Placeholder bio — add background and involvement with the community here.", facts: [{ label: "Since", value: "2022" }] },
-  { id: "m5", name: "Member Name 5", role: "Tournament Director", initials: "M5", bio: "Placeholder bio — add background and involvement with the community here.", facts: [{ label: "Since", value: "2022" }] },
-  { id: "m6", name: "Member Name 6", role: "Youth Programs Lead", initials: "M6", bio: "Placeholder bio — add background and involvement with the community here.", facts: [{ label: "Since", value: "2023" }] },
-  { id: "m7", name: "Member Name 7", role: "Community Outreach", initials: "M7", bio: "Placeholder bio — add background and involvement with the community here.", facts: [{ label: "Since", value: "2023" }] },
+  {
+    id: "m1",
+    name: "Member Name 1",
+    role: "President",
+    initials: "M1",
+    bio: "Placeholder bio — add background and involvement with the community here.",
+    facts: [{ label: "Since", value: "2020" }],
+  },
+  {
+    id: "m2",
+    name: "Member Name 2",
+    role: "Vice President",
+    initials: "M2",
+    bio: "Placeholder bio — add background and involvement with the community here.",
+    facts: [{ label: "Since", value: "2021" }],
+  },
+  {
+    id: "m3",
+    name: "Member Name 3",
+    role: "Secretary",
+    initials: "M3",
+    bio: "Placeholder bio — add background and involvement with the community here.",
+    facts: [{ label: "Since", value: "2021" }],
+  },
+  {
+    id: "m4",
+    name: "Member Name 4",
+    role: "Treasurer",
+    initials: "M4",
+    bio: "Placeholder bio — add background and involvement with the community here.",
+    facts: [{ label: "Since", value: "2022" }],
+  },
+  {
+    id: "m5",
+    name: "Member Name 5",
+    role: "Tournament Director",
+    initials: "M5",
+    bio: "Placeholder bio — add background and involvement with the community here.",
+    facts: [{ label: "Since", value: "2022" }],
+  },
+  {
+    id: "m6",
+    name: "Member Name 6",
+    role: "Youth Programs Lead",
+    initials: "M6",
+    bio: "Placeholder bio — add background and involvement with the community here.",
+    facts: [{ label: "Since", value: "2023" }],
+  },
+  {
+    id: "m7",
+    name: "Member Name 7",
+    role: "Community Outreach",
+    initials: "M7",
+    bio: "Placeholder bio — add background and involvement with the community here.",
+    facts: [{ label: "Since", value: "2023" }],
+  },
 ];
 
 export default async function AboutPage() {
@@ -64,7 +113,10 @@ export default async function AboutPage() {
       <section className="bg-charcoal text-white">
         <div className="mx-auto max-w-4xl px-4 py-16 text-center">
           <h1 className="animate-fade-up text-3xl font-bold sm:text-4xl">About us</h1>
-          <p className="animate-fade-up mx-auto mt-3 max-w-2xl text-white/80" style={{ animationDelay: "100ms" }}>
+          <p
+            className="animate-fade-up mx-auto mt-3 max-w-2xl text-white/80"
+            style={{ animationDelay: "100ms" }}
+          >
             We&apos;re building a home for local, non-rated chess players — starting with our own
             community and growing one tournament and one class at a time.
           </p>
@@ -96,7 +148,8 @@ export default async function AboutPage() {
             </p>
             <p className="mt-4 text-foreground/80">
               Every event is run by volunteers from the community, for the community — from picking
-              venues close to home to reviewing every registration by hand before it&apos;s confirmed.
+              venues close to home to reviewing every registration by hand before it&apos;s
+              confirmed.
             </p>
           </Reveal>
         </div>
@@ -142,8 +195,10 @@ export default async function AboutPage() {
             </p>
             {upcomingTournaments.length > 0 && (
               <p className="mt-4 text-foreground/80">
-                Right now we have <span className="font-semibold text-charcoal">{upcomingTournaments.length}</span>{" "}
-                upcoming tournament{upcomingTournaments.length === 1 ? "" : "s"} open for registration.
+                Right now we have{" "}
+                <span className="font-semibold text-charcoal">{upcomingTournaments.length}</span>{" "}
+                upcoming tournament{upcomingTournaments.length === 1 ? "" : "s"} open for
+                registration.
               </p>
             )}
             <div className="mt-6 flex flex-wrap gap-4">

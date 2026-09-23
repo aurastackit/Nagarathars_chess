@@ -12,8 +12,8 @@ export default function RegisterPage() {
       <div className="text-center">
         <h1 className="text-3xl font-bold text-[#12312d]">Championship registration</h1>
         <p className="mx-auto mt-2 max-w-xl text-sm text-[#6b6555]">
-          Verify your mobile number, confirm the OTP, then fill out your details. All submissions are
-          reviewed by the admin before approval.
+          Verify your mobile number, confirm the OTP, then fill out your details. All submissions
+          are reviewed by the admin before approval.
         </p>
       </div>
       <div className="mt-10">

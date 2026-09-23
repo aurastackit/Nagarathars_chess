@@ -53,9 +53,13 @@ export default async function AdminActivityPage() {
             <tbody>
               {entries.map((e) => (
                 <tr key={e.id} className="border-t border-border align-top">
-                  <td className="whitespace-nowrap px-4 py-2 text-foreground/60">{dateTimeFormatter.format(e.createdAt)}</td>
+                  <td className="whitespace-nowrap px-4 py-2 text-foreground/60">
+                    {dateTimeFormatter.format(e.createdAt)}
+                  </td>
                   <td className="px-4 py-2">{e.actorEmail}</td>
-                  <td className="whitespace-nowrap px-4 py-2 font-medium text-charcoal">{ACTION_LABEL[e.action] ?? e.action}</td>
+                  <td className="whitespace-nowrap px-4 py-2 font-medium text-charcoal">
+                    {ACTION_LABEL[e.action] ?? e.action}
+                  </td>
                   <td className="px-4 py-2 text-foreground/70">{e.summary}</td>
                 </tr>
               ))}

@@ -18,40 +18,64 @@ export default async function OpengraphImage({ params }: { params: Promise<{ slu
   const venueLabel = tournament ? `${tournament.venue}, ${tournament.city}` : "";
 
   return new ImageResponse(
-    (
-      <div
-        style={{
-          height: "100%",
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          padding: "64px",
-          backgroundColor: CHARCOAL,
-          color: IVORY,
-          fontFamily: "sans-serif",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{ width: "10px", height: "10px", borderRadius: "999px", backgroundColor: GOLD, display: "flex" }} />
-          <div style={{ fontSize: "24px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, display: "flex" }}>
-            Nagarathar&apos;s Chess Championship
-          </div>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <div style={{ fontSize: "64px", fontWeight: 700, lineHeight: 1.1, display: "flex", maxWidth: "1000px" }}>
-            {title}
-          </div>
-          {dateLabel && (
-            <div style={{ fontSize: "32px", color: IVORY, opacity: 0.85, display: "flex" }}>{dateLabel}</div>
-          )}
-          {venueLabel && (
-            <div style={{ fontSize: "28px", color: GOLD, display: "flex" }}>{venueLabel}</div>
-          )}
+    <div
+      style={{
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        padding: "64px",
+        backgroundColor: CHARCOAL,
+        color: IVORY,
+        fontFamily: "sans-serif",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <div
+          style={{
+            width: "10px",
+            height: "10px",
+            borderRadius: "999px",
+            backgroundColor: GOLD,
+            display: "flex",
+          }}
+        />
+        <div
+          style={{
+            fontSize: "24px",
+            letterSpacing: "2px",
+            textTransform: "uppercase",
+            color: GOLD,
+            display: "flex",
+          }}
+        >
+          Nagarathar&apos;s Chess Championship
         </div>
       </div>
-    ),
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        <div
+          style={{
+            fontSize: "64px",
+            fontWeight: 700,
+            lineHeight: 1.1,
+            display: "flex",
+            maxWidth: "1000px",
+          }}
+        >
+          {title}
+        </div>
+        {dateLabel && (
+          <div style={{ fontSize: "32px", color: IVORY, opacity: 0.85, display: "flex" }}>
+            {dateLabel}
+          </div>
+        )}
+        {venueLabel && (
+          <div style={{ fontSize: "28px", color: GOLD, display: "flex" }}>{venueLabel}</div>
+        )}
+      </div>
+    </div>,
     { ...size }
   );
 }

@@ -87,7 +87,9 @@ export function computeStandings(players: PlayerInfo[], pairings: StandingsPairi
     };
   });
 
-  standings.sort((a, b) => b.score - a.score || b.buchholz - a.buchholz || b.sonnebornBerger - a.sonnebornBerger);
+  standings.sort(
+    (a, b) => b.score - a.score || b.buchholz - a.buchholz || b.sonnebornBerger - a.sonnebornBerger
+  );
 
   let rank = 0;
   let prevKey = "";

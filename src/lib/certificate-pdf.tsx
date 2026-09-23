@@ -66,7 +66,8 @@ export type CertificateKind = "participation" | "overall_winner" | "category_win
 
 export function certificateHeadline(kind: CertificateKind, categoryLabel?: string) {
   if (kind === "overall_winner") return "Certificate of Achievement — Tournament Champion";
-  if (kind === "category_winner") return `Certificate of Achievement — ${categoryLabel ?? ""} Champion`;
+  if (kind === "category_winner")
+    return `Certificate of Achievement — ${categoryLabel ?? ""} Champion`;
   return "Certificate of Participation";
 }
 

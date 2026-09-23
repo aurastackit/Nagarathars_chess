@@ -1,5 +1,12 @@
 import type { GalleryPlaceholder } from "@/lib/gallery-placeholders";
-import { BishopIcon, KingIcon, KnightIcon, PawnIcon, QueenIcon, RookIcon } from "@/components/icons/chess-pieces";
+import {
+  BishopIcon,
+  KingIcon,
+  KnightIcon,
+  PawnIcon,
+  QueenIcon,
+  RookIcon,
+} from "@/components/icons/chess-pieces";
 
 const PIECE_ICONS = {
   king: KingIcon,
@@ -15,7 +22,12 @@ export function GalleryPlaceholderTile({ id, piece, from, to }: GalleryPlacehold
   const Icon = PIECE_ICONS[piece];
   return (
     <div className="relative h-full w-full overflow-hidden">
-      <svg viewBox="0 0 200 150" className="absolute inset-0 h-full w-full" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <svg
+        viewBox="0 0 200 150"
+        className="absolute inset-0 h-full w-full"
+        preserveAspectRatio="xMidYMid slice"
+        aria-hidden="true"
+      >
         <defs>
           <pattern id={patternId} width="25" height="18.75" patternUnits="userSpaceOnUse">
             <rect width="25" height="18.75" fill={from} />

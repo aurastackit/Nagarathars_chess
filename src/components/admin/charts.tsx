@@ -45,7 +45,11 @@ export function CategoryBreakdownChart({ data }: { data: { label: string; count:
           {data.map((_, i) => (
             <Cell key={i} fill={CATEGORY_COLORS[i % CATEGORY_COLORS.length]} />
           ))}
-          <LabelList dataKey="count" position="right" style={{ fill: "#0b0b0b", fontSize: 12, fontWeight: 600 }} />
+          <LabelList
+            dataKey="count"
+            position="right"
+            style={{ fill: "#0b0b0b", fontSize: 12, fontWeight: 600 }}
+          />
         </Bar>
       </BarChart>
     </ResponsiveContainer>
@@ -54,7 +58,11 @@ export function CategoryBreakdownChart({ data }: { data: { label: string; count:
 
 export function RegistrationsOverTimeChart({ data }: { data: { date: string; count: number }[] }) {
   if (data.every((d) => d.count === 0)) {
-    return <p className="py-8 text-center text-sm text-foreground/50">No registrations in this window.</p>;
+    return (
+      <p className="py-8 text-center text-sm text-foreground/50">
+        No registrations in this window.
+      </p>
+    );
   }
   return (
     <ResponsiveContainer width="100%" height={180}>
@@ -86,7 +94,10 @@ export function TournamentsBarList({ data }: { data: { title: string; count: num
         <div key={d.title} className="flex items-center gap-3 text-sm">
           <span className="w-32 flex-none truncate text-foreground/70">{d.title}</span>
           <div className="h-2 flex-1 overflow-hidden rounded-full bg-charcoal/10">
-            <div className="h-full rounded-full bg-gold" style={{ width: `${(d.count / max) * 100}%` }} />
+            <div
+              className="h-full rounded-full bg-gold"
+              style={{ width: `${(d.count / max) * 100}%` }}
+            />
           </div>
           <span className="w-6 flex-none text-right font-semibold text-charcoal">{d.count}</span>
         </div>

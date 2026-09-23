@@ -45,13 +45,22 @@ export function FileUploadField({
         htmlFor={kind}
         className="flex cursor-pointer items-center gap-3 rounded-md border border-dashed border-charcoal/30 bg-background px-3.5 py-3 text-sm text-charcoal transition-colors hover:bg-charcoal/5"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-5 w-5 flex-none">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          className="h-5 w-5 flex-none"
+        >
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 16V4m0 0L7 9m5-5l5 5M5 20h14" />
         </svg>
         <span className="truncate">
-          {uploading ? "Uploading…" : value ? fileName ?? "Uploaded" : "Click to choose a file"}
+          {uploading ? "Uploading…" : value ? (fileName ?? "Uploaded") : "Click to choose a file"}
         </span>
-        {value && !uploading && <span className="ml-auto flex-none text-xs font-semibold text-gold">✓</span>}
+        {value && !uploading && (
+          <span className="ml-auto flex-none text-xs font-semibold text-gold-ink">✓</span>
+        )}
       </label>
       <input
         id={kind}

@@ -36,19 +36,27 @@ export default async function AdminClassesPage() {
               <tr key={c.id} className="border-t border-border">
                 <td className="px-4 py-2 font-medium">{c.title}</td>
                 <td className="px-4 py-2">
-                  <Badge tone="gold">{c.level}</Badge>
+                  <Badge tone="gold-ink">{c.level}</Badge>
                 </td>
-                <td className="px-4 py-2 text-foreground/60">{c.isOnline ? "Online" : "In-person"}</td>
+                <td className="px-4 py-2 text-foreground/60">
+                  {c.isOnline ? "Online" : "In-person"}
+                </td>
                 <td className="px-4 py-2 text-foreground/60">
                   ₹{c.price} &middot; {c.sessionType === "group" ? "Group" : "1-on-1"}
                 </td>
                 <td className="px-4 py-2">
-                  <Link href={`/admin/classes/${c.id}`} className="font-medium text-charcoal hover:underline">
+                  <Link
+                    href={`/admin/classes/${c.id}`}
+                    className="font-medium text-charcoal hover:underline"
+                  >
                     {c._count.enrollments}
                   </Link>
                 </td>
                 <td className="px-4 py-2 text-right">
-                  <Link href={`/admin/classes/${c.id}`} className="text-xs font-medium text-charcoal hover:underline">
+                  <Link
+                    href={`/admin/classes/${c.id}`}
+                    className="text-xs font-medium text-charcoal hover:underline"
+                  >
                     Manage
                   </Link>
                 </td>

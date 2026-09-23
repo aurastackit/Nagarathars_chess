@@ -6,7 +6,9 @@ const REGION = process.env.S3_REGION;
 const BUCKET = process.env.S3_BUCKET_NAME;
 
 export function isS3Configured() {
-  return Boolean(REGION && BUCKET && process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY);
+  return Boolean(
+    REGION && BUCKET && process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY
+  );
 }
 
 function getClient() {
@@ -19,7 +21,12 @@ function getClient() {
   });
 }
 
-export const ALLOWED_UPLOAD_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"] as const;
+export const ALLOWED_UPLOAD_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
+] as const;
 export type UploadKind = "ageProof" | "passportPhoto";
 
 const EXT_BY_TYPE: Record<string, string> = {
@@ -34,9 +41,15 @@ const EXT_BY_TYPE: Record<string, string> = {
  * The bucket has no public access — objects are only ever reachable via a
  * short-lived signed URL (this one for upload, `getDownloadUrl` for viewing).
  */
-export async function createUploadUrl(params: { tournamentSlug: string; kind: UploadKind; contentType: string }) {
+export async function createUploadUrl(params: {
+  tournamentSlug: string;
+  kind: UploadKind;
+  contentType: string;
+}) {
   if (!isS3Configured()) {
-    throw new Error("S3 is not configured — set S3_BUCKET_NAME, S3_REGION, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY");
+    throw new Error(
+      "S3 is not configured — set S3_BUCKET_NAME, S3_REGION, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY"
+    );
   }
   if (!ALLOWED_UPLOAD_TYPES.includes(params.contentType as (typeof ALLOWED_UPLOAD_TYPES)[number])) {
     throw new Error("Unsupported file type");
@@ -44,7 +57,11 @@ export async function createUploadUrl(params: { tournamentSlug: string; kind: Up
   const ext = EXT_BY_TYPE[params.contentType];
   const key = `registrations/${params.tournamentSlug}/${params.kind}-${randomUUID()}.${ext}`;
   const client = getClient();
-  const command = new PutObjectCommand({ Bucket: BUCKET, Key: key, ContentType: params.contentType });
+  const command = new PutObjectCommand({
+    Bucket: BUCKET,
+    Key: key,
+    ContentType: params.contentType,
+  });
   const uploadUrl = await getSignedUrl(client, command, { expiresIn: 300 });
   return { uploadUrl, key };
 }

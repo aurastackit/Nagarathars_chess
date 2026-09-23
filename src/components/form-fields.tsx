@@ -3,7 +3,15 @@ import type { ChangeEvent, ReactNode } from "react";
 export const fieldClasses =
   "w-full rounded-lg border border-[#d8cfa8] bg-[#fffdf8] px-3.5 py-2.5 text-sm text-[#12312d] focus:border-[#0e4f45] focus:outline-none focus:ring-2 focus:ring-[#c8922f]/40 disabled:cursor-not-allowed disabled:bg-[#f1eee2] disabled:text-[#8a8471]";
 
-export function Section({ index, title, children }: { index: number; title: string; children: ReactNode }) {
+export function Section({
+  index,
+  title,
+  children,
+}: {
+  index: number;
+  title: string;
+  children: ReactNode;
+}) {
   return (
     <section>
       <div className="flex items-center gap-2.5">
@@ -17,7 +25,10 @@ export function Section({ index, title, children }: { index: number; title: stri
   );
 }
 
-export function PrimaryButton({ className = "", ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+export function PrimaryButton({
+  className = "",
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       {...props}
@@ -56,7 +67,12 @@ export function TextField({
   helper,
   className,
   ...props
-}: { label: string; name: string; helper?: string; className?: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+}: {
+  label: string;
+  name: string;
+  helper?: string;
+  className?: string;
+} & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <FieldShell label={label} htmlFor={name} helper={helper} className={className}>
       <input id={name} name={name} className={fieldClasses} {...props} />
@@ -70,7 +86,12 @@ export function TextAreaField({
   helper,
   className,
   ...props
-}: { label: string; name: string; helper?: string; className?: string } & React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+}: {
+  label: string;
+  name: string;
+  helper?: string;
+  className?: string;
+} & React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <FieldShell label={label} htmlFor={name} helper={helper} className={className}>
       <textarea id={name} name={name} rows={2} className={fieldClasses} {...props} />
@@ -129,14 +150,27 @@ export function FileField({
         <UploadIcon className="h-5 w-5 flex-none" />
         <span className="truncate">{fileName ?? "Click to choose a file"}</span>
       </label>
-      <input id={name} name={name} type="file" required={required} onChange={handleChange} className="hidden" />
+      <input
+        id={name}
+        name={name}
+        type="file"
+        required={required}
+        onChange={handleChange}
+        className="hidden"
+      />
     </FieldShell>
   );
 }
 
 export function CheckIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className={className}>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.5}
+      className={className}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
     </svg>
   );
@@ -144,7 +178,13 @@ export function CheckIcon({ className }: { className?: string }) {
 
 export function UploadIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={className}>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      className={className}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 16V4m0 0L7 9m5-5l5 5M5 20h14" />
     </svg>
   );

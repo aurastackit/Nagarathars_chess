@@ -4,7 +4,8 @@ import { Card } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 import { requireAdminPage } from "@/lib/require-admin";
 import { AGE_CATEGORIES } from "@/lib/age-category";
-import { CategoryBreakdownChart, RegistrationsOverTimeChart, TournamentsBarList } from "@/components/admin/charts";
+import { TournamentsBarList } from "@/components/admin/charts";
+import { CategoryBreakdownChart, RegistrationsOverTimeChart } from "@/components/admin/charts-lazy";
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +58,10 @@ export default async function AdminDashboardPage() {
   const tournamentsWithRegistrants = topTournaments.filter((t) => t._count.registrations > 0);
 
   const categoryCounts = new Map(categoryGroups.map((g) => [g.ageCategory, g._count]));
-  const categoryData = AGE_CATEGORIES.map((c) => ({ label: c.label, count: categoryCounts.get(c.value) ?? 0 }));
+  const categoryData = AGE_CATEGORIES.map((c) => ({
+    label: c.label,
+    count: categoryCounts.get(c.value) ?? 0,
+  }));
 
   // Guard is redundant with the query's `tournament.entryFee > 0` filter — kept explicit here
   // so this only ever reflects real payments for fee-bearing tournaments, never free entries.
@@ -94,7 +98,9 @@ export default async function AdminDashboardPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <Card className="p-5 lg:col-span-2">
-          <h2 className="text-sm font-semibold text-charcoal">Registrations over the last {DAYS_WINDOW} days</h2>
+          <h2 className="text-sm font-semibold text-charcoal">
+            Registrations over the last {DAYS_WINDOW} days
+          </h2>
           <div className="mt-2">
             <RegistrationsOverTimeChart data={overTimeData} />
           </div>
@@ -110,7 +116,12 @@ export default async function AdminDashboardPage() {
       <Card className="mt-6 p-5">
         <h2 className="text-sm font-semibold text-charcoal">Registrations per tournament</h2>
         <div className="mt-4">
-          <TournamentsBarList data={tournamentsWithRegistrants.map((t) => ({ title: t.title, count: t._count.registrations }))} />
+          <TournamentsBarList
+            data={tournamentsWithRegistrants.map((t) => ({
+              title: t.title,
+              count: t._count.registrations,
+            }))}
+          />
         </div>
       </Card>
 

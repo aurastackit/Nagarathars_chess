@@ -1,7 +1,16 @@
 import { useFormContext } from "react-hook-form";
-import { AGE_PROOF_TYPES, isMinorToday, type RegistrationWizardValues } from "@/lib/registration-schema";
+import {
+  AGE_PROOF_TYPES,
+  isMinorToday,
+  type RegistrationWizardValues,
+} from "@/lib/registration-schema";
 import { useS3Upload } from "@/lib/use-s3-upload";
-import { CheckboxField, SelectField, StepSection, TextField } from "@/components/registration-wizard/fields";
+import {
+  CheckboxField,
+  SelectField,
+  StepSection,
+  TextField,
+} from "@/components/registration-wizard/fields";
 import { FileUploadField } from "@/components/registration-wizard/file-upload-field";
 
 export function DocumentsStep({ tournamentSlug }: { tournamentSlug: string }) {
@@ -24,7 +33,12 @@ export function DocumentsStep({ tournamentSlug }: { tournamentSlug: string }) {
     <div className="space-y-8">
       <StepSection title="Documents & photo">
         <div>
-          <SelectField label="Age proof type" registration={register("ageProofType")} error={errors.ageProofType} required>
+          <SelectField
+            label="Age proof type"
+            registration={register("ageProofType")}
+            error={errors.ageProofType}
+            required
+          >
             <option value="">Select a document type</option>
             {AGE_PROOF_TYPES.map((t) => (
               <option key={t.value} value={t.value}>
@@ -84,10 +98,11 @@ export function DocumentsStep({ tournamentSlug }: { tournamentSlug: string }) {
       <section className="rounded-lg border border-border bg-card p-4">
         <h3 className="text-sm font-semibold text-charcoal">Privacy notice</h3>
         <p className="mt-2 text-xs text-foreground/60">
-          We collect this information to run tournament registration, verify age-category eligibility, and contact
-          you about the event. Age-proof and photo files are stored in a private cloud bucket, accessible only to
-          tournament organizers — never made public. Data is retained only as long as needed to run this and future
-          Nagarathar&apos;s Chess events, and you can request deletion at any time by contacting us.
+          We collect this information to run tournament registration, verify age-category
+          eligibility, and contact you about the event. Age-proof and photo files are stored in a
+          private cloud bucket, accessible only to tournament organizers — never made public. Data
+          is retained only as long as needed to run this and future Nagarathar&apos;s Chess events,
+          and you can request deletion at any time by contacting us.
         </p>
         <CheckboxField
           label="I have read the privacy notice and consent to my (or my child's) details being collected and used as described."

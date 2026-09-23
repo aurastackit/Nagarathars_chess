@@ -53,7 +53,9 @@ export function parseResultsCsv(text: string): { rows: ResultCsvRow[]; errors: s
       continue;
     }
     if (!resultRaw || !VALID_RESULTS.has(resultRaw.trim())) {
-      errors.push(`Line ${lineNo}: result must be one of 1-0, 0-1, 0.5-0.5, BYE (got "${resultRaw}")`);
+      errors.push(
+        `Line ${lineNo}: result must be one of 1-0, 0-1, 0.5-0.5, BYE (got "${resultRaw}")`
+      );
       continue;
     }
     const result = normalizeResult(resultRaw);

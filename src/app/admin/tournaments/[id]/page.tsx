@@ -56,7 +56,9 @@ export default async function ManageTournamentPage({
     });
 
     if (!parsed.success) {
-      redirect(`/admin/tournaments/${id}?error=${encodeURIComponent(parsed.error.issues[0]?.message ?? "Invalid input")}`);
+      redirect(
+        `/admin/tournaments/${id}?error=${encodeURIComponent(parsed.error.issues[0]?.message ?? "Invalid input")}`
+      );
     }
 
     const data = parsed.data;
@@ -136,16 +138,23 @@ export default async function ManageTournamentPage({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold text-charcoal">{tournament.title}</h1>
-          <Badge tone={tournament.status === "published" ? "charcoal" : "gray"}>{tournament.status}</Badge>
+          <Badge tone={tournament.status === "published" ? "charcoal" : "gray"}>
+            {tournament.status}
+          </Badge>
         </div>
-        <Link href={`/admin/tournaments/${tournament.id}/results`} className="text-sm font-semibold text-gold hover:underline">
+        <Link
+          href={`/admin/tournaments/${tournament.id}/results`}
+          className="text-sm font-semibold text-gold-ink hover:underline"
+        >
           Manage results &rarr;
         </Link>
       </div>
 
       <Card className="mt-6 p-6">
         {error && (
-          <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+          <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
         )}
         <form action={updateTournament} className="space-y-4">
           <div>
@@ -154,7 +163,13 @@ export default async function ManageTournamentPage({
           </div>
           <div>
             <Label htmlFor="description">Description</Label>
-            <Textarea id="description" name="description" rows={4} defaultValue={tournament.description} required />
+            <Textarea
+              id="description"
+              name="description"
+              rows={4}
+              defaultValue={tournament.description}
+              required
+            />
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
@@ -187,17 +202,31 @@ export default async function ManageTournamentPage({
                 <option value="closed">Closed</option>
                 <option value="completed">Completed</option>
               </select>
-              <p className="mt-1 text-xs text-foreground/50">Only &ldquo;Published&rdquo; tournaments appear on the public site.</p>
+              <p className="mt-1 text-xs text-foreground/50">
+                Only &ldquo;Published&rdquo; tournaments appear on the public site.
+              </p>
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="startDate">Start date</Label>
-              <Input id="startDate" name="startDate" type="date" defaultValue={toDateInputValue(tournament.startDate)} required />
+              <Input
+                id="startDate"
+                name="startDate"
+                type="date"
+                defaultValue={toDateInputValue(tournament.startDate)}
+                required
+              />
             </div>
             <div>
               <Label htmlFor="endDate">End date</Label>
-              <Input id="endDate" name="endDate" type="date" defaultValue={toDateInputValue(tournament.endDate)} required />
+              <Input
+                id="endDate"
+                name="endDate"
+                type="date"
+                defaultValue={toDateInputValue(tournament.endDate)}
+                required
+              />
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -213,7 +242,13 @@ export default async function ManageTournamentPage({
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <Label htmlFor="entryFee">Entry fee (₹, 0 = free)</Label>
-              <Input id="entryFee" name="entryFee" type="number" min={0} defaultValue={tournament.entryFee} />
+              <Input
+                id="entryFee"
+                name="entryFee"
+                type="number"
+                min={0}
+                defaultValue={tournament.entryFee}
+              />
             </div>
             <div>
               <Label htmlFor="maxParticipants">Max participants</Label>
@@ -241,21 +276,41 @@ export default async function ManageTournamentPage({
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="posterImageUrl">Poster image URL</Label>
-              <Input id="posterImageUrl" name="posterImageUrl" defaultValue={tournament.posterImageUrl ?? ""} />
+              <Input
+                id="posterImageUrl"
+                name="posterImageUrl"
+                defaultValue={tournament.posterImageUrl ?? ""}
+              />
             </div>
             <div>
               <Label htmlFor="brochurePdfUrl">Brochure PDF URL</Label>
-              <Input id="brochurePdfUrl" name="brochurePdfUrl" defaultValue={tournament.brochurePdfUrl ?? ""} />
+              <Input
+                id="brochurePdfUrl"
+                name="brochurePdfUrl"
+                defaultValue={tournament.brochurePdfUrl ?? ""}
+              />
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="timeControl">Time control</Label>
-              <Input id="timeControl" name="timeControl" defaultValue={tournament.timeControl ?? ""} placeholder="e.g. 90 min + 30 sec increment" />
+              <Input
+                id="timeControl"
+                name="timeControl"
+                defaultValue={tournament.timeControl ?? ""}
+                placeholder="e.g. 90 min + 30 sec increment"
+              />
             </div>
             <div>
               <Label htmlFor="rounds">Rounds</Label>
-              <Input id="rounds" name="rounds" type="number" min={1} defaultValue={tournament.rounds ?? undefined} placeholder="Optional" />
+              <Input
+                id="rounds"
+                name="rounds"
+                type="number"
+                min={1}
+                defaultValue={tournament.rounds ?? undefined}
+                placeholder="Optional"
+              />
             </div>
           </div>
           <div>
@@ -275,9 +330,13 @@ export default async function ManageTournamentPage({
               name="rulesText"
               rows={4}
               defaultValue={tournament.rulesText ?? ""}
-              placeholder={"Eligibility|Open to all age categories, no FIDE rating required.\nTiebreaks|Standard FIDE tiebreak rules apply."}
+              placeholder={
+                "Eligibility|Open to all age categories, no FIDE rating required.\nTiebreaks|Standard FIDE tiebreak rules apply."
+              }
             />
-            <p className="mt-1 text-xs text-foreground/50">One rule per line, formatted as Title|Details.</p>
+            <p className="mt-1 text-xs text-foreground/50">
+              One rule per line, formatted as Title|Details.
+            </p>
           </div>
           <Button type="submit">Save changes</Button>
         </form>
@@ -303,7 +362,10 @@ export default async function ManageTournamentPage({
             </a>
           </div>
         </div>
-        <RegistrantsPanel registrations={tournament.registrations} setRegistrationStatus={setRegistrationStatus} />
+        <RegistrantsPanel
+          registrations={tournament.registrations}
+          setRegistrationStatus={setRegistrationStatus}
+        />
       </section>
     </div>
   );

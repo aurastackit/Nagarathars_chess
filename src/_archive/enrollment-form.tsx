@@ -65,9 +65,7 @@ export function EnrollmentForm({ classSlug, level }: { classSlug: string; level:
         </div>
       </div>
       <div>
-        <Label htmlFor={`${classSlug}-fideId`}>
-          FIDE ID{fideRequired ? "" : " (optional)"}
-        </Label>
+        <Label htmlFor={`${classSlug}-fideId`}>FIDE ID{fideRequired ? "" : " (optional)"}</Label>
         <Input
           id={`${classSlug}-fideId`}
           name="fideId"

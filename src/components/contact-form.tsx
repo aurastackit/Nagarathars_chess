@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { Button, Input, Label, Textarea } from "@/components/ui";
+import { HoneypotField } from "@/components/honeypot-field";
 
 export function ContactForm() {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
@@ -41,6 +42,7 @@ export function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <HoneypotField />
       <div>
         <Label htmlFor="name">Name</Label>
         <Input id="name" name="name" required />

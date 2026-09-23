@@ -37,19 +37,17 @@ export function ClassCard({
 }) {
   const [open, setOpen] = useState(false);
   const sessionLabel =
-    sessionType === "group"
-      ? `Group${maxGroupSize ? ` (max ${maxGroupSize})` : ""}`
-      : "1-on-1";
+    sessionType === "group" ? `Group${maxGroupSize ? ` (max ${maxGroupSize})` : ""}` : "1-on-1";
 
   return (
     <Card className="flex flex-col p-5">
       <div className="flex flex-wrap gap-2">
-        <Badge tone="gold">{LEVEL_LABEL[level] ?? level}</Badge>
+        <Badge tone="gold-ink">{LEVEL_LABEL[level] ?? level}</Badge>
         <Badge tone="gray">{isOnline ? "Online" : "In-person"}</Badge>
       </div>
       <h3 className="mt-2 text-lg font-semibold text-foreground">{title}</h3>
       <p className="mt-2 text-sm text-foreground/70">{description}</p>
-      <p className="mt-3 text-sm font-semibold text-gold">
+      <p className="mt-3 text-sm font-semibold text-gold-ink">
         ₹{price} &middot; {sessionLabel} &middot; {durationMinutes} min
       </p>
       <p className="mt-2 text-sm text-foreground/50">

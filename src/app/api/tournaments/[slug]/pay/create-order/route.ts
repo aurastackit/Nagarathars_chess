@@ -1,17 +1,32 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { createRazorpayOrder, isRazorpayConfigured } from "@/lib/razorpay";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+
+const createOrderSchema = z.object({ registrationId: z.string().min(1) });
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const body = await req.json().catch(() => null);
-  const registrationId = body?.registrationId as string | undefined;
-  if (!registrationId) {
-    return NextResponse.json({ error: "Missing registration" }, { status: 400 });
+  if (!checkRateLimit(`pay-order:${getClientIp(req)}`, 10, 60_000)) {
+    return NextResponse.json(
+      { error: "Too many requests — please try again shortly." },
+      { status: 429 }
+    );
   }
 
+  const body = await req.json().catch(() => null);
+  const parsed = createOrderSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Missing registration" }, { status: 400 });
+  }
+  const { registrationId } = parsed.data;
+
   if (!isRazorpayConfigured()) {
-    return NextResponse.json({ error: "Online payment isn't configured yet — please contact the organizers." }, { status: 503 });
+    return NextResponse.json(
+      { error: "Online payment isn't configured yet — please contact the organizers." },
+      { status: 503 }
+    );
   }
 
   const tournament = await prisma.tournament.findUnique({ where: { slug } });
