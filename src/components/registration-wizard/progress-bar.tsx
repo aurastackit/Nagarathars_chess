@@ -1,10 +1,8 @@
-import { REGISTRATION_STEPS } from "@/lib/registration-schema";
-
-export function WizardProgressBar({ current }: { current: number }) {
+export function WizardProgressBar({ current, steps }: { current: number; steps: readonly string[] }) {
   return (
     <div>
       <div className="flex items-center justify-between">
-        {REGISTRATION_STEPS.map((label, i) => (
+        {steps.map((label, i) => (
           <div key={label} className="flex flex-1 items-center last:flex-none">
             <div className="flex flex-col items-center gap-1">
               <span
@@ -22,14 +20,14 @@ export function WizardProgressBar({ current }: { current: number }) {
                 {label}
               </span>
             </div>
-            {i < REGISTRATION_STEPS.length - 1 && (
+            {i < steps.length - 1 && (
               <div className={`mx-2 h-0.5 flex-1 rounded-full ${i < current ? "bg-gold" : "bg-charcoal/10"}`} />
             )}
           </div>
         ))}
       </div>
       <p className="mt-2 text-center text-xs font-medium text-foreground/50 sm:hidden">
-        Step {current + 1} of {REGISTRATION_STEPS.length}: {REGISTRATION_STEPS[current]}
+        Step {current + 1} of {steps.length}: {steps[current]}
       </p>
     </div>
   );

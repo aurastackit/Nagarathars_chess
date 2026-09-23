@@ -170,7 +170,7 @@ export function RegistrationWizard({
   return (
     <FormProvider {...methods}>
       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
-        <WizardProgressBar current={step} />
+        <WizardProgressBar current={step} steps={REGISTRATION_STEPS} />
 
         <form
           onSubmit={isLastStep ? handleSubmit(onSubmit) : (e) => e.preventDefault()}

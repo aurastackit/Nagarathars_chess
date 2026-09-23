@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button, Card, Badge } from "@/components/ui";
-import { EnrollmentForm } from "@/components/enrollment-form";
+import { ClassEnrollWizard } from "@/components/class-enroll-wizard";
 
 const LEVEL_LABEL: Record<string, string> = {
   beginner: "Beginner",
@@ -63,7 +63,7 @@ export function ClassCard({
       )}
       <div className="mt-4">
         {open ? (
-          <EnrollmentForm classSlug={slug} level={level} />
+          <ClassEnrollWizard classSlug={slug} level={level} />
         ) : (
           <Button onClick={() => setOpen(true)} className="w-full">
             Enroll interest

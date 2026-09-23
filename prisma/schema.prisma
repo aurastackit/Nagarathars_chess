@@ -175,3 +175,11 @@ model AdminActivityLog {
   @@index([createdAt])
   @@index([targetType, targetId])
 }
+
+/** Collected when the homepage/classes page has nothing published, so we can follow up once classes go live. */
+model ClassWaitlist {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  phone     String?
+  createdAt DateTime @default(now())
+}

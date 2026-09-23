@@ -11,6 +11,7 @@ import { Countdown } from "@/components/countdown";
 import { getNextTournament } from "@/lib/next-tournament";
 import { TournamentCard } from "@/components/tournament-card";
 import { getHallOfChampions } from "@/lib/hall-of-champions";
+import { ClassWaitlistForm } from "@/components/class-waitlist-form";
 import { BishopIcon, KingIcon, KnightIcon, PawnIcon, QueenIcon, RookIcon, TrophyIcon } from "@/components/icons/chess-pieces";
 
 export const dynamic = "force-dynamic";
@@ -359,7 +360,7 @@ export default async function HomePage() {
           </Link>
         </div>
         {classes.length === 0 ? (
-          <EmptyState message="No classes published yet — check back soon." />
+          <ClassWaitlistForm />
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {classes.map((c, i) => (

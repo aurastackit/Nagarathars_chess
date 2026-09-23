@@ -1,3 +1,11 @@
+// Archived: the single-step class enrollment form, replaced by
+// ClassEnrollWizard (src/components/class-enroll-wizard.tsx), which reuses
+// the tournament registration wizard's field components (fields.tsx,
+// progress-bar.tsx) for a consistent multi-step feel. To restore: move this
+// file back to src/components/enrollment-form.tsx and swap ClassEnrollWizard
+// back for EnrollmentForm in src/components/class-card.tsx. The API contract
+// (POST /api/classes/[slug]/enroll) is unchanged, so no server-side revert
+// is needed.
 "use client";
 
 import { useState, type FormEvent } from "react";

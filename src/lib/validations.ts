@@ -12,6 +12,21 @@ export const enrollmentSchema = z.object({
 
 export type EnrollmentInput = z.infer<typeof enrollmentSchema>;
 
+/** Client-side variant that also enforces the FIDE ID requirement for non-beginner classes. */
+export function createEnrollmentSchema(fideRequired: boolean) {
+  return enrollmentSchema.refine((data) => !fideRequired || Boolean(data.fideId), {
+    error: "A FIDE ID is required for this class",
+    path: ["fideId"],
+  });
+}
+
+export const classWaitlistSchema = z.object({
+  email: z.string().trim().email("Enter a valid email"),
+  phone: z.string().trim().optional().or(z.literal("")),
+});
+
+export type ClassWaitlistInput = z.infer<typeof classWaitlistSchema>;
+
 export const contactSchema = z.object({
   name: z.string().trim().min(2, "Enter your name"),
   email: z.string().trim().email("Enter a valid email"),
