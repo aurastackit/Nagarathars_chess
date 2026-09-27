@@ -56,12 +56,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     },
   });
 
-  await sendRegistrationConfirmationEmail({
-    to: registration.email,
-    fullName: registration.fullName,
-    registrationId: registration.id,
-    tournament,
-  });
+  try {
+    await sendRegistrationConfirmationEmail({
+      to: registration.email,
+      fullName: registration.fullName,
+      registrationId: registration.id,
+      tournament,
+    });
+  } catch (err) {
+    console.error("[pay/verify] sendRegistrationConfirmationEmail failed:", err);
+  }
 
   return NextResponse.json({ ok: true });
 }

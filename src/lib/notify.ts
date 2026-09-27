@@ -1,11 +1,12 @@
-import { Resend } from "resend";
 import { buildTournamentIcs } from "@/lib/ics";
 import { formatDateRange } from "@/lib/format";
 import { SITE_URL } from "@/lib/site";
+import { isSesConfigured, sendEmail } from "@/lib/ses";
 
 // Stubbed for the trial phase: logs instead of sending a real email.
-// Swap the body of this function for a Resend call later — nothing else needs to change,
-// since every call site already awaits this function and only cares that it resolves.
+// Falls back to this when SES isn't configured — nothing else needs to
+// change, since every call site already awaits this function and only
+// cares that it resolves.
 export async function notifyRegistration(params: {
   to: string;
   fullName: string;
@@ -18,14 +19,10 @@ export async function notifyRegistration(params: {
   return { status: "stubbed" as const };
 }
 
-function isResendConfigured() {
-  return Boolean(process.env.RESEND_API_KEY);
-}
-
 /**
  * Sends the tournament registration confirmation, with a .ics calendar
- * invite attached. Falls back to the console.log stub when RESEND_API_KEY
- * isn't set, so this is safe to call in every environment.
+ * invite attached. Falls back to the console.log stub when SES isn't
+ * configured, so this is safe to call in every environment.
  */
 export async function sendRegistrationConfirmationEmail(params: {
   to: string;
@@ -44,7 +41,7 @@ export async function sendRegistrationConfirmationEmail(params: {
   const statusUrl = `${SITE_URL}/registration/${params.registrationId}`;
   const subject = `Registered: ${params.tournament.title}`;
 
-  if (!isResendConfigured()) {
+  if (!isSesConfigured()) {
     return notifyRegistration({
       to: params.to,
       fullName: params.fullName,
@@ -53,7 +50,6 @@ export async function sendRegistrationConfirmationEmail(params: {
     });
   }
 
-  const resend = new Resend(process.env.RESEND_API_KEY);
   const ics = buildTournamentIcs(params.tournament);
 
   const html = `
@@ -68,15 +64,15 @@ export async function sendRegistrationConfirmationEmail(params: {
     <p>A calendar invite is attached to this email.</p>
   `;
 
-  return resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL ?? "Nagarathar's Chess <registrations@example.com>",
+  return sendEmail({
     to: params.to,
     subject,
     html,
     attachments: [
       {
         filename: `${params.tournament.slug}.ics`,
-        content: Buffer.from(ics).toString("base64"),
+        contentBase64: Buffer.from(ics).toString("base64"),
+        contentType: "text/calendar",
       },
     ],
   });
@@ -97,7 +93,7 @@ export async function sendRegistrationDecisionEmail(params: {
       ? `Confirmed: ${params.tournamentTitle}`
       : `Update on your registration for ${params.tournamentTitle}`;
 
-  if (!isResendConfigured()) {
+  if (!isSesConfigured()) {
     return notifyRegistration({
       to: params.to,
       fullName: params.fullName,
@@ -108,7 +104,6 @@ export async function sendRegistrationDecisionEmail(params: {
     });
   }
 
-  const resend = new Resend(process.env.RESEND_API_KEY);
   const html =
     params.decision === "confirmed"
       ? `
@@ -123,10 +118,5 @@ export async function sendRegistrationDecisionEmail(params: {
         <p>If you think this is a mistake, please get in touch with the organizers.</p>
       `;
 
-  return resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL ?? "Nagarathar's Chess <registrations@example.com>",
-    to: params.to,
-    subject,
-    html,
-  });
+  return sendEmail({ to: params.to, subject, html });
 }

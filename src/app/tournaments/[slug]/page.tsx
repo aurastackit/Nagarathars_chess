@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { isRazorpayConfigured } from "@/lib/razorpay";
 import { Badge } from "@/components/ui";
 import { formatDate, formatDateRange } from "@/lib/format";
 import { capitalizeWords } from "@/lib/text";
@@ -323,7 +324,7 @@ export default async function TournamentDetailPage({
                 tournamentSlug={tournament.slug}
                 tournamentTitle={tournament.title}
                 tournamentStartDate={tournament.startDate}
-                entryFee={tournament.entryFee}
+                entryFee={isRazorpayConfigured() ? tournament.entryFee : 0}
               />
             </div>
           )}

@@ -183,3 +183,27 @@ model ClassWaitlist {
   phone     String?
   createdAt DateTime @default(now())
 }
+
+/** Tracks emailed one-time-code verification for a given address (e.g. before a tournament registration is accepted). */
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  name            String?
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  otpCodes        OtpCode[]
+}
+
+/** One requested email-verification code for a User. Superseded codes are left in place (not deleted) for audit/rate-limit history. */
+model OtpCode {
+  id         String    @id @default(cuid())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int       @default(0)
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, consumedAt])
+}

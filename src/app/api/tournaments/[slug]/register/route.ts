@@ -5,6 +5,8 @@ import { createRegistrationWizardSchema } from "@/lib/registration-schema";
 import { sendRegistrationConfirmationEmail } from "@/lib/notify";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { isHoneypotTriggered } from "@/lib/honeypot";
+import { EMAIL_VERIFICATION_VALIDITY_MS } from "@/lib/otp";
+import { isRazorpayConfigured } from "@/lib/razorpay";
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -40,8 +42,20 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     );
   }
   const data = parsed.data;
+  const playerEmail = data.email.trim().toLowerCase();
 
-  const requiresPayment = tournament.entryFee > 0;
+  const verifiedUser = await prisma.user.findUnique({ where: { email: playerEmail } });
+  const verifiedRecently =
+    verifiedUser?.emailVerifiedAt &&
+    Date.now() - verifiedUser.emailVerifiedAt.getTime() < EMAIL_VERIFICATION_VALIDITY_MS;
+  if (!verifiedRecently) {
+    return NextResponse.json(
+      { error: "Please verify your email before submitting your registration" },
+      { status: 400 }
+    );
+  }
+
+  const requiresPayment = tournament.entryFee > 0 && isRazorpayConfigured();
 
   let registrationId: string;
   try {
@@ -52,7 +66,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
           throw new Error("FULL");
         }
       }
-      const playerEmail = data.email.trim().toLowerCase();
       const player = await tx.player.upsert({
         where: { email: playerEmail },
         update: { fullName: data.fullName, dob: data.dob },
@@ -111,12 +124,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   }
 
   if (!requiresPayment) {
-    await sendRegistrationConfirmationEmail({
-      to: data.email,
-      fullName: data.fullName,
-      registrationId,
-      tournament,
-    });
+    try {
+      await sendRegistrationConfirmationEmail({
+        to: data.email,
+        fullName: data.fullName,
+        registrationId,
+        tournament,
+      });
+    } catch (err) {
+      // The registration itself succeeded — don't fail the response over a
+      // best-effort confirmation email (e.g. SES sandbox rejecting an
+      // unverified recipient).
+      console.error("[register] sendRegistrationConfirmationEmail failed:", err);
+    }
   }
 
   return NextResponse.json(

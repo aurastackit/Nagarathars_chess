@@ -40,6 +40,7 @@ export function TextField({
   error,
   className,
   registration,
+  suffix,
   ...props
 }: {
   label: string;
@@ -47,6 +48,8 @@ export function TextField({
   error?: FieldError;
   className?: string;
   registration: UseFormRegisterReturn;
+  /** Rendered inline next to the input, e.g. an email-verify button. */
+  suffix?: ReactNode;
 } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <FieldShell
@@ -56,7 +59,14 @@ export function TextField({
       error={error}
       className={className}
     >
-      <input id={registration.name} className={inputClasses} {...registration} {...props} />
+      {suffix ? (
+        <div className="flex items-center gap-2">
+          <input id={registration.name} className={inputClasses} {...registration} {...props} />
+          {suffix}
+        </div>
+      ) : (
+        <input id={registration.name} className={inputClasses} {...registration} {...props} />
+      )}
     </FieldShell>
   );
 }

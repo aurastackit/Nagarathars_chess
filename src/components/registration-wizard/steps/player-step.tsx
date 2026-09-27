@@ -6,8 +6,15 @@ import {
   TextAreaField,
   TextField,
 } from "@/components/registration-wizard/fields";
+import { EmailVerifyButton } from "@/components/registration-wizard/email-verify-button";
 
-export function PlayerStep() {
+export function PlayerStep({
+  verifiedEmail,
+  onEmailVerified,
+}: {
+  verifiedEmail: string | null;
+  onEmailVerified: (email: string | null) => void;
+}) {
   const {
     register,
     formState: { errors },
@@ -28,6 +35,8 @@ export function PlayerStep() {
         registration={register("email")}
         error={errors.email}
         required
+        helper="We'll email a code here to verify it's yours."
+        suffix={<EmailVerifyButton verifiedEmail={verifiedEmail} onVerified={onEmailVerified} />}
       />
       <TextField
         label="Phone"

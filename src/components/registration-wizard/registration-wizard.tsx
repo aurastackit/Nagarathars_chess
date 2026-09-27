@@ -68,6 +68,7 @@ export function RegistrationWizard({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [registrationId, setRegistrationId] = useState<string | null>(null);
+  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
   const storageKey = `registration-draft:${tournamentSlug}`;
 
   const schema = createRegistrationWizardSchema(tournamentStartDate);
@@ -84,7 +85,7 @@ export function RegistrationWizard({
     defaultValues: DEFAULT_VALUES,
     mode: "onBlur",
   });
-  const { handleSubmit, trigger, watch, reset } = methods;
+  const { handleSubmit, trigger, watch, reset, setError } = methods;
 
   useDraftAutosave({
     storageKey,
@@ -94,14 +95,43 @@ export function RegistrationWizard({
   });
 
   const isLastStep = step === REGISTRATION_STEPS.length - 1;
+  const [isAdvancing, setIsAdvancing] = useState(false);
 
   async function goNext() {
-    const fields = STEP_FIELDS[step];
-    const valid = fields.length === 0 || (await trigger(fields));
-    if (valid) setStep((s) => Math.min(s + 1, REGISTRATION_STEPS.length - 1));
+    // Guards against a fast double-click: the Documents step's "Next" and the
+    // Review step's "Submit" button occupy the same screen position, so a
+    // click that lands right after this step change would otherwise hit
+    // "Submit" instead of "Next" and register before the user meant to.
+    if (isAdvancing) return;
+    setIsAdvancing(true);
+    try {
+      const fields = STEP_FIELDS[step];
+      const valid = fields.length === 0 || (await trigger(fields));
+      if (!valid) return;
+
+      if (step === 0) {
+        const email = watch("email").trim().toLowerCase();
+        if (verifiedEmail !== email) {
+          setError("email", {
+            type: "manual",
+            message: "Please verify your email before continuing",
+          });
+          return;
+        }
+      }
+
+      setSubmitError(null);
+      setStep((s) => Math.min(s + 1, REGISTRATION_STEPS.length - 1));
+      // Keep the button disabled for one more tick after the step change so a
+      // click already in flight can't land on the newly-rendered button.
+      await new Promise((resolve) => setTimeout(resolve, 400));
+    } finally {
+      setIsAdvancing(false);
+    }
   }
 
   function goBack() {
+    setSubmitError(null);
     setStep((s) => Math.max(s - 1, 0));
   }
 
@@ -195,7 +225,9 @@ export function RegistrationWizard({
               autoComplete="off"
             />
           </div>
-          {step === 0 && <PlayerStep />}
+          {step === 0 && (
+            <PlayerStep verifiedEmail={verifiedEmail} onEmailVerified={setVerifiedEmail} />
+          )}
           {step === 1 && <CategoryStep tournamentStartDate={tournamentStartDate} />}
           {step === 2 && <FamilyStep />}
           {step === 3 && <CommunityStep />}
@@ -208,7 +240,7 @@ export function RegistrationWizard({
             <button
               type="button"
               onClick={goBack}
-              disabled={step === 0 || submitting}
+              disabled={step === 0 || submitting || isAdvancing}
               className="rounded-md border border-charcoal px-5 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-charcoal hover:text-background disabled:cursor-not-allowed disabled:opacity-40"
             >
               Back
@@ -216,7 +248,7 @@ export function RegistrationWizard({
             {isLastStep ? (
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || isAdvancing}
                 className="rounded-md bg-gold px-6 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-gold/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {submitting
@@ -231,7 +263,8 @@ export function RegistrationWizard({
               <button
                 type="button"
                 onClick={goNext}
-                className="rounded-md bg-charcoal px-6 py-2.5 text-sm font-semibold text-background transition-colors hover:bg-charcoal/90"
+                disabled={isAdvancing}
+                className="rounded-md bg-charcoal px-6 py-2.5 text-sm font-semibold text-background transition-colors hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Next
               </button>
