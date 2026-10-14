@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Select } from "@/components/ui";
+import { EmptyState, Select } from "@/components/ui";
 import { ClassCard } from "@/components/class-card";
 import { ClassWaitlistForm } from "@/components/class-waitlist-form";
+import { EmptyClasses } from "@/components/illustrations/empty-states";
 
 export type ClassCardData = {
   id: string;
@@ -18,6 +19,7 @@ export type ClassCardData = {
   price: number;
   maxGroupSize: number | null;
   durationMinutes: number;
+  bannerImageUrl: string | null;
 };
 
 export function ClassFilters({ classes }: { classes: ClassCardData[] }) {
@@ -38,10 +40,7 @@ export function ClassFilters({ classes }: { classes: ClassCardData[] }) {
     <div>
       <div className="grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2">
         <div>
-          <label
-            htmlFor="class-filter-level"
-            className="mb-1 block text-xs font-medium text-foreground/60"
-          >
+          <label htmlFor="class-filter-level" className="mb-1 block text-xs font-medium text-muted">
             Level
           </label>
           <Select id="class-filter-level" value={level} onChange={(e) => setLevel(e.target.value)}>
@@ -52,10 +51,7 @@ export function ClassFilters({ classes }: { classes: ClassCardData[] }) {
           </Select>
         </div>
         <div>
-          <label
-            htmlFor="class-filter-mode"
-            className="mb-1 block text-xs font-medium text-foreground/60"
-          >
+          <label htmlFor="class-filter-mode" className="mb-1 block text-xs font-medium text-muted">
             Mode
           </label>
           <Select id="class-filter-mode" value={mode} onChange={(e) => setMode(e.target.value)}>
@@ -71,9 +67,11 @@ export function ClassFilters({ classes }: { classes: ClassCardData[] }) {
       </p>
 
       {filtered.length === 0 ? (
-        <p className="mt-6 text-foreground/60">
-          No classes match these filters — try widening your search.
-        </p>
+        <EmptyState
+          className="mt-6"
+          icon={<EmptyClasses className="h-16 w-16" />}
+          message="No classes match these filters — try widening your search."
+        />
       ) : (
         <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((c) => (
@@ -90,6 +88,7 @@ export function ClassFilters({ classes }: { classes: ClassCardData[] }) {
               price={c.price}
               maxGroupSize={c.maxGroupSize}
               durationMinutes={c.durationMinutes}
+              bannerImageUrl={c.bannerImageUrl}
             />
           ))}
         </div>

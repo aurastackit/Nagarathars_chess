@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from "react";
 /**
  * Renders `value` immediately (matches the server-rendered number, so there's
  * no "0" flash on first paint), then animates from 0 up to `value` the first
- * time the element scrolls into view.
+ * time the element scrolls into view. Under prefers-reduced-motion it just
+ * stays at `value`.
  */
 export function CountUp({
   value,
@@ -22,7 +23,7 @@ export function CountUp({
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting || started.current) return;

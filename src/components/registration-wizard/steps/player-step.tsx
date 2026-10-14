@@ -1,4 +1,5 @@
 import { useFormContext } from "react-hook-form";
+import { digitsOnly, sanitizePhone } from "@/lib/input-filters";
 import type { RegistrationWizardValues } from "@/lib/registration-schema";
 import {
   SelectField,
@@ -27,6 +28,8 @@ export function PlayerStep({
         registration={register("fullName")}
         error={errors.fullName}
         required
+        maxLength={80}
+        autoComplete="name"
         className="sm:col-span-2"
       />
       <TextField
@@ -35,27 +38,34 @@ export function PlayerStep({
         registration={register("email")}
         error={errors.email}
         required
+        maxLength={120}
+        autoComplete="email"
         helper="We'll email a code here to verify it's yours."
         suffix={<EmailVerifyButton verifiedEmail={verifiedEmail} onVerified={onEmailVerified} />}
       />
       <TextField
         label="Phone"
         type="tel"
+        inputMode="numeric"
         placeholder="10-digit mobile number"
         registration={register("phone")}
         error={errors.phone}
         required
+        sanitize={sanitizePhone}
+        autoComplete="tel-national"
       />
       <TextField
-        label="Date of birth"
-        type="date"
-        registration={register("dob")}
-        error={errors.dob}
+        label="Year of birth"
+        inputMode="numeric"
+        placeholder="e.g. 2014"
+        registration={register("birthYear")}
+        error={errors.birthYear}
         required
-        helper="Used to calculate your age category."
+        sanitize={digitsOnly(4)}
+        helper="4-digit year, as on your age proof. Your age category is worked out from it."
       />
-      <SelectField label="Gender" registration={register("gender")} error={errors.gender}>
-        <option value="">Optional</option>
+      <SelectField label="Gender" registration={register("gender")} error={errors.gender} required>
+        <option value="">Select gender</option>
         <option value="male">Male</option>
         <option value="female">Female</option>
         <option value="other">Other</option>
@@ -64,13 +74,17 @@ export function PlayerStep({
         label="City"
         registration={register("city")}
         error={errors.city}
-        placeholder="Optional"
+        required
+        maxLength={60}
+        autoComplete="address-level2"
       />
       <TextAreaField
         label="Resident address"
         registration={register("address")}
         error={errors.address}
-        placeholder="Optional"
+        required
+        maxLength={200}
+        autoComplete="street-address"
         className="sm:col-span-2"
       />
     </StepSection>

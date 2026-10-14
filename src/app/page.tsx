@@ -1,27 +1,32 @@
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
-import { LinkButton, Card, Badge, Container, SectionHeading, EmptyState } from "@/components/ui";
-import { HeroSlideshow } from "@/components/hero-slideshow";
-import { generateGalleryPlaceholders } from "@/lib/gallery-placeholders";
-import { GalleryPlaceholderTile } from "@/components/gallery-tile";
+import { LinkButton, Card, Badge, Container, Section, EmptyState } from "@/components/ui";
 import { Reveal } from "@/components/reveal";
 import { CountUp } from "@/components/count-up";
 import { Countdown } from "@/components/countdown";
 import { getNextTournament } from "@/lib/next-tournament";
-import { isValidImageUrl } from "@/lib/image-url";
+import { registerPath } from "@/lib/registration-flow";
+import { timeUntilEndOfDayIST } from "@/lib/countdown-format";
+import { getTournamentStatus } from "@/lib/tournament-status";
 import { TournamentCard } from "@/components/tournament-card";
 import { getHallOfChampions } from "@/lib/hall-of-champions";
 import { ClassWaitlistForm } from "@/components/class-waitlist-form";
+import { HERO_MOMENT_PHOTO } from "@/lib/featured-photos";
+import { getGallery } from "@/lib/gallery";
+import { resolveVideoPlayback, type ShortsItem } from "@/lib/video";
+import { ShortsRow } from "@/components/shorts-row";
+import { CTA_PHOTO } from "@/lib/stock-photos";
+import { KnightIcon, PawnIcon, RookIcon, TrophyIcon } from "@/components/icons/chess-pieces";
+import { HeroBoard } from "@/components/illustrations/hero-board";
+import { StepBrowse, StepRegister, StepPlay } from "@/components/illustrations/steps";
+import { FormatClassical, FormatRapid, FormatBlitz } from "@/components/illustrations/formats";
 import {
-  BishopIcon,
-  KingIcon,
-  KnightIcon,
-  PawnIcon,
-  QueenIcon,
-  RookIcon,
-  TrophyIcon,
-} from "@/components/icons/chess-pieces";
+  BenefitFocus,
+  BenefitPlanning,
+  BenefitPatience,
+} from "@/components/illustrations/benefits";
+import { EmptyTournaments } from "@/components/illustrations/empty-states";
 
 export const dynamic = "force-dynamic";
 
@@ -48,23 +53,23 @@ const PROMISES = [
   },
   {
     title: "Every age welcome",
-    body: "Clear categories from Under 11 through Above 19 — you can always play up, never down.",
+    body: "Clear categories from Under 11 through Above 19, set automatically from the player's year of birth.",
   },
 ];
 
 const STEPS = [
   {
-    Icon: KnightIcon,
+    Icon: StepBrowse,
     title: "Browse what's open",
     body: "Check upcoming tournaments and class programs — dates, venues, formats, and entry fees are all listed up front.",
   },
   {
-    Icon: BishopIcon,
+    Icon: StepRegister,
     title: "Register in minutes",
     body: "Fill in your details, pick your age category, and submit. No FIDE rating or prior tournament experience needed.",
   },
   {
-    Icon: RookIcon,
+    Icon: StepPlay,
     title: "Play & keep improving",
     body: "Show up and compete, then carry the momentum into an online class to sharpen your game for the next event.",
   },
@@ -72,17 +77,17 @@ const STEPS = [
 
 const FORMATS = [
   {
-    Icon: KingIcon,
+    Icon: FormatClassical,
     title: "Classical",
     body: "Longer time controls that reward deep calculation — the traditional tournament format.",
   },
   {
-    Icon: QueenIcon,
+    Icon: FormatRapid,
     title: "Rapid",
     body: "Faster games that still leave room to think, ideal for one-day events and first-timers.",
   },
   {
-    Icon: PawnIcon,
+    Icon: FormatBlitz,
     title: "Blitz",
     body: "Quick-fire games for players who want fast-paced, high-energy competition.",
   },
@@ -90,17 +95,17 @@ const FORMATS = [
 
 const BENEFITS = [
   {
-    Icon: PawnIcon,
+    Icon: BenefitFocus,
     title: "Sharper focus",
     body: "Every move demands attention — regular play builds the habit of concentrating for longer stretches.",
   },
   {
-    Icon: KnightIcon,
+    Icon: BenefitPlanning,
     title: "Better planning",
     body: "Thinking several moves ahead carries over into how kids and adults plan schoolwork, projects, and goals.",
   },
   {
-    Icon: BishopIcon,
+    Icon: BenefitPatience,
     title: "Patience under pressure",
     body: "Tournament games teach players to stay calm, weigh options, and avoid rushed decisions.",
   },
@@ -137,8 +142,8 @@ const FAQS = [
     a: "Most of our tournaments are free to enter. Where a fee applies, it's shown clearly on the tournament page before you register.",
   },
   {
-    q: "Can I register in a higher age category?",
-    a: "Yes — you can always play up into an older age category. You just can't register in a category younger than your own.",
+    q: "How is my age category decided?",
+    a: "Automatically, from the year of birth you enter when you register: Under 11, Under 19 or Above 19, based on your age in the tournament year.",
   },
   {
     q: "How do online classes work?",
@@ -147,63 +152,77 @@ const FAQS = [
 ];
 
 export default async function HomePage() {
-  const [tournaments, allClasses, allPublished, galleryItems, nextTournament] = await Promise.all([
-    prisma.tournament.findMany({
-      where: { status: "published" },
-      orderBy: { startDate: "asc" },
-      take: 3,
-      include: { _count: { select: { registrations: true } } },
-    }),
-    prisma.classProgram.findMany({ orderBy: { createdAt: "asc" } }),
-    prisma.tournament.findMany({ where: { status: "published" } }),
-    prisma.tournament.findMany({
-      where: { status: "published", posterImageUrl: { not: null } },
-      orderBy: { startDate: "desc" },
-      take: 3,
-    }),
-    getNextTournament(),
-  ]);
+  const [tournaments, allClasses, allPublished, curatedGallery, highlightVideos, nextTournament] =
+    await Promise.all([
+      prisma.tournament.findMany({
+        where: { status: "published" },
+        orderBy: { startDate: "asc" },
+        take: 3,
+        include: { _count: { select: { registrations: true } } },
+      }),
+      prisma.classProgram.findMany({ orderBy: { createdAt: "asc" } }),
+      prisma.tournament.findMany({ where: { status: "published" } }),
+      getGallery({ take: 6 }),
+      getGallery({ section: "HIGHLIGHTS", take: 10 }),
+      getNextTournament(),
+    ]);
 
   const hallOfChampions = await getHallOfChampions();
+  const nextTournamentTimeLeft = nextTournament
+    ? timeUntilEndOfDayIST(nextTournament.registrationDeadline)
+    : null;
 
   const classes = allClasses.slice(0, 3);
-  const cityList = [...new Set(allPublished.map((t) => t.city))];
+  const completedTournaments = allPublished.filter((t) => getTournamentStatus(t) === "completed");
+  // Same four figures as the About page.
   const stats = [
-    { label: "Tournaments hosted", value: allPublished.length },
-    { label: "Cities reached", value: cityList.length },
-    { label: "Class programs", value: allClasses.length },
-  ].filter((s) => s.value > 0);
+    { Icon: KnightIcon, label: "Tournaments hosted", value: allPublished.length },
+    {
+      Icon: RookIcon,
+      label: "Cities reached",
+      value: new Set(allPublished.map((t) => t.city)).size,
+    },
+    { Icon: PawnIcon, label: "Class programs offered", value: allClasses.length },
+    { Icon: TrophyIcon, label: "Tournaments completed", value: completedTournaments.length },
+  ];
 
-  const realGalleryItems = galleryItems
-    .filter((t) => isValidImageUrl(t.posterImageUrl))
-    .slice(0, 6);
-  const galleryPlaceholders = generateGalleryPlaceholders(Math.max(0, 6 - realGalleryItems.length));
+  const realGalleryItems = curatedGallery.items
+    .filter((p) => p.mediaType !== "VIDEO")
+    .map((p) => ({
+      id: p.id,
+      src: p.url,
+      title: p.caption ?? "Nagarathar's Chess Championship",
+    }));
 
+  const shortsItems: ShortsItem[] = await Promise.all(
+    highlightVideos.items
+      .filter((row) => row.mediaType === "VIDEO" && row.videoProvider !== "NONE")
+      .map(async (row) => ({
+        id: row.id,
+        caption: row.caption,
+        playback: await resolveVideoPlayback({
+          url: row.url,
+          videoProvider: row.videoProvider as "YOUTUBE" | "DRIVE" | "S3",
+          thumbnailUrl: row.thumbnailUrl,
+        }),
+      }))
+  );
   const levelGroups = LEVEL_ORDER.map((level) => ({
     level,
     info: LEVEL_INFO[level],
     count: allClasses.filter((c) => c.level === level).length,
-  })).filter((g) => g.count > 0);
+  }));
 
   return (
     <main>
       <section className="relative overflow-hidden bg-charcoal text-white">
-        <HeroSlideshow />
-        <div className="absolute inset-0 bg-charcoal/80" />
         <div className="chess-pattern absolute inset-0" />
         <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-gold/20 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 left-1/3 h-80 w-80 rounded-full bg-gold/10 blur-3xl" />
 
-        <Container className="relative grid gap-12 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:py-28">
+        <Container className="relative grid gap-10 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-12 lg:py-28">
           <div className="flex flex-col items-start gap-6">
-            <span className="animate-fade-up inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide ring-1 ring-inset ring-white/20">
-              <span className="h-1.5 w-1.5 rounded-full bg-gold" />
-              Local players welcome
-            </span>
-            <h1
-              className="animate-fade-up max-w-xl text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl"
-              style={{ animationDelay: "80ms" }}
-            >
+            <h1 className="h1 animate-fade-up max-w-xl" style={{ animationDelay: "80ms" }}>
               Chess tournaments and coaching, built for your community.
             </h1>
             <p
@@ -243,55 +262,24 @@ export default async function HomePage() {
               </span>
             </div>
 
-            {nextTournament && (
-              <div
-                className="animate-fade-up mt-2 w-full max-w-md rounded-xl border border-white/15 bg-white/5 p-4 lg:hidden"
-                style={{ animationDelay: "360ms" }}
-              >
-                <p className="text-xs font-semibold uppercase tracking-wide text-white/60">
-                  Registration closes for {nextTournament.title}
-                </p>
-                <div className="mt-3">
-                  <Countdown target={nextTournament.registrationDeadline.toISOString()} />
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div
-            className="animate-fade-up relative hidden min-h-[360px] lg:block"
-            style={{ animationDelay: "200ms" }}
-          >
-            <div className="absolute right-4 top-0 w-64 -rotate-6 rounded-2xl border border-white/15 bg-white/10 p-4 shadow-2xl backdrop-blur-sm transition-transform hover:rotate-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-white/60">
-                Live Formats
-              </p>
-              <div className="mt-3 grid grid-cols-8 gap-[2px] overflow-hidden rounded-md">
-                {Array.from({ length: 64 }).map((_, i) => {
-                  const row = Math.floor(i / 8);
-                  const dark = (row + i) % 2 === 0;
-                  return (
-                    <div
-                      key={i}
-                      className={`aspect-square ${dark ? "bg-charcoal" : "bg-white/80"}`}
-                    />
-                  );
-                })}
-              </div>
-              <p className="mt-3 text-sm font-semibold text-white">
-                Classical &middot; Rapid &middot; Blitz
-              </p>
-            </div>
-
-            <div className="absolute left-0 top-28 w-72 rotate-3 rounded-2xl border border-white/15 bg-charcoal/80 p-5 shadow-2xl backdrop-blur-md transition-transform hover:rotate-0">
-              {nextTournament ? (
+            <div
+              className="animate-fade-up w-full max-w-md rounded-xl border border-white/15 bg-white/5 p-5 backdrop-blur-sm"
+              style={{ animationDelay: "360ms" }}
+            >
+              {nextTournament && nextTournamentTimeLeft ? (
                 <>
                   <p className="text-xs font-semibold uppercase tracking-wide text-white/60">
                     Registration closes for {nextTournament.title}
                   </p>
                   <div className="mt-3">
-                    <Countdown target={nextTournament.registrationDeadline.toISOString()} />
+                    <Countdown
+                      target={nextTournament.registrationDeadline.toISOString()}
+                      initialTimeLeft={nextTournamentTimeLeft}
+                    />
                   </div>
+                  <LinkButton href={registerPath(nextTournament.slug)} className="mt-4">
+                    Register Now
+                  </LinkButton>
                 </>
               ) : (
                 <>
@@ -304,115 +292,118 @@ export default async function HomePage() {
                 </>
               )}
             </div>
+          </div>
 
-            <div className="absolute bottom-0 right-2 flex items-center gap-3 rounded-xl border border-white/15 bg-white/10 px-4 py-3 shadow-xl backdrop-blur-sm">
-              <TrophyIcon className="h-7 w-7 text-gold" />
-              <div>
-                <p className="text-sm font-bold text-white">Community-run</p>
-                <p className="text-xs text-white/60">Free to join</p>
-              </div>
-            </div>
+          <div
+            className="animate-fade-up mx-auto w-full max-w-sm lg:max-w-none"
+            style={{ animationDelay: "200ms" }}
+          >
+            <HeroBoard className="h-auto w-full" />
           </div>
         </Container>
       </section>
 
-      {stats.length > 0 && (
-        <section className="border-b border-border bg-card">
-          <Container className="grid gap-6 py-10 sm:grid-cols-3">
-            {stats.map((s) => (
-              <div key={s.label} className="text-center">
-                <p className="text-3xl font-bold text-charcoal">
-                  <CountUp value={s.value} />+
-                </p>
-                <p className="mt-1 text-sm text-foreground/60">{s.label}</p>
+      {/* Scoreboard overlapping the hero's bottom edge: each tile's content rises
+          in one after another (CSS only, skipped under reduced motion) and the
+          figures count up when they scroll into view. */}
+      <section className="relative z-10 -mt-8 lg:-mt-12">
+        <Container>
+          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-border shadow-md ring-1 ring-border lg:grid-cols-4">
+            {stats.map((s, i) => (
+              <div key={s.label} className="bg-card px-4 py-6 sm:py-8">
+                <div
+                  className="animate-fade-up flex flex-col items-center text-center"
+                  style={{ animationDelay: `${200 + i * 100}ms` }}
+                >
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-charcoal text-gold">
+                    <s.Icon className="h-6 w-6" aria-hidden="true" />
+                  </span>
+                  <p className="mt-4 font-display text-4xl font-bold leading-none tabular-nums text-charcoal sm:text-5xl">
+                    <CountUp value={s.value} />
+                  </p>
+                  <p className="text-small mt-2 text-muted">{s.label}</p>
+                </div>
               </div>
             ))}
-          </Container>
-        </section>
-      )}
+          </div>
+        </Container>
+      </section>
 
-      <section className="chess-pattern-light bg-background py-16">
-        <Container>
-          <Reveal>
-            <SectionHeading
-              title="How It Works"
-              description="From browsing to your first move, in three simple steps."
-            />
-          </Reveal>
-          <div className="mt-10 grid gap-6 sm:grid-cols-3">
-            {STEPS.map((s, i) => (
-              <Reveal
-                key={s.title}
-                delay={i * 120}
-                className="relative rounded-lg border border-border bg-card p-6 shadow-sm"
-              >
+      <Section
+        title="How It Works"
+        subtitle="From browsing to your first move, in three simple steps."
+        className="chess-pattern-light bg-background"
+      >
+        <div className="grid gap-6 sm:grid-cols-3">
+          {STEPS.map((s, i) => (
+            <div
+              key={s.title}
+              className="relative rounded-lg border border-border bg-card p-6 shadow-sm"
+            >
+              <div className="flex items-start justify-between">
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gold/15 text-lg font-bold text-gold-ink">
                   {i + 1}
                 </span>
-                <s.Icon
-                  className="pointer-events-none absolute right-4 top-4 h-9 w-9 text-charcoal/10"
-                  aria-hidden="true"
-                  strokeWidth={1}
-                />
-                <h3 className="mt-4 font-semibold text-foreground">{s.title}</h3>
-                <p className="mt-2 text-sm text-foreground/60">{s.body}</p>
-              </Reveal>
-            ))}
-          </div>
-        </Container>
-      </section>
+                <s.Icon className="h-14 w-14" aria-hidden="true" />
+              </div>
+              <h3 className="h3 mt-4 text-foreground">{s.title}</h3>
+              <p className="text-small mt-2 text-muted">{s.body}</p>
+            </div>
+          ))}
+        </div>
+      </Section>
 
       <Container className="py-16">
         <div className="mb-8 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-charcoal">Upcoming Tournaments</h2>
+          <h2 className="h2 text-charcoal">Upcoming Tournaments</h2>
           <Link href="/tournaments" className="text-sm font-semibold text-gold-ink hover:underline">
             View all &rarr;
           </Link>
         </div>
         {tournaments.length === 0 ? (
-          <EmptyState message="No tournaments published yet — check back soon." />
+          <EmptyState
+            icon={<EmptyTournaments className="h-16 w-16" />}
+            message="No tournaments published yet — check back soon."
+          />
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {tournaments.map((t, i) => (
-              <Reveal key={t.id} delay={i * 100}>
-                <TournamentCard tournament={t} />
-              </Reveal>
+            {tournaments.map((t) => (
+              <TournamentCard key={t.id} tournament={t} />
             ))}
           </div>
         )}
       </Container>
 
-      {levelGroups.length > 0 && (
-        <section className="bg-card py-16">
-          <Container>
-            <Reveal>
-              <SectionHeading
-                title="Programs By Level"
-                description="A structured path from your first game to tournament-ready play."
-              />
-            </Reveal>
-            <div className="mt-10 grid gap-6 sm:grid-cols-3">
-              {levelGroups.map((g, i) => (
-                <Reveal
-                  key={g.level}
-                  delay={i * 120}
-                  className="rounded-lg border border-border p-6 text-center shadow-sm"
-                >
-                  <Badge tone={i === 1 ? "gold-ink" : "charcoal"}>{g.info.label}</Badge>
-                  <p className="mt-3 text-sm text-foreground/60">{g.info.body}</p>
-                  <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-foreground/40">
-                    {g.count} program{g.count === 1 ? "" : "s"} available
-                  </p>
-                </Reveal>
-              ))}
+      <Section
+        title="Programs By Level"
+        subtitle="A structured path from your first game to tournament-ready play."
+        className="bg-card"
+      >
+        <div className="grid gap-6 sm:grid-cols-3">
+          {levelGroups.map((g, i) => (
+            <div
+              key={g.level}
+              className="rounded-lg border border-border p-6 text-center shadow-sm"
+            >
+              <Badge tone={i === 1 ? "gold-ink" : "charcoal"}>{g.info.label}</Badge>
+              <p className="text-small mt-3 text-muted">{g.info.body}</p>
+              {g.count > 0 ? (
+                <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-foreground/40">
+                  {g.count} program{g.count === 1 ? "" : "s"} available
+                </p>
+              ) : (
+                <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-muted">
+                  Coming soon
+                </p>
+              )}
             </div>
-          </Container>
-        </section>
-      )}
+          ))}
+        </div>
+      </Section>
 
       <Container className="py-16">
         <div className="mb-8 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-charcoal">Online Tutoring &amp; Classes</h2>
+          <h2 className="h2 text-charcoal">Online Tutoring &amp; Classes</h2>
           <Link href="/classes" className="text-sm font-semibold text-gold-ink hover:underline">
             View all &rarr;
           </Link>
@@ -421,201 +412,188 @@ export default async function HomePage() {
           <ClassWaitlistForm />
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {classes.map((c, i) => (
-              <Reveal key={c.id} delay={i * 100}>
-                <Card className="h-full p-5">
-                  <Badge tone="gold-ink">{c.level}</Badge>
-                  <h3 className="mt-2 font-semibold text-foreground">{c.title}</h3>
-                  <p className="mt-2 text-sm text-foreground/60">{c.scheduleText}</p>
-                  <Link
-                    href="/classes"
-                    className="mt-3 inline-block text-sm font-semibold text-charcoal hover:underline"
-                  >
-                    Learn more &rarr;
-                  </Link>
-                </Card>
-              </Reveal>
+            {classes.map((c) => (
+              <Card key={c.id} className="h-full p-5">
+                <Badge tone="gold-ink">{c.level}</Badge>
+                <h3 className="h3 mt-2 text-foreground">{c.title}</h3>
+                <p className="text-small mt-2 text-muted">{c.scheduleText}</p>
+                <Link
+                  href="/classes"
+                  className="mt-3 inline-block text-sm font-semibold text-charcoal hover:underline"
+                >
+                  Learn more &rarr;
+                </Link>
+              </Card>
             ))}
           </div>
         )}
       </Container>
 
-      <section className="mx-auto max-w-6xl px-4 py-16">
-        <Reveal>
-          <SectionHeading
-            title="Tournament Formats"
-            description="We run events across every time control, so there's a format for how you like to play."
-          />
-        </Reveal>
-        <div className="mt-10 grid gap-6 sm:grid-cols-3">
-          {FORMATS.map((f, i) => (
-            <Reveal
+      <Section
+        title="Tournament Formats"
+        subtitle="We run events across every time control, so there's a format for how you like to play."
+      >
+        <div className="grid gap-6 sm:grid-cols-3">
+          {FORMATS.map((f) => (
+            <div
               key={f.title}
-              delay={i * 100}
               className="rounded-lg border border-border bg-card p-6 text-center shadow-sm"
             >
-              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gold/15 text-gold-ink">
-                <f.Icon className="h-7 w-7" strokeWidth={1.1} />
-              </span>
-              <h3 className="mt-4 font-semibold text-foreground">{f.title}</h3>
-              <p className="mt-2 text-sm text-foreground/60">{f.body}</p>
-            </Reveal>
+              <f.Icon className="mx-auto h-14 w-14" />
+              <h3 className="h3 mt-4 text-foreground">{f.title}</h3>
+              <p className="text-small mt-2 text-muted">{f.body}</p>
+            </div>
           ))}
         </div>
-      </section>
+      </Section>
 
       {hallOfChampions.length > 0 && (
-        <section className="chess-pattern relative overflow-hidden bg-charcoal py-16 text-white">
-          <Container>
-            <Reveal>
-              <SectionHeading
-                eyebrow="Hall of Champions"
-                title="Recent Winners"
-                description="Champions from our most recently concluded tournaments."
-                className="[&_h2]:text-white [&_p]:text-white/70"
+        <Section
+          eyebrow="Hall of Champions"
+          title="Recent Winners"
+          subtitle="Champions from our most recently concluded tournaments."
+          tone="dark"
+          background={
+            <>
+              <Image
+                src={HERO_MOMENT_PHOTO.src}
+                alt=""
+                fill
+                sizes="100vw"
+                className="object-cover opacity-25"
               />
-            </Reveal>
-            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {hallOfChampions.map((entry, i) => (
-                <Reveal
-                  key={entry.tournament.slug}
-                  delay={i * 100}
-                  className="rounded-lg border border-white/15 bg-white/5 p-6 backdrop-blur-sm"
-                >
-                  <Link href={`/tournaments/${entry.tournament.slug}/results`} className="block">
-                    <TrophyIcon className="h-8 w-8 text-gold" />
-                    <h3 className="mt-3 font-semibold text-white">{entry.tournament.title}</h3>
-                    <p className="mt-1 text-sm text-gold">{entry.champion} &middot; Champion</p>
-                  </Link>
-                  {entry.categoryChampions.length > 0 && (
-                    <ul className="mt-4 space-y-1 border-t border-white/10 pt-3">
-                      {entry.categoryChampions.map((c) => (
-                        <li key={c.label} className="flex justify-between text-xs text-white/60">
-                          <span>{c.label}</span>
-                          <span className="font-medium text-white/85">{c.name}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </Reveal>
-              ))}
-            </div>
-          </Container>
-        </section>
+              <div className="absolute inset-0 bg-gradient-to-b from-charcoal/80 via-charcoal/90 to-charcoal" />
+            </>
+          }
+        >
+          <Reveal className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {hallOfChampions.map((entry) => (
+              <div
+                key={entry.tournament.slug}
+                className="rounded-lg border border-white/15 bg-white/5 p-6 backdrop-blur-sm"
+              >
+                <Link href={`/tournaments/${entry.tournament.slug}/results`} className="block">
+                  <TrophyIcon className="h-8 w-8 text-gold" />
+                  <h3 className="h3 mt-3 text-white">{entry.tournament.title}</h3>
+                  <p className="mt-1 text-sm text-gold">{entry.champion} &middot; Champion</p>
+                </Link>
+                {entry.categoryChampions.length > 0 && (
+                  <ul className="mt-4 space-y-1 border-t border-white/10 pt-3">
+                    {entry.categoryChampions.map((c) => (
+                      <li key={c.label} className="flex justify-between text-xs text-white/60">
+                        <span>{c.label}</span>
+                        <span className="font-medium text-white/85">{c.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </Reveal>
+        </Section>
       )}
 
-      <section className="bg-card py-16">
-        <Container>
-          <Reveal>
-            <SectionHeading
-              title="Why Chess?"
-              description="The skills chess builds carry well beyond the board."
-            />
-          </Reveal>
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {BENEFITS.map((b, i) => (
-              <Reveal
-                key={b.title}
-                delay={i * 90}
-                className="rounded-lg border border-border p-5 text-center shadow-sm"
-              >
-                <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-charcoal/10 text-charcoal">
-                  <b.Icon className="h-6 w-6" strokeWidth={1.1} />
-                </span>
-                <h3 className="mt-3 font-semibold text-foreground">{b.title}</h3>
-                <p className="mt-2 text-sm text-foreground/60">{b.body}</p>
-              </Reveal>
-            ))}
-          </div>
-        </Container>
-      </section>
-
-      <Container className="py-16">
-        <Reveal>
-          <SectionHeading
-            title="Why Choose Us"
-            description="Whatever brought you here, we've built this around making chess accessible."
-          />
-        </Reveal>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {PROMISES.map((p, i) => (
-            <Reveal key={p.title} delay={i * 80}>
-              <Card className="h-full p-5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gold/10 text-gold-ink">
-                  ✓
-                </span>
-                <h3 className="mt-3 font-semibold text-foreground">{p.title}</h3>
-                <p className="mt-2 text-sm text-foreground/60">{p.body}</p>
-              </Card>
-            </Reveal>
+      <Section
+        title="Why Chess?"
+        subtitle="The skills chess builds carry well beyond the board."
+        className="bg-card"
+      >
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {BENEFITS.map((b) => (
+            <div
+              key={b.title}
+              className="rounded-lg border border-border p-5 text-center shadow-sm"
+            >
+              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-charcoal/10 text-charcoal">
+                <b.Icon className="h-8 w-8" strokeWidth={1.1} />
+              </span>
+              <h3 className="h3 mt-3 text-foreground">{b.title}</h3>
+              <p className="text-small mt-2 text-muted">{b.body}</p>
+            </div>
           ))}
         </div>
-      </Container>
+      </Section>
 
-      <section className="bg-card py-16">
-        <Container>
-          <div className="mb-8 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-charcoal">From Our Gallery</h2>
-            <Link href="/gallery" className="text-sm font-semibold text-gold-ink hover:underline">
-              View all &rarr;
-            </Link>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-3">
-            {realGalleryItems.map((t, i) => (
-              <Reveal key={t.id} delay={i * 90}>
+      <Section
+        title="Why Choose Us"
+        subtitle="Whatever brought you here, we've built this around making chess accessible."
+      >
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {PROMISES.map((p) => (
+            <Card key={p.title} className="h-full p-5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gold/10 text-gold-ink">
+                ✓
+              </span>
+              <h3 className="h3 mt-3 text-foreground">{p.title}</h3>
+              <p className="text-small mt-2 text-muted">{p.body}</p>
+            </Card>
+          ))}
+        </div>
+      </Section>
+
+      {realGalleryItems.length > 0 && (
+        <section className="bg-card py-16">
+          <Container>
+            <div className="mb-8 flex items-center justify-between">
+              <h2 className="h2 text-charcoal">From Our Gallery</h2>
+              <Link
+                href="/gallery"
+                className="text-sm font-semibold text-gold-ink hover:underline"
+              >
+                View all &rarr;
+              </Link>
+            </div>
+            <Reveal className="grid gap-6 sm:grid-cols-3">
+              {realGalleryItems.map((t) => (
                 <Link
+                  key={t.id}
                   href="/gallery"
                   className="block overflow-hidden rounded-lg border border-border bg-background"
                 >
                   <div className="relative h-40 w-full bg-gray-100">
                     <Image
-                      src={t.posterImageUrl!}
+                      src={t.src}
                       alt={t.title}
                       fill
                       sizes="(max-width: 640px) 100vw, 33vw"
-                      className="object-contain"
+                      className="object-cover"
                     />
                   </div>
                 </Link>
-              </Reveal>
-            ))}
-            {galleryPlaceholders.map((p, i) => (
-              <Reveal key={p.id} delay={(realGalleryItems.length + i) * 90}>
-                <Link
-                  href="/gallery"
-                  className="block h-40 overflow-hidden rounded-lg border border-border"
-                >
-                  <GalleryPlaceholderTile {...p} />
-                </Link>
-              </Reveal>
-            ))}
-          </div>
-        </Container>
-      </section>
+              ))}
+            </Reveal>
+          </Container>
+        </section>
+      )}
 
-      <section className="bg-card py-16">
-        <div className="mx-auto max-w-3xl px-4">
-          <Reveal>
-            <SectionHeading title="Frequently Asked Questions" />
-          </Reveal>
-          <div className="mt-10 space-y-6">
-            {FAQS.map((f, i) => (
-              <Reveal
-                key={f.q}
-                delay={i * 80}
-                className="border-b border-border pb-6 last:border-0"
-              >
-                <h3 className="font-semibold text-foreground">{f.q}</h3>
-                <p className="mt-2 text-sm text-foreground/60">{f.a}</p>
-              </Reveal>
-            ))}
-          </div>
+      {shortsItems.length > 0 && (
+        <section className="bg-background py-16">
+          <Container>
+            <div className="mb-8 flex items-center justify-between">
+              <h2 className="h2 text-charcoal">Video Highlights</h2>
+              <Link href="/gallery" className="text-sm font-semibold text-gold-ink hover:underline">
+                View all &rarr;
+              </Link>
+            </div>
+            <ShortsRow items={shortsItems} />
+          </Container>
+        </section>
+      )}
+
+      <Section title="Frequently Asked Questions" className="bg-card">
+        <div className="mx-auto max-w-3xl space-y-6">
+          {FAQS.map((f) => (
+            <div key={f.q} className="border-b border-border pb-6 last:border-0">
+              <h3 className="h3 text-foreground">{f.q}</h3>
+              <p className="text-small mt-2 text-muted">{f.a}</p>
+            </div>
+          ))}
         </div>
-      </section>
+      </Section>
 
       <section className="mx-auto max-w-4xl px-4 py-16 text-center">
-        <h2 className="text-2xl font-bold text-charcoal">Our Goal</h2>
-        <p className="mt-4 text-foreground/80">
+        <h2 className="h2 text-charcoal">Our Goal</h2>
+        <p className="text-body mt-4 text-foreground/80">
           We want every local player who wants a first tournament experience to have one nearby,
           free of cost, and welcoming to beginners — with the coaching to keep growing long after
           the last move is played.
@@ -628,9 +606,11 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="chess-pattern relative overflow-hidden bg-charcoal py-14 text-center text-white">
+      <section className="relative overflow-hidden bg-charcoal py-14 text-center text-white">
+        <Image src={CTA_PHOTO.src} alt="" fill sizes="100vw" className="object-cover opacity-30" />
+        <div className="absolute inset-0 bg-charcoal/70" />
         <div className="relative mx-auto max-w-2xl px-4">
-          <h2 className="text-2xl font-bold">Ready to make your first move?</h2>
+          <h2 className="h2">Ready to make your first move?</h2>
           <p className="mt-2 text-white/70">
             Registration is free to start, and every event is built to welcome new players.
           </p>

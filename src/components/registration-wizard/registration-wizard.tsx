@@ -21,16 +21,16 @@ import { CommunityStep } from "@/components/registration-wizard/steps/community-
 import { DocumentsStep } from "@/components/registration-wizard/steps/documents-step";
 import { ReviewStep } from "@/components/registration-wizard/steps/review-step";
 import { HONEYPOT_FIELD } from "@/lib/honeypot";
+import { Button } from "@/components/ui";
 
 const DEFAULT_VALUES: Partial<RegistrationWizardValues> = {
   fullName: "",
   email: "",
   phone: "",
-  dob: "",
+  birthYear: "",
   gender: "",
   city: "",
   address: "",
-  ageCategory: "",
   rating: "",
   fideId: "",
   fatherName: "",
@@ -44,6 +44,7 @@ const DEFAULT_VALUES: Partial<RegistrationWizardValues> = {
   motherKovil: "",
   motherPirivu: "",
   sangamMember: false,
+  sangamRelativeName: "",
   ageProofType: "",
   ageProofKey: "",
   passportPhotoKey: "",
@@ -71,10 +72,10 @@ export function RegistrationWizard({
   const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
   const storageKey = `registration-draft:${tournamentSlug}`;
 
-  const schema = createRegistrationWizardSchema(tournamentStartDate);
+  const schema = createRegistrationWizardSchema();
   // The schema's input types are narrower than the raw HTML form state it
-  // validates (e.g. `ageProofType` has no "" option, `dob` isn't a plain
-  // string) — cast the resolver rather than fight zod's inference for that.
+  // validates (e.g. `ageProofType` has no "" option, `birthYear` is turned into
+  // a number) — cast the resolver rather than fight zod's inference for that.
   const resolver = zodResolver(schema) as unknown as Resolver<
     RegistrationWizardValues,
     unknown,
@@ -83,9 +84,12 @@ export function RegistrationWizard({
   const methods = useForm<RegistrationWizardValues, unknown, RegistrationWizardOutput>({
     resolver,
     defaultValues: DEFAULT_VALUES,
-    mode: "onBlur",
+    // Checks a field when it's first left, then on every change, so a message
+    // clears as soon as the value is fixed instead of lingering until the next blur.
+    mode: "onTouched",
   });
-  const { handleSubmit, trigger, watch, reset, setError } = methods;
+  const { handleSubmit, trigger, watch, reset, setError, setValue, getValues, getFieldState } =
+    methods;
 
   useDraftAutosave({
     storageKey,
@@ -107,7 +111,16 @@ export function RegistrationWizard({
     try {
       const fields = STEP_FIELDS[step];
       const valid = fields.length === 0 || (await trigger(fields));
-      if (!valid) return;
+      if (!valid) {
+        // Count the fields that just failed as touched, so each one re-checks as
+        // the player types (their messages would otherwise wait for a blur).
+        for (const field of fields) {
+          if (getFieldState(field).error) {
+            setValue(field, getValues(field), { shouldTouch: true });
+          }
+        }
+        return;
+      }
 
       if (step === 0) {
         const email = watch("email").trim().toLowerCase();
@@ -211,7 +224,10 @@ export function RegistrationWizard({
       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
         <WizardProgressBar current={step} steps={REGISTRATION_STEPS} />
 
+        {/* noValidate: the form's own validation (below each field) is the only one, so
+            the browser's pop-up bubbles never fight it. */}
         <form
+          noValidate
           onSubmit={isLastStep ? handleSubmit(onSubmit) : (e) => e.preventDefault()}
           className="mt-8 space-y-8"
         >
@@ -232,25 +248,23 @@ export function RegistrationWizard({
           {step === 2 && <FamilyStep />}
           {step === 3 && <CommunityStep />}
           {step === 4 && <DocumentsStep tournamentSlug={tournamentSlug} />}
-          {step === 5 && <ReviewStep onEditStep={setStep} />}
+          {step === 5 && (
+            <ReviewStep onEditStep={setStep} tournamentStartDate={tournamentStartDate} />
+          )}
 
           {submitError && <p className="text-sm text-red-600">{submitError}</p>}
 
           <div className="flex items-center justify-between border-t border-border pt-6">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={goBack}
               disabled={step === 0 || submitting || isAdvancing}
-              className="rounded-md border border-charcoal px-5 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-charcoal hover:text-background disabled:cursor-not-allowed disabled:opacity-40"
             >
               Back
-            </button>
+            </Button>
             {isLastStep ? (
-              <button
-                type="submit"
-                disabled={submitting || isAdvancing}
-                className="rounded-md bg-gold px-6 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-gold/90 disabled:cursor-not-allowed disabled:opacity-50"
-              >
+              <Button type="submit" disabled={submitting || isAdvancing}>
                 {submitting
                   ? entryFee > 0
                     ? "Processing payment…"
@@ -258,16 +272,11 @@ export function RegistrationWizard({
                   : entryFee > 0
                     ? `Pay ₹${entryFee} & Register`
                     : "Submit Registration"}
-              </button>
+              </Button>
             ) : (
-              <button
-                type="button"
-                onClick={goNext}
-                disabled={isAdvancing}
-                className="rounded-md bg-charcoal px-6 py-2.5 text-sm font-semibold text-background transition-colors hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-50"
-              >
+              <Button type="button" variant="dark" onClick={goNext} disabled={isAdvancing}>
                 Next
-              </button>
+              </Button>
             )}
           </div>
         </form>

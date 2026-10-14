@@ -3,21 +3,22 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatDateRange } from "@/lib/format";
-import { LinkButton } from "@/components/ui";
+import { Badge, LinkButton, buttonClasses } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Registration status",
+  description: "Check the status of your tournament registration.",
   robots: { index: false, follow: false },
 };
 
-const STATUS_META: Record<string, { label: string; tone: string }> = {
-  pending: { label: "Pending review", tone: "bg-gold/15 text-gold-ink" },
-  confirmed: { label: "Confirmed", tone: "bg-green-100 text-green-700" },
-  rejected: { label: "Rejected", tone: "bg-red-100 text-red-700" },
+const STATUS_META: Record<string, { label: string; tone: "warning" | "success" | "danger" }> = {
+  pending: { label: "Pending review", tone: "warning" },
+  confirmed: { label: "Confirmed", tone: "success" },
+  rejected: { label: "Rejected", tone: "danger" },
   // Legacy rows created before the review workflow existed.
-  registered: { label: "Confirmed", tone: "bg-green-100 text-green-700" },
+  registered: { label: "Confirmed", tone: "success" },
 };
 
 const PAYMENT_META: Record<string, string> = {
@@ -48,14 +49,12 @@ export default async function RegistrationStatusPage({
   return (
     <main className="mx-auto max-w-2xl px-4 py-14">
       <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-        <span
-          className={`inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${statusMeta.tone}`}
-        >
+        <Badge tone={statusMeta.tone} size="lg">
           {statusMeta.label}
-        </span>
-        <h1 className="mt-4 text-2xl font-bold text-charcoal">{registration.fullName}</h1>
-        <p className="mt-1 text-foreground/60">{registration.tournament.title}</p>
-        <p className="mt-1 text-sm text-foreground/50">
+        </Badge>
+        <h1 className="h2 mt-4 text-charcoal">{registration.fullName}</h1>
+        <p className="text-body mt-1 text-muted">{registration.tournament.title}</p>
+        <p className="text-small mt-1 text-foreground/50">
           {formatDateRange(registration.tournament.startDate, registration.tournament.endDate)}{" "}
           &middot; {registration.tournament.venue}, {registration.tournament.city}
         </p>
@@ -76,7 +75,7 @@ export default async function RegistrationStatusPage({
         <div className="mt-6 flex flex-wrap justify-center gap-4">
           <a
             href={`/api/tournaments/${registration.tournament.slug}/ics`}
-            className="rounded-md border border-charcoal px-4 py-2 text-sm font-semibold text-charcoal transition-colors hover:bg-charcoal hover:text-background"
+            className={buttonClasses("outline")}
           >
             Add to Calendar
           </a>
@@ -86,7 +85,7 @@ export default async function RegistrationStatusPage({
           {certificateAvailable && (
             <a
               href={`/api/registration/${registration.id}/certificate`}
-              className="rounded-md bg-gold px-4 py-2 text-sm font-semibold text-charcoal transition-colors hover:bg-gold/90"
+              className={buttonClasses("primary")}
             >
               Download Certificate
             </a>

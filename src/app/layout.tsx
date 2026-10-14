@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
-import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { getNextTournament } from "@/lib/next-tournament";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
@@ -32,24 +30,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const nextTournament = await getNextTournament();
-
+export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${inter.variable} ${playfairDisplay.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <SiteHeader
-          nextTournament={
-            nextTournament
-              ? {
-                  title: nextTournament.title,
-                  slug: nextTournament.slug,
-                  registrationDeadline: nextTournament.registrationDeadline.toISOString(),
-                }
-              : null
-          }
-        />
-        <div className="flex-1">{children}</div>
+        {/* First tab stop on every page; hidden above the viewport until focused.
+            Targets the page wrapper in template.tsx. */}
+        <a
+          href="#main-content"
+          className="fixed left-4 top-4 z-[80] -translate-y-[200%] rounded-md bg-charcoal px-4 py-2 text-sm font-semibold text-white focus:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+        >
+          Skip to content
+        </a>
+        {/* children here is actually template.tsx's output (SiteHeader + page) —
+            moved there because, unlike this layout, templates re-run on every
+            navigation. See the comment on getNextTournament() for why. */}
+        {children}
         <SiteFooter />
       </body>
     </html>

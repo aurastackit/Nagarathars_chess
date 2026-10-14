@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnnouncementBar } from "@/components/announcement-bar";
+import { buttonClasses } from "@/components/ui";
+import { registerPath } from "@/lib/registration-flow";
 
 const NAV = [
   { href: "/", label: "Home" },
@@ -15,7 +17,12 @@ const NAV = [
   { href: "/contact", label: "Contact" },
 ];
 
-type NextTournament = { title: string; slug: string; registrationDeadline: string } | null;
+type NextTournament = {
+  title: string;
+  slug: string;
+  registrationDeadline: string;
+  initialLabel: string | null;
+} | null;
 
 function isActivePath(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -87,7 +94,7 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
     };
   }, [menuOpen]);
 
-  const registerHref = nextTournament ? `/tournaments/${nextTournament.slug}` : null;
+  const registerHref = nextTournament ? registerPath(nextTournament.slug) : null;
 
   return (
     <>
@@ -96,6 +103,7 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
           title={nextTournament.title}
           slug={nextTournament.slug}
           registrationDeadline={nextTournament.registrationDeadline}
+          initialLabel={nextTournament.initialLabel}
         />
       )}
       <header
@@ -117,7 +125,7 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
             />
             <span className="font-semibold text-charcoal leading-tight">
               Nagarathar&apos;s Chess
-              <span className="block text-xs font-normal text-foreground/60">Championship</span>
+              <span className="block text-xs font-normal text-muted">Championship</span>
             </span>
           </Link>
 
@@ -129,7 +137,7 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
                   key={item.href}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
-                  className={`rounded-full px-3.5 py-2 transition-colors ${
+                  className={`rounded-full px-3.5 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal focus-visible:ring-offset-2 ${
                     active
                       ? "bg-charcoal text-white shadow-sm"
                       : "text-foreground/70 hover:bg-charcoal/10 hover:text-charcoal"
@@ -143,10 +151,7 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
 
           <div className="hidden items-center gap-2 sm:flex">
             {registerHref && (
-              <Link
-                href={registerHref}
-                className="rounded-full bg-gold px-4 py-2 text-sm font-semibold text-charcoal shadow-sm transition-colors hover:bg-gold/90"
-              >
+              <Link href={registerHref} className={buttonClasses("primary", "md", "rounded-full!")}>
                 Register Now
               </Link>
             )}
@@ -157,7 +162,7 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
             type="button"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-border sm:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-md border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal focus-visible:ring-offset-2 sm:hidden"
             onClick={() => setMenuOpen((open) => !open)}
           >
             <span className="sr-only">Toggle menu</span>
@@ -204,7 +209,7 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
             <button
               type="button"
               aria-label="Close menu"
-              className="flex h-9 w-9 items-center justify-center rounded-md border border-white/20"
+              className="flex h-9 w-9 items-center justify-center rounded-md border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal"
               onClick={() => {
                 setMenuOpen(false);
                 menuButtonRef.current?.focus();
@@ -231,7 +236,7 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
                   key={item.href}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
-                  className={`site-menu-item rounded-md px-4 py-2 text-2xl font-semibold transition-colors ${
+                  className={`site-menu-item rounded-md px-4 py-2 text-2xl font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal ${
                     active ? "text-gold" : "text-white/85 hover:text-gold"
                   }`}
                   style={{ animationDelay: `${i * 40}ms` }}
@@ -244,7 +249,7 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
             {registerHref && (
               <Link
                 href={registerHref}
-                className="site-menu-item mt-6 rounded-full bg-gold px-6 py-3 text-base font-semibold text-charcoal shadow-sm transition-colors hover:bg-gold/90"
+                className="site-menu-item mt-6 rounded-full bg-gold px-6 py-3 text-base font-semibold text-charcoal shadow-sm transition-colors hover:bg-gold/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal"
                 style={{ animationDelay: `${NAV.length * 40}ms` }}
                 onClick={() => setMenuOpen(false)}
               >

@@ -14,24 +14,30 @@ export function FamilyStep() {
         label="Father name"
         registration={register("fatherName")}
         error={errors.fatherName}
-        placeholder="Optional"
+        required
+        maxLength={80}
       />
       <TextField
         label="Mother name"
         registration={register("motherName")}
         error={errors.motherName}
-        placeholder="Optional"
+        required
+        maxLength={80}
       />
       <TextField
         label="Father side grandparents name"
         registration={register("fatherGrandparents")}
         error={errors.fatherGrandparents}
+        required
+        maxLength={120}
         placeholder="Eg: Grandfather / Grandmother"
       />
       <TextField
         label="Mother side grandparents name"
         registration={register("motherGrandparents")}
         error={errors.motherGrandparents}
+        required
+        maxLength={120}
         placeholder="Eg: Grandfather / Grandmother"
       />
     </StepSection>

@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Button, Card, Badge } from "@/components/ui";
 import { ClassEnrollWizard } from "@/components/class-enroll-wizard";
+import { isValidImageUrl } from "@/lib/image-url";
+import { TournamentPlaceholder } from "@/components/illustrations/tournament-placeholder";
+import { KnightIcon } from "@/components/icons/chess-pieces";
 
 const LEVEL_LABEL: Record<string, string> = {
   beginner: "Beginner",
@@ -22,6 +26,7 @@ export function ClassCard({
   price,
   maxGroupSize,
   durationMinutes,
+  bannerImageUrl,
 }: {
   slug: string;
   level: string;
@@ -34,39 +39,58 @@ export function ClassCard({
   price: number;
   maxGroupSize: number | null;
   durationMinutes: number;
+  bannerImageUrl: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const sessionLabel =
     sessionType === "group" ? `Group${maxGroupSize ? ` (max ${maxGroupSize})` : ""}` : "1-on-1";
 
   return (
-    <Card className="flex flex-col p-5">
-      <div className="flex flex-wrap gap-2">
-        <Badge tone="gold-ink">{LEVEL_LABEL[level] ?? level}</Badge>
-        <Badge tone="gray">{isOnline ? "Online" : "In-person"}</Badge>
-      </div>
-      <h3 className="mt-2 text-lg font-semibold text-foreground">{title}</h3>
-      <p className="mt-2 text-sm text-foreground/70">{description}</p>
-      <p className="mt-3 text-sm font-semibold text-gold-ink">
-        ₹{price} &middot; {sessionLabel} &middot; {durationMinutes} min
-      </p>
-      <p className="mt-2 text-sm text-foreground/50">
-        <span className="font-medium text-foreground/70">Schedule:</span> {scheduleText}
-      </p>
-      <p className="mt-1 text-sm text-foreground/50">
-        <span className="font-medium text-foreground/70">Coach:</span> {instructorName}
-      </p>
-      {level !== "beginner" && (
-        <p className="mt-1 text-xs text-foreground/50">FIDE rating required to enroll.</p>
+    <Card className="flex flex-col overflow-hidden">
+      {isValidImageUrl(bannerImageUrl) ? (
+        <div className="relative aspect-video w-full bg-background">
+          <Image
+            src={bannerImageUrl}
+            alt={title}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-contain"
+          />
+        </div>
+      ) : (
+        <div className="aspect-video w-full">
+          <TournamentPlaceholder icon={KnightIcon} />
+        </div>
       )}
-      <div className="mt-4">
-        {open ? (
-          <ClassEnrollWizard classSlug={slug} level={level} />
-        ) : (
-          <Button onClick={() => setOpen(true)} className="w-full">
-            Enroll interest
-          </Button>
+
+      <div className="flex flex-1 flex-col p-5">
+        <div className="flex flex-wrap gap-2">
+          <Badge tone="gold-ink">{LEVEL_LABEL[level] ?? level}</Badge>
+          <Badge tone="gray">{isOnline ? "Online" : "In-person"}</Badge>
+        </div>
+        <h3 className="h3 mt-2 text-foreground">{title}</h3>
+        <p className="mt-2 text-sm text-foreground/70">{description}</p>
+        <p className="mt-3 text-sm font-semibold text-gold-ink">
+          ₹{price} &middot; {sessionLabel} &middot; {durationMinutes} min
+        </p>
+        <p className="mt-2 text-sm text-foreground/50">
+          <span className="font-medium text-foreground/70">Schedule:</span> {scheduleText}
+        </p>
+        <p className="mt-1 text-sm text-foreground/50">
+          <span className="font-medium text-foreground/70">Coach:</span> {instructorName}
+        </p>
+        {level !== "beginner" && (
+          <p className="mt-1 text-xs text-foreground/50">FIDE rating required to enroll.</p>
         )}
+        <div className="mt-4">
+          {open ? (
+            <ClassEnrollWizard classSlug={slug} level={level} />
+          ) : (
+            <Button onClick={() => setOpen(true)} className="w-full">
+              Enroll interest
+            </Button>
+          )}
+        </div>
       </div>
     </Card>
   );

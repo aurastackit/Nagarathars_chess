@@ -1,33 +1,33 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getTimeLeft, type TimeLeft } from "@/lib/countdown-format";
+import { endOfDayIST } from "@/lib/datetime";
 
-type TimeLeft = { d: number; h: number; m: number; s: number };
-
-export function Countdown({ target }: { target: string }) {
-  const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
+export function Countdown({
+  target,
+  initialTimeLeft,
+}: {
+  target: string;
+  /**
+   * Computed server-side from the same `now` used to render this HTML —
+   * see AnnouncementBar for why: the client's first render must match the
+   * server's exactly, or React logs a hydration mismatch. Live ticking
+   * (necessarily using the client's own clock) only starts after mount.
+   */
+  initialTimeLeft: TimeLeft;
+}) {
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>(initialTimeLeft);
 
   useEffect(() => {
-    const targetDate = new Date(target).getTime();
+    const targetDate = endOfDayIST(target).getTime();
     function update() {
-      const diff = targetDate - Date.now();
-      if (diff <= 0) {
-        setTimeLeft({ d: 0, h: 0, m: 0, s: 0 });
-        return;
-      }
-      setTimeLeft({
-        d: Math.floor(diff / 86400000),
-        h: Math.floor((diff / 3600000) % 24),
-        m: Math.floor((diff / 60000) % 60),
-        s: Math.floor((diff / 1000) % 60),
-      });
+      setTimeLeft(getTimeLeft(targetDate - Date.now()));
     }
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
   }, [target]);
-
-  if (!timeLeft) return null;
 
   const units = [
     { label: "Days", value: timeLeft.d },

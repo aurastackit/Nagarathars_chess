@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ChangeEvent, ReactNode } from "react";
 import type { FieldError, UseFormRegisterReturn } from "react-hook-form";
 
 const inputClasses =
@@ -9,6 +9,7 @@ function FieldShell({
   htmlFor,
   helper,
   error,
+  required,
   className = "",
   children,
 }: {
@@ -16,6 +17,7 @@ function FieldShell({
   htmlFor: string;
   helper?: string;
   error?: FieldError;
+  required?: boolean;
   className?: string;
   children: ReactNode;
 }) {
@@ -23,15 +25,30 @@ function FieldShell({
     <div className={className}>
       <label htmlFor={htmlFor} className="mb-1 block text-sm font-medium text-foreground">
         {label}
+        {required && (
+          <span className="ml-0.5 text-red-600" aria-hidden="true">
+            *
+          </span>
+        )}
       </label>
       {children}
       {error ? (
-        <p className="mt-1 text-xs text-red-600">{error.message}</p>
+        <p id={`${htmlFor}-error`} className="mt-1 text-xs text-red-600">
+          {error.message}
+        </p>
       ) : (
         helper && <p className="mt-1 text-xs text-foreground/50">{helper}</p>
       )}
     </div>
   );
+}
+
+/** Marks an input invalid and points it at its error message for screen readers. */
+function errorAttrs(id: string, error?: FieldError) {
+  return {
+    "aria-invalid": error ? true : undefined,
+    "aria-describedby": error ? `${id}-error` : undefined,
+  } as const;
 }
 
 export function TextField({
@@ -41,6 +58,7 @@ export function TextField({
   className,
   registration,
   suffix,
+  sanitize,
   ...props
 }: {
   label: string;
@@ -50,23 +68,71 @@ export function TextField({
   registration: UseFormRegisterReturn;
   /** Rendered inline next to the input, e.g. an email-verify button. */
   suffix?: ReactNode;
+  /** Cleans what's typed or pasted before the form reads it, e.g. digits only. */
+  sanitize?: (value: string) => string;
 } & React.InputHTMLAttributes<HTMLInputElement>) {
+  const field = sanitize
+    ? {
+        ...registration,
+        onChange: (e: ChangeEvent<HTMLInputElement>) => {
+          e.target.value = sanitize(e.target.value);
+          return registration.onChange(e);
+        },
+      }
+    : registration;
+  const input = (
+    <input
+      id={registration.name}
+      className={inputClasses}
+      {...errorAttrs(registration.name, error)}
+      {...field}
+      {...props}
+    />
+  );
+
   return (
     <FieldShell
       label={label}
       htmlFor={registration.name}
       helper={helper}
       error={error}
+      required={props.required}
       className={className}
     >
       {suffix ? (
         <div className="flex items-center gap-2">
-          <input id={registration.name} className={inputClasses} {...registration} {...props} />
+          {input}
           {suffix}
         </div>
       ) : (
-        <input id={registration.name} className={inputClasses} {...registration} {...props} />
+        input
       )}
+    </FieldShell>
+  );
+}
+
+/** A box showing a value the player can read but not change. */
+export function ReadOnlyField({
+  id,
+  label,
+  value,
+  helper,
+  className,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  helper?: string;
+  className?: string;
+}) {
+  return (
+    <FieldShell label={label} htmlFor={id} helper={helper} className={className}>
+      <input
+        id={id}
+        readOnly
+        value={value}
+        className={`${inputClasses} cursor-not-allowed bg-background font-medium`}
+      />
     </FieldShell>
   );
 }
@@ -91,12 +157,14 @@ export function TextAreaField({
       htmlFor={registration.name}
       helper={helper}
       error={error}
+      required={props.required}
       className={className}
     >
       <textarea
         id={registration.name}
         rows={2}
         className={inputClasses}
+        {...errorAttrs(registration.name, error)}
         {...registration}
         {...props}
       />
@@ -126,9 +194,16 @@ export function SelectField({
       htmlFor={registration.name}
       helper={helper}
       error={error}
+      required={props.required}
       className={className}
     >
-      <select id={registration.name} className={inputClasses} {...registration} {...props}>
+      <select
+        id={registration.name}
+        className={inputClasses}
+        {...errorAttrs(registration.name, error)}
+        {...registration}
+        {...props}
+      >
         {children}
       </select>
     </FieldShell>
@@ -165,7 +240,7 @@ export function CheckboxField({
 export function StepSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section>
-      <h3 className="text-lg font-semibold text-charcoal">{title}</h3>
+      <h3 className="h3 text-charcoal">{title}</h3>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">{children}</div>
     </section>
   );

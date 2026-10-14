@@ -34,6 +34,7 @@ model Tournament {
   updatedAt            DateTime       @updatedAt
   registrations        Registration[]
   resultRounds         Round[]
+  galleryItems         GalleryItem[]
 }
 
 model Registration {
@@ -60,6 +61,8 @@ model Registration {
   motherKovil        String?
   motherPirivu       String?
   sangamMember       Boolean    @default(false)
+  // Name of the relative who belongs to the Sangam; the form requires it when sangamMember is ticked.
+  sangamRelativeName String?
   // Legacy base64 fields from the single-page form — kept for historical rows, no longer written to.
   aadhaarImageData   String?
   passportPhotoData  String?
@@ -182,6 +185,49 @@ model ClassWaitlist {
   email     String   @unique
   phone     String?
   createdAt DateTime @default(now())
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum VideoProvider {
+  NONE
+  YOUTUBE
+  DRIVE
+  S3
+}
+
+enum GallerySection {
+  TOURNAMENT_DAY
+  YOUNG_CHAMPIONS
+  PRIZE_CEREMONY
+  FAMILIES_COMMUNITY
+  BEHIND_THE_SCENES
+  CLASSES
+  HIGHLIGHTS
+}
+
+/** A single gallery photo or video. Replaces the old hardcoded src/lib/featured-photos.ts list and the Tournament/ClassProgram poster fields as the one real source of gallery content going forward (those two fields are left as-is for now — this doesn't touch them). */
+model GalleryItem {
+  id            String         @id @default(cuid())
+  url           String
+  mediaType     MediaType      @default(IMAGE)
+  videoProvider VideoProvider  @default(NONE)
+  thumbnailUrl  String?
+  caption       String?
+  altText       String?
+  section       GallerySection @default(TOURNAMENT_DAY)
+  sortOrder     Int            @default(0)
+  takenAt       DateTime?
+  isPublished   Boolean        @default(true)
+  tournament    Tournament?    @relation(fields: [tournamentId], references: [id])
+  tournamentId  String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([section, sortOrder])
 }
 
 /** Tracks emailed one-time-code verification for a given address (e.g. before a tournament registration is accepted). */

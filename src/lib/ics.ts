@@ -15,6 +15,32 @@ function escapeIcsText(text: string) {
     .replace(/\n/g, "\\n");
 }
 
+// Google's all-day dates are YYYYMMDD, and the end date is exclusive.
+function toGoogleAllDay(date: Date) {
+  return date.toISOString().slice(0, 10).replace(/-/g, "");
+}
+
+/**
+ * Google Calendar "add event" link. Tournaments only store dates (no times),
+ * so this is an all-day event from the start date through the end date.
+ */
+export function buildGoogleCalendarUrl(tournament: {
+  title: string;
+  venue: string;
+  city: string;
+  startDate: Date;
+  endDate: Date;
+}) {
+  const dayAfterEnd = new Date(tournament.endDate.getTime() + 24 * 60 * 60 * 1000);
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: tournament.title,
+    dates: `${toGoogleAllDay(tournament.startDate)}/${toGoogleAllDay(dayAfterEnd)}`,
+    location: `${tournament.venue}, ${tournament.city}`,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
 export function buildTournamentIcs(tournament: {
   slug: string;
   title: string;

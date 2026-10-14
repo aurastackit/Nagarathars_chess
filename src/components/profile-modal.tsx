@@ -264,7 +264,7 @@ function DetailPanel({
           {profile.initials}
         </span>
         <div>
-          <h3 className="text-lg font-bold text-foreground">{profile.name}</h3>
+          <h3 className="h3 text-foreground">{profile.name}</h3>
           <p className="text-sm font-medium text-gold-ink">{profile.role}</p>
         </div>
       </div>
@@ -326,7 +326,7 @@ function ProfileModalOverlay({ profile, onClose }: { profile: Profile; onClose: 
             ✕
           </button>
         </div>
-        <h3 className="mt-4 text-lg font-semibold text-foreground">{profile.name}</h3>
+        <h3 className="h3 mt-4 text-foreground">{profile.name}</h3>
         <p className="text-sm font-medium text-gold-ink">{profile.role}</p>
         <p className="mt-3 text-sm text-foreground/70">{profile.bio}</p>
         {profile.facts.length > 0 && (

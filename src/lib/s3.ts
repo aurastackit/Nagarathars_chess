@@ -75,3 +75,18 @@ export async function getDownloadUrl(key: string) {
   const command = new GetObjectCommand({ Bucket: BUCKET, Key: key });
   return getSignedUrl(client, command, { expiresIn: 120 });
 }
+
+/**
+ * Signed GET URL for playing back a gallery highlight video. Longer-lived than
+ * `getDownloadUrl` (that 120s window is fine for an admin opening one document, but a
+ * visitor browsing the gallery needs the clip to keep playing for the length of their
+ * visit) — acceptable since these are public promotional clips, not private documents.
+ */
+export async function getSignedVideoUrl(key: string) {
+  if (!isS3Configured()) {
+    throw new Error("S3 is not configured");
+  }
+  const client = getClient();
+  const command = new GetObjectCommand({ Bucket: BUCKET, Key: key });
+  return getSignedUrl(client, command, { expiresIn: 3600 });
+}

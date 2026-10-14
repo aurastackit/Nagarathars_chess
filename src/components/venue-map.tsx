@@ -15,7 +15,7 @@ export function VenueMap({ venue, city }: { venue: string; city: string }) {
       <div className="flex items-center justify-between p-4">
         <div>
           <p className="text-sm font-semibold text-foreground">{venue}</p>
-          <p className="text-xs text-foreground/60">{city}</p>
+          <p className="text-xs text-muted">{city}</p>
         </div>
         <a
           href={directionsHref}

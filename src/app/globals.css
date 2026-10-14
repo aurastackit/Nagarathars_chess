@@ -1,30 +1,73 @@
+/*
+ * Design tokens — single source of truth for color/typography/radius/shadow.
+ * Defined as plain custom properties in :root, then mapped into Tailwind's
+ * theme via `@theme inline` so they're usable as ordinary utilities
+ * (bg-charcoal, text-muted, rounded-md, shadow-sm, etc). No tailwind.config
+ * file — this is Tailwind v4, themed entirely in CSS.
+ *
+ * Color tokens:
+ *   --background / --foreground   page background / primary text
+ *   --charcoal / --surface-dark   dark ink + dark surfaces (same value —
+ *                                 --surface-dark is a semantic alias, used
+ *                                 for photo-overlay sections rather than text)
+ *   --card                        card/panel background
+ *   --border                      hairline borders
+ *   --muted                       secondary/supporting text (replaces the
+ *                                 ad hoc text-foreground/60 pattern)
+ *   --gold                        accents, buttons, badges, gold text ON
+ *                                 DARK surfaces (passes contrast there)
+ *   --gold-ink                    gold TEXT on LIGHT surfaces only — base
+ *                                 --gold fails WCAG AA there (~2.5:1), this
+ *                                 passes (~4.8:1+) while staying "gold"
+ *   --success / --warning         status text/accents (confirmations, limited
+ *                                 seats, etc.) — not used for brand accents
+ *
+ * Radius tokens (--radius-sm/md/lg = 8/12/16px) override Tailwind's default
+ * scale, so rounded-sm/md/lg pick these up everywhere automatically.
+ * Shadow tokens (--shadow-sm/md) are charcoal-tinted (not pure black) and
+ * likewise override Tailwind's defaults for shadow-sm/md.
+ *
+ * Image convention: object-cover for photos (fills the frame, crops as
+ * needed); object-contain only for poster/flyer-style graphics that must
+ * not be cropped (tournament posters, class banners).
+ */
 @import "tailwindcss";
 
 :root {
   --background: #f6f1e7;
   --foreground: #24201a;
   --charcoal: #17140f;
+  --surface-dark: var(--charcoal);
   --card: #fffdf9;
   --border: #e6ddc8;
+  --muted: #6b6555;
   --gold: #c8922f;
-  /* Same hue, darkened for text/links on the light background/card — the
-     base --gold fails WCAG AA there (~2.5:1); this passes (~4.8:1+) while
-     staying visually "gold". Buttons/badges (gold fill, charcoal text) and
-     gold text on the dark --charcoal surface both already pass with --gold
-     itself, so this token is only for gold TEXT on a LIGHT surface. */
   --gold-ink: #8a6416;
+  --success: #15803d;
+  --warning: #b45309;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-charcoal: var(--charcoal);
+  --color-surface-dark: var(--surface-dark);
   --color-card: var(--card);
   --color-border: var(--border);
+  --color-muted: var(--muted);
   --color-gold: var(--gold);
   --color-gold-ink: var(--gold-ink);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
   --font-sans: var(--font-inter);
   --font-display: var(--font-display);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --shadow-sm: 0 1px 2px 0 rgba(23, 20, 15, 0.06);
+  --shadow-md: 0 4px 16px -4px rgba(23, 20, 15, 0.14);
 }
 
 body {
@@ -32,11 +75,59 @@ body {
   color: var(--foreground);
 }
 
-h1,
-h2,
-h3 {
+/*
+ * Typography scale — explicit opt-in utilities (applied via className),
+ * not a blanket h1/h2/h3 selector. Playfair Display is for h1/h2 only;
+ * h3 uses Inter like body text, just larger/bolder.
+ *   .h1        56/64, mobile 36/44 — Playfair Display
+ *   .h2        36/44, mobile 28/36 — Playfair Display
+ *   .h3        20/28               — Inter
+ *   .text-body 16/26               — Inter (same as default body text)
+ *   .text-small 14/22              — Inter
+ */
+@utility h1 {
   font-family: var(--font-display), Georgia, "Times New Roman", serif;
   letter-spacing: -0.01em;
+  font-weight: 700;
+  font-size: 36px;
+  line-height: 44px;
+
+  @media (width >= 40rem) {
+    font-size: 56px;
+    line-height: 64px;
+  }
+}
+
+@utility h2 {
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 36px;
+
+  @media (width >= 40rem) {
+    font-size: 36px;
+    line-height: 44px;
+  }
+}
+
+@utility h3 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 28px;
+}
+
+@utility text-body {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 26px;
+}
+
+@utility text-small {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 22px;
 }
 
 .chess-pattern {
@@ -98,6 +189,25 @@ h3 {
   }
 }
 
-.animate-fade-up {
-  animation: fadeUp 0.8s ease-out both;
+/*
+ * Entrance motion only runs when the visitor hasn't asked for reduced motion
+ * (the reduced state is simply the finished state), and only on screen, so
+ * printing never catches content mid-reveal.
+ */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .animate-fade-up {
+    animation: fadeUp 0.8s ease-out both;
+  }
+
+  /* Scroll reveal: set by components/reveal.tsx on blocks below the fold after hydration. */
+  [data-reveal="pending"] {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  [data-reveal="in"] {
+    transition:
+      opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
 }

@@ -148,7 +148,7 @@ export function RegistrantsPanel({
                   <th className="px-4 py-2 font-medium">Name</th>
                   <th className="px-4 py-2 font-medium">Email</th>
                   <th className="px-4 py-2 font-medium">Phone</th>
-                  <th className="px-4 py-2 font-medium">DOB</th>
+                  <th className="px-4 py-2 font-medium">Birth year</th>
                   <th className="px-4 py-2 font-medium">Gender</th>
                   <th className="px-4 py-2 font-medium">City</th>
                   <th className="px-4 py-2 font-medium">Rating</th>
@@ -172,7 +172,7 @@ export function RegistrantsPanel({
                     <td className="px-4 py-2">{r.fullName}</td>
                     <td className="px-4 py-2">{r.email}</td>
                     <td className="px-4 py-2">{r.phone}</td>
-                    <td className="px-4 py-2">{r.dob ? formatDate(r.dob) : "—"}</td>
+                    <td className="px-4 py-2">{r.dob ? r.dob.getUTCFullYear() : "—"}</td>
                     <td className="px-4 py-2">{r.gender ?? "—"}</td>
                     <td className="px-4 py-2">{r.city ?? "—"}</td>
                     <td className="px-4 py-2">{r.rating ?? "—"}</td>
@@ -181,7 +181,11 @@ export function RegistrantsPanel({
                     <td className="px-4 py-2">{r.pirivu ?? "—"}</td>
                     <td className="px-4 py-2">{r.fatherName ?? "—"}</td>
                     <td className="px-4 py-2">{r.motherName ?? "—"}</td>
-                    <td className="px-4 py-2">{r.sangamMember ? "Yes" : "No"}</td>
+                    <td className="px-4 py-2">
+                      {r.sangamMember
+                        ? `Yes${r.sangamRelativeName ? ` (${r.sangamRelativeName})` : ""}`
+                        : "No"}
+                    </td>
                     <td className="px-4 py-2">
                       <div className="flex flex-col gap-0.5">
                         {r.ageProofKey && (

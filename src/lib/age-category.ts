@@ -8,17 +8,26 @@ export const AGE_CATEGORY_VALUES = AGE_CATEGORIES.map((c) => c.value) as [string
 
 export type AgeCategoryValue = (typeof AGE_CATEGORIES)[number]["value"];
 
-const RANK: Record<AgeCategoryValue, number> = { under_11: 0, "11_to_18": 1, above_19: 2 };
-
 export function ageCategoryLabel(value: string | null | undefined) {
   return AGE_CATEGORIES.find((c) => c.value === value)?.label ?? "—";
 }
 
-export function ageAt(dob: Date, at: Date) {
-  let age = at.getFullYear() - dob.getFullYear();
-  const monthDiff = at.getMonth() - dob.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && at.getDate() < dob.getDate())) age--;
-  return age;
+/**
+ * A player's age for tournament purposes: whole calendar years between the
+ * year of birth and the year of `at`. Only the year of birth is collected, so
+ * months and days are deliberately ignored.
+ */
+export function ageByYear(birthYear: number, at: Date) {
+  return at.getUTCFullYear() - birthYear;
+}
+
+/**
+ * Whether a player might be under 18 today. With only the birth year known,
+ * anyone turning 18 this year could still be 17, so they count as a minor
+ * (and need a guardian's consent) to stay on the safe side.
+ */
+export function mightBeMinor(birthYear: number, now: Date = new Date()) {
+  return ageByYear(birthYear, now) <= 18;
 }
 
 export function naturalAgeCategory(age: number): AgeCategoryValue {
@@ -27,7 +36,19 @@ export function naturalAgeCategory(age: number): AgeCategoryValue {
   return "above_19";
 }
 
-// Players may register in their own age category or any higher one, never lower.
-export function isAgeCategoryAllowed(selected: AgeCategoryValue, natural: AgeCategoryValue) {
-  return RANK[selected] >= RANK[natural];
+/**
+ * The span of ages (in the tournament year) that land in a category, as text.
+ * Worked out by asking naturalAgeCategory, so what players read can never
+ * drift from the rule that actually assigns their category.
+ */
+export function ageRangeLabel(value: AgeCategoryValue) {
+  const MAX_AGE = 120;
+  const ages = Array.from({ length: MAX_AGE + 1 }, (_, age) => age).filter(
+    (age) => naturalAgeCategory(age) === value
+  );
+  const first = ages[0];
+  const last = ages[ages.length - 1];
+  if (first === 0) return `Up to ${last} years`;
+  if (last === MAX_AGE) return `${first} years and above`;
+  return `${first} to ${last} years`;
 }

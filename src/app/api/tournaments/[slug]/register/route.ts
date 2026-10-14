@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { ageByYear, naturalAgeCategory } from "@/lib/age-category";
 import { createRegistrationWizardSchema } from "@/lib/registration-schema";
 import { sendRegistrationConfirmationEmail } from "@/lib/notify";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { isHoneypotTriggered } from "@/lib/honeypot";
 import { EMAIL_VERIFICATION_VALIDITY_MS } from "@/lib/otp";
 import { isRazorpayConfigured } from "@/lib/razorpay";
+import { endOfDayIST } from "@/lib/datetime";
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -26,15 +28,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   if (!tournament || tournament.status !== "published") {
     return NextResponse.json({ error: "Tournament not found" }, { status: 404 });
   }
-  if (new Date() > tournament.registrationDeadline) {
+  if (new Date() > endOfDayIST(tournament.registrationDeadline)) {
     return NextResponse.json(
       { error: "Registration is closed for this tournament" },
       { status: 400 }
     );
   }
 
-  const schema = createRegistrationWizardSchema(tournament.startDate);
-  const parsed = schema.safeParse(body);
+  const parsed = createRegistrationWizardSchema().safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message ?? "Invalid input" },
@@ -43,6 +44,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   }
   const data = parsed.data;
   const playerEmail = data.email.trim().toLowerCase();
+
+  // Only the year of birth is collected: it's stored as 1 January of that year,
+  // and the age category is always worked out here, never taken from the form.
+  const dob = new Date(Date.UTC(data.birthYear, 0, 1));
+  const ageCategory = naturalAgeCategory(ageByYear(data.birthYear, tournament.startDate));
 
   const verifiedUser = await prisma.user.findUnique({ where: { email: playerEmail } });
   const verifiedRecently =
@@ -68,8 +74,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
       }
       const player = await tx.player.upsert({
         where: { email: playerEmail },
-        update: { fullName: data.fullName, dob: data.dob },
-        create: { email: playerEmail, fullName: data.fullName, dob: data.dob },
+        update: { fullName: data.fullName, dob },
+        create: { email: playerEmail, fullName: data.fullName, dob },
       });
       const registration = await tx.registration.create({
         data: {
@@ -78,7 +84,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
           fullName: data.fullName,
           email: data.email,
           phone: data.phone,
-          dob: data.dob,
+          dob,
           gender: data.gender || null,
           city: data.city || null,
           address: data.address || null,
@@ -95,13 +101,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
           motherKovil: data.motherKovil || null,
           motherPirivu: data.motherPirivu || null,
           sangamMember: data.sangamMember,
+          sangamRelativeName: data.sangamMember ? data.sangamRelativeName || null : null,
           ageProofType: data.ageProofType,
           ageProofKey: data.ageProofKey,
           passportPhotoKey: data.passportPhotoKey,
           consentAccepted: data.consentAccepted,
           guardianName: data.guardianName || null,
           guardianConsent: data.guardianConsent,
-          ageCategory: data.ageCategory,
+          ageCategory,
           status: "pending",
           paymentStatus: requiresPayment ? "pending" : "not_required",
         },
@@ -115,7 +122,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
       return NextResponse.json(
         {
-          error: "You've already registered for this tournament with this email and date of birth",
+          error: "You've already registered for this tournament with this email and year of birth",
         },
         { status: 409 }
       );

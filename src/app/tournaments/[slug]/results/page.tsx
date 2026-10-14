@@ -6,6 +6,7 @@ import { Badge, Card, EmptyState } from "@/components/ui";
 import { ageCategoryLabel } from "@/lib/age-category";
 import { computeStandings, categoryWinners } from "@/lib/standings";
 import { TrophyIcon } from "@/components/icons/chess-pieces";
+import { EmptyTournaments } from "@/components/illustrations/empty-states";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,10 @@ export async function generateMetadata({
   const { slug } = await params;
   const tournament = await prisma.tournament.findUnique({ where: { slug } });
   if (!tournament || !tournament.resultsPublished) return {};
-  return { title: `Results — ${tournament.title} | Nagarathar's Chess Championship` };
+  return {
+    title: `Results — ${tournament.title}`,
+    description: `Final standings and round-by-round results for ${tournament.title}.`,
+  };
 }
 
 export default async function TournamentResultsPage({
@@ -68,11 +72,12 @@ export default async function TournamentResultsPage({
           &larr; {tournament.title}
         </Link>
       </p>
-      <h1 className="mt-2 text-3xl font-bold text-charcoal">Results</h1>
+      <h1 className="h1 mt-2 text-charcoal">Results</h1>
 
       {standings.length === 0 ? (
         <EmptyState
           className="mt-8"
+          icon={<EmptyTournaments className="h-16 w-16" />}
           message="Results haven't been recorded yet — check back soon."
         />
       ) : (
@@ -99,11 +104,11 @@ export default async function TournamentResultsPage({
           </section>
 
           <section className="mt-10">
-            <h2 className="text-xl font-semibold text-charcoal">Standings</h2>
+            <h2 className="h3 text-charcoal">Standings</h2>
             <Card className="mt-4 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
-                  <thead className="bg-charcoal/5 text-foreground/60">
+                  <thead className="bg-charcoal/5 text-muted">
                     <tr>
                       <th className="px-4 py-2 font-medium">Rank</th>
                       <th className="px-4 py-2 font-medium">Player</th>
@@ -129,8 +134,8 @@ export default async function TournamentResultsPage({
                           <Badge tone="gray">{ageCategoryLabel(s.player.ageCategory)}</Badge>
                         </td>
                         <td className="px-4 py-2 font-semibold">{s.score}</td>
-                        <td className="px-4 py-2 text-foreground/60">{s.buchholz}</td>
-                        <td className="px-4 py-2 text-foreground/60">{s.sonnebornBerger}</td>
+                        <td className="px-4 py-2 text-muted">{s.buchholz}</td>
+                        <td className="px-4 py-2 text-muted">{s.sonnebornBerger}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -140,33 +145,39 @@ export default async function TournamentResultsPage({
           </section>
 
           <section className="mt-10">
-            <h2 className="text-xl font-semibold text-charcoal">Round-by-round pairings</h2>
+            <h2 className="h3 text-charcoal">Round-by-round pairings</h2>
             <div className="mt-4 space-y-6">
               {rounds.map((round) => (
                 <Card key={round.id} className="p-5">
-                  <h3 className="font-semibold text-charcoal">Round {round.number}</h3>
-                  <table className="mt-3 w-full text-left text-sm">
-                    <thead className="text-foreground/50">
-                      <tr>
-                        <th className="py-1.5 pr-3 font-medium">Board</th>
-                        <th className="py-1.5 pr-3 font-medium">White</th>
-                        <th className="py-1.5 pr-3 font-medium">Black</th>
-                        <th className="py-1.5 font-medium">Result</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {round.pairings.map((p) => (
-                        <tr key={p.id} className="border-t border-border">
-                          <td className="py-1.5 pr-3">{p.board ?? "—"}</td>
-                          <td className="py-1.5 pr-3">{p.whitePlayer?.fullName ?? "—"}</td>
-                          <td className="py-1.5 pr-3">{p.blackPlayer?.fullName ?? "Bye"}</td>
-                          <td className="py-1.5">
-                            {p.result ? (RESULT_LABEL[p.result] ?? p.result) : "—"}
-                          </td>
+                  <h3 className="h3 text-charcoal">Round {round.number}</h3>
+                  <div className="overflow-x-auto">
+                    <table className="mt-3 w-full text-left text-sm">
+                      <thead className="text-foreground/50">
+                        <tr>
+                          <th className="py-1.5 pr-3 font-medium">Board</th>
+                          <th className="py-1.5 pr-3 font-medium">White</th>
+                          <th className="py-1.5 pr-3 font-medium">Black</th>
+                          <th className="py-1.5 font-medium">Result</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {round.pairings.map((p) => (
+                          <tr key={p.id} className="border-t border-border">
+                            <td className="py-1.5 pr-3 whitespace-nowrap">{p.board ?? "—"}</td>
+                            <td className="py-1.5 pr-3 whitespace-nowrap">
+                              {p.whitePlayer?.fullName ?? "—"}
+                            </td>
+                            <td className="py-1.5 pr-3 whitespace-nowrap">
+                              {p.blackPlayer?.fullName ?? "Bye"}
+                            </td>
+                            <td className="py-1.5 whitespace-nowrap">
+                              {p.result ? (RESULT_LABEL[p.result] ?? p.result) : "—"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </Card>
               ))}
             </div>

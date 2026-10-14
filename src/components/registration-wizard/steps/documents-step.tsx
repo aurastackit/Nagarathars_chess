@@ -1,9 +1,7 @@
+import Link from "next/link";
 import { useFormContext } from "react-hook-form";
-import {
-  AGE_PROOF_TYPES,
-  isMinorToday,
-  type RegistrationWizardValues,
-} from "@/lib/registration-schema";
+import { mightBeMinor } from "@/lib/age-category";
+import { AGE_PROOF_TYPES, type RegistrationWizardValues } from "@/lib/registration-schema";
 import { useS3Upload } from "@/lib/use-s3-upload";
 import {
   CheckboxField,
@@ -22,9 +20,8 @@ export function DocumentsStep({ tournamentSlug }: { tournamentSlug: string }) {
   } = useFormContext<RegistrationWizardValues>();
   const { upload, uploading, error: uploadError } = useS3Upload(tournamentSlug);
 
-  const dobRaw = watch("dob") as unknown as string | Date | undefined;
-  const dobDate = dobRaw ? (dobRaw instanceof Date ? dobRaw : new Date(dobRaw)) : null;
-  const isMinor = dobDate && !isNaN(dobDate.getTime()) ? isMinorToday(dobDate) : false;
+  const birthYear = Number(watch("birthYear"));
+  const isMinor = Number.isInteger(birthYear) && birthYear > 0 ? mightBeMinor(birthYear) : false;
 
   const ageProofKey = watch("ageProofKey");
   const passportPhotoKey = watch("passportPhotoKey");
@@ -84,6 +81,7 @@ export function DocumentsStep({ tournamentSlug }: { tournamentSlug: string }) {
             registration={register("guardianName")}
             error={errors.guardianName}
             required
+            maxLength={80}
             className="sm:col-span-2"
           />
           <CheckboxField
@@ -97,12 +95,22 @@ export function DocumentsStep({ tournamentSlug }: { tournamentSlug: string }) {
 
       <section className="rounded-lg border border-border bg-card p-4">
         <h3 className="text-sm font-semibold text-charcoal">Privacy notice</h3>
-        <p className="mt-2 text-xs text-foreground/60">
+        <p className="mt-2 text-xs text-muted">
           We collect this information to run tournament registration, verify age-category
           eligibility, and contact you about the event. Age-proof and photo files are stored in a
           private cloud bucket, accessible only to tournament organizers — never made public. Data
           is retained only as long as needed to run this and future Nagarathar&apos;s Chess events,
-          and you can request deletion at any time by contacting us.
+          and you can request deletion at any time by contacting us. Read the full{" "}
+          {/* New tab, so the half-filled form isn't lost. */}
+          <Link
+            href="/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-charcoal underline underline-offset-2"
+          >
+            privacy policy
+          </Link>{" "}
+          (opens in a new tab).
         </p>
         <CheckboxField
           label="I have read the privacy notice and consent to my (or my child's) details being collected and used as described."

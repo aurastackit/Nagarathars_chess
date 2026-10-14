@@ -44,7 +44,7 @@ export function CommunityRegisterWizard() {
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#0e4f45]/10 text-[#0e4f45]">
           <CheckIcon className="h-7 w-7" />
         </div>
-        <h2 className="mt-4 text-xl font-semibold text-[#12312d]">Registration received</h2>
+        <h2 className="h3 mt-4 text-[#12312d]">Registration received</h2>
         <p className="mx-auto mt-2 max-w-sm text-sm text-[#6b6555]">
           Thanks — your details have been captured. Our team will verify your submission and confirm
           your seat shortly.
@@ -66,7 +66,7 @@ export function CommunityRegisterWizard() {
         <p className="text-xs font-semibold uppercase tracking-wider text-[#c8922f]">
           Championship registration
         </p>
-        <h2 className="mt-1 text-lg font-bold">Registration form</h2>
+        <h2 className="h3 mt-1">Registration form</h2>
         <p className="mt-2 text-xs text-white/60">
           Ensure the form is filled out correctly and completely. All submissions are verified and
           approved by the admin before acceptance.

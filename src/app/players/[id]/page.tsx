@@ -8,6 +8,7 @@ import { ageCategoryLabel } from "@/lib/age-category";
 import { getPlayerTournamentResults } from "@/lib/player-results";
 import { TrophyIcon } from "@/components/icons/chess-pieces";
 import { ScoreHistoryChart } from "@/components/player/score-history-chart-lazy";
+import { EmptyTournaments } from "@/components/illustrations/empty-states";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,10 @@ export async function generateMetadata({
   const { id } = await params;
   const player = await prisma.player.findUnique({ where: { id } });
   if (!player) return {};
-  return { title: `${player.fullName} | Nagarathar's Chess Championship` };
+  return {
+    title: player.fullName,
+    description: `Tournament history and results for ${player.fullName}.`,
+  };
 }
 
 export default async function PlayerProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -39,29 +43,29 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="text-3xl font-bold text-charcoal">{player.fullName}</h1>
-      <p className="mt-1 text-sm text-foreground/60">Player profile</p>
+      <h1 className="h1 text-charcoal">{player.fullName}</h1>
+      <p className="text-small mt-1 text-muted">Player profile</p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <Card className="p-4 text-center">
           <p className="text-2xl font-bold text-charcoal">{results.length}</p>
-          <p className="mt-1 text-xs text-foreground/60">Tournaments played</p>
+          <p className="mt-1 text-xs text-muted">Tournaments played</p>
         </Card>
         <Card className="p-4 text-center">
           <TrophyIcon className="mx-auto h-5 w-5 text-gold-ink" />
           <p className="mt-1 text-2xl font-bold text-charcoal">{tournamentWins}</p>
-          <p className="mt-1 text-xs text-foreground/60">Tournament wins</p>
+          <p className="mt-1 text-xs text-muted">Tournament wins</p>
         </Card>
         <Card className="p-4 text-center">
           <TrophyIcon className="mx-auto h-5 w-5 text-charcoal/40" />
           <p className="mt-1 text-2xl font-bold text-charcoal">{categoryWins}</p>
-          <p className="mt-1 text-xs text-foreground/60">Category titles</p>
+          <p className="mt-1 text-xs text-muted">Category titles</p>
         </Card>
       </div>
 
       {chartData.length > 0 && (
         <section className="mt-8">
-          <h2 className="text-lg font-semibold text-charcoal">Score history</h2>
+          <h2 className="h3 text-charcoal">Score history</h2>
           <Card className="mt-3 p-4">
             <ScoreHistoryChart data={chartData} />
           </Card>
@@ -69,9 +73,13 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
       )}
 
       <section className="mt-8">
-        <h2 className="text-lg font-semibold text-charcoal">Tournaments played</h2>
+        <h2 className="h3 text-charcoal">Tournaments played</h2>
         {results.length === 0 ? (
-          <EmptyState className="mt-3" message="No tournaments recorded yet." />
+          <EmptyState
+            className="mt-3"
+            icon={<EmptyTournaments className="h-16 w-16" />}
+            message="No tournaments recorded yet."
+          />
         ) : (
           <div className="mt-3 space-y-3">
             {results.map((r) => (

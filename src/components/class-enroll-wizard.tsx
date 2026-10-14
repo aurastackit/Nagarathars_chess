@@ -8,6 +8,7 @@ import { WizardProgressBar } from "@/components/registration-wizard/progress-bar
 import { StepSection, TextAreaField, TextField } from "@/components/registration-wizard/fields";
 import { CheckIcon } from "@/components/form-fields";
 import { HONEYPOT_FIELD } from "@/lib/honeypot";
+import { Button } from "@/components/ui";
 
 const STEPS = ["Your details", "Confirm"] as const;
 
@@ -134,30 +135,23 @@ export function ClassEnrollWizard({ classSlug, level }: { classSlug: string; lev
         {submitError && <p className="text-sm text-red-600">{submitError}</p>}
 
         <div className="flex items-center justify-between border-t border-border pt-4">
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => setStep(0)}
             disabled={step === 0 || submitting}
-            className="rounded-md border border-charcoal px-4 py-2 text-xs font-semibold text-charcoal transition-colors hover:bg-charcoal hover:text-background disabled:cursor-not-allowed disabled:opacity-40"
           >
             Back
-          </button>
+          </Button>
           {step === 0 ? (
-            <button
-              type="button"
-              onClick={goNext}
-              className="rounded-md bg-charcoal px-4 py-2 text-xs font-semibold text-background transition-colors hover:bg-charcoal/90"
-            >
+            <Button type="button" variant="dark" size="sm" onClick={goNext}>
               Next
-            </button>
+            </Button>
           ) : (
-            <button
-              type="submit"
-              disabled={submitting}
-              className="rounded-md bg-gold px-4 py-2 text-xs font-semibold text-charcoal transition-colors hover:bg-gold/90 disabled:cursor-not-allowed disabled:opacity-50"
-            >
+            <Button type="submit" size="sm" disabled={submitting}>
               {submitting ? "Sending…" : "Enroll interest"}
-            </button>
+            </Button>
           )}
         </div>
       </form>

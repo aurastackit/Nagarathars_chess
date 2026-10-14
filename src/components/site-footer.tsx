@@ -50,9 +50,14 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-white/10 py-4">
-        <p className="mx-auto max-w-6xl px-4 text-xs text-white/50">
-          &copy; {new Date().getFullYear()} Nagarathar&apos;s Chess Championship.
-        </p>
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 text-xs">
+          <p className="text-white/50">
+            &copy; {new Date().getFullYear()} Nagarathar&apos;s Chess Championship.
+          </p>
+          <Link href="/privacy" className="transition-colors hover:text-white hover:underline">
+            Privacy policy
+          </Link>
+        </div>
       </div>
     </footer>
   );

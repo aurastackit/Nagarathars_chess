@@ -1,6 +1,7 @@
 import { useFormContext } from "react-hook-form";
-import { AGE_CATEGORIES } from "@/lib/age-category";
+import { AGE_CATEGORIES, ageByYear, naturalAgeCategory } from "@/lib/age-category";
 import { AGE_PROOF_TYPES, type RegistrationWizardValues } from "@/lib/registration-schema";
+import { capitalizeWords } from "@/lib/text";
 
 function Row({ label, value }: { label: string; value?: string | number | boolean | null }) {
   if (value === undefined || value === null || value === "" || value === false) return null;
@@ -40,33 +41,38 @@ function ReviewGroup({
   );
 }
 
-export function ReviewStep({ onEditStep }: { onEditStep: (step: number) => void }) {
+export function ReviewStep({
+  onEditStep,
+  tournamentStartDate,
+}: {
+  onEditStep: (step: number) => void;
+  tournamentStartDate: Date;
+}) {
   const { watch } = useFormContext<RegistrationWizardValues>();
   const v = watch();
-  const dob = v.dob ? new Date(v.dob as unknown as string) : null;
+  const birthYear = Number(v.birthYear);
+  const category = Number.isInteger(birthYear)
+    ? AGE_CATEGORIES.find(
+        (c) => c.value === naturalAgeCategory(ageByYear(birthYear, tournamentStartDate))
+      )
+    : undefined;
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-charcoal">Review your details</h3>
+      <h3 className="h3 text-charcoal">Review your details</h3>
 
       <ReviewGroup title="Player" onEdit={() => onEditStep(0)}>
         <Row label="Full name" value={v.fullName} />
         <Row label="Email" value={v.email} />
         <Row label="Phone" value={v.phone} />
-        <Row
-          label="Date of birth"
-          value={dob && !isNaN(dob.getTime()) ? dob.toLocaleDateString("en-IN") : undefined}
-        />
-        <Row label="Gender" value={v.gender} />
+        <Row label="Year of birth" value={v.birthYear} />
+        <Row label="Gender" value={v.gender ? capitalizeWords(v.gender) : undefined} />
         <Row label="City" value={v.city} />
         <Row label="Address" value={v.address} />
       </ReviewGroup>
 
       <ReviewGroup title="Category" onEdit={() => onEditStep(1)}>
-        <Row
-          label="Age category"
-          value={AGE_CATEGORIES.find((c) => c.value === v.ageCategory)?.label}
-        />
+        <Row label="Age category" value={category?.label} />
         <Row label="Rating" value={v.rating} />
         <Row label="FIDE ID" value={v.fideId} />
       </ReviewGroup>
@@ -86,6 +92,7 @@ export function ReviewStep({ onEditStep }: { onEditStep: (step: number) => void 
         <Row label="Mother Kovil" value={v.motherKovil} />
         <Row label="Mother Pirivu" value={v.motherPirivu} />
         <Row label="Sangam member" value={v.sangamMember} />
+        <Row label="Sangam relative" value={v.sangamMember ? v.sangamRelativeName : undefined} />
       </ReviewGroup>
 
       <ReviewGroup title="Documents" onEdit={() => onEditStep(4)}>

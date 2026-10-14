@@ -28,7 +28,13 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [{ protocol: "https", hostname: "*.supabase.co" }],
+    remotePatterns: [
+      { protocol: "https", hostname: "*.supabase.co" },
+      // Event photographer's gallery (temporary, watermarked proofs — see
+      // src/lib/featured-photos.ts) and licensed Unsplash stock photos.
+      { protocol: "https", hostname: "aipixture.com" },
+      { protocol: "https", hostname: "images.unsplash.com" },
+    ],
   },
   async headers() {
     return [

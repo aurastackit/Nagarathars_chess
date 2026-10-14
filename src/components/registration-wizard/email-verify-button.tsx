@@ -98,7 +98,7 @@ export function EmailVerifyButton({
 
       {modalOpen && (
         <Modal title="Verify your email" onClose={() => setModalOpen(false)}>
-          <p className="text-sm text-foreground/60">
+          <p className="text-sm text-muted">
             Enter the 6-digit code we sent to <strong>{email}</strong>.
           </p>
           <form onSubmit={handleVerifyCode} className="mt-4 space-y-4">
@@ -122,7 +122,7 @@ export function EmailVerifyButton({
               type="button"
               onClick={handleSendCode}
               disabled={sending}
-              className="w-full text-center text-xs text-foreground/60 underline disabled:cursor-not-allowed disabled:opacity-40"
+              className="w-full text-center text-xs text-muted underline disabled:cursor-not-allowed disabled:opacity-40"
             >
               {sending ? "Resending…" : "Resend code"}
             </button>

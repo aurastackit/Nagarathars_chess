@@ -1,20 +1,22 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
-import { generateGalleryPlaceholders } from "@/lib/gallery-placeholders";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { isValidImageUrl } from "@/lib/image-url";
+import { getGallery } from "@/lib/gallery";
+import { resolveVideoPlayback, type ShortsItem } from "@/lib/video";
+import { EmptyState } from "@/components/ui";
+import { EmptyGallery } from "@/components/illustrations/empty-states";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Gallery — Nagarathar's Chess Championship",
+  title: "Gallery",
   description: "Photos from our tournaments and classes.",
 };
 
-const GALLERY_TARGET = 50;
-
 export default async function GalleryPage() {
-  const [tournaments, classes] = await Promise.all([
+  const [curatedGallery, tournaments, classes] = await Promise.all([
+    getGallery({ take: 200 }),
     prisma.tournament.findMany({
       where: { posterImageUrl: { not: null } },
       orderBy: { startDate: "desc" },
@@ -25,7 +27,31 @@ export default async function GalleryPage() {
     }),
   ]);
 
+  const photoRows = curatedGallery.items.filter((p) => p.mediaType !== "VIDEO");
+  const videoRows = curatedGallery.items.filter(
+    (p) => p.mediaType === "VIDEO" && p.videoProvider !== "NONE"
+  );
+  const videoItems: ShortsItem[] = await Promise.all(
+    videoRows.map(async (row) => ({
+      id: row.id,
+      caption: row.caption,
+      playback: await resolveVideoPlayback({
+        url: row.url,
+        videoProvider: row.videoProvider as "YOUTUBE" | "DRIVE" | "S3",
+        thumbnailUrl: row.thumbnailUrl,
+      }),
+    }))
+  );
+
   const realItems = [
+    ...photoRows.map((p) => ({
+      id: p.id,
+      src: p.url,
+      title: p.caption ?? "Nagarathar's Chess Championship",
+      caption: "Nagarathar's Chess Championship 2026",
+      section: p.section,
+      fit: "cover" as const,
+    })),
     ...tournaments
       .filter((t) => isValidImageUrl(t.posterImageUrl))
       .map((t) => ({
@@ -33,6 +59,8 @@ export default async function GalleryPage() {
         src: t.posterImageUrl!,
         title: t.title,
         caption: t.city,
+        section: "TOURNAMENT_DAY" as const,
+        fit: "contain" as const,
       })),
     ...classes
       .filter((c) => isValidImageUrl(c.bannerImageUrl))
@@ -41,22 +69,30 @@ export default async function GalleryPage() {
         src: c.bannerImageUrl!,
         title: c.title,
         caption: "Online class",
+        section: "CLASSES" as const,
+        fit: "contain" as const,
       })),
   ];
-
-  const placeholders = generateGalleryPlaceholders(Math.max(0, GALLERY_TARGET - realItems.length));
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-14">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-charcoal">Gallery</h1>
-        <p className="mx-auto mt-2 max-w-xl text-foreground/60">
+        <h1 className="h1 text-charcoal">Gallery</h1>
+        <p className="text-body mx-auto mt-2 max-w-xl text-muted">
           Moments from our tournaments and classes — posters, banners, and highlights as our
           community grows.
         </p>
       </div>
 
-      <GalleryGrid realItems={realItems} placeholders={placeholders} />
+      {realItems.length === 0 && videoItems.length === 0 ? (
+        <EmptyState
+          className="mt-12"
+          icon={<EmptyGallery className="h-16 w-16" />}
+          message="No photos yet — check back once our next event wraps up."
+        />
+      ) : (
+        <GalleryGrid realItems={realItems} videoItems={videoItems} />
+      )}
     </main>
   );
 }
