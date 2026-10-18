@@ -85,13 +85,15 @@ export function GalleryGrid({
       ) : (
         <>
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {shown.map((item) => (
+            {shown.map((item, i) => (
               <Card key={item.id} className="overflow-hidden transition-shadow hover:shadow-md">
-                <div className="relative h-48 w-full bg-gray-100">
+                <div className="relative h-48 w-full bg-background">
                   <Image
                     src={item.src}
                     alt={item.title}
                     fill
+                    // The first row is above the fold and is the page's LCP.
+                    loading={i < 3 ? "eager" : "lazy"}
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className={item.fit === "cover" ? "object-cover" : "object-contain"}
                   />

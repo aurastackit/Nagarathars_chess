@@ -9,7 +9,7 @@ const STEPS = [
 export function SkillProgression({ className = "" }: { className?: string }) {
   return (
     <div className={`rounded-lg border border-border bg-card px-6 py-8 ${className}`}>
-      <div className="grid grid-cols-3 items-start gap-2 sm:gap-6">
+      <div className="grid grid-cols-1 items-start gap-6 sm:grid-cols-3">
         {STEPS.map(({ Icon, label, body }, i) => (
           <div key={label} className="relative flex flex-col items-center text-center">
             {i > 0 && (

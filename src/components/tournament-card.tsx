@@ -81,7 +81,7 @@ export function TournamentCard({ tournament: t }: { tournament: TournamentCardDa
                   style={{ width: `${seatsPct}%` }}
                 />
               </div>
-              <p className="mt-1 text-xs text-foreground/50">
+              <p className="mt-1 text-xs text-muted">
                 {seatsUsed} / {t.maxParticipants} seats filled
               </p>
             </div>

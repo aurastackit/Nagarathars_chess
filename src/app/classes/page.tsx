@@ -18,7 +18,7 @@ export default async function ClassesPage() {
 
   return (
     <main>
-      <section className="relative flex h-48 items-end overflow-hidden bg-charcoal text-white sm:h-56">
+      <section className="relative flex min-h-48 items-end overflow-hidden bg-charcoal pt-16 text-white sm:min-h-56">
         <Image
           src={CLASSES_HEADER_PHOTO.src}
           alt=""

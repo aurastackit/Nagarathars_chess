@@ -199,6 +199,9 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
                 alt="Logo"
                 width={36}
                 height={36}
+                // Same optimised URL as the header logo; if this copy were lazy, Next's
+                // dev LCP check would flag the header logo as lazy too.
+                loading="eager"
                 className="h-9 w-9 object-contain"
               />
               <span className="font-semibold leading-tight">
