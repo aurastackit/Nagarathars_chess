@@ -44,3 +44,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# visual self-review output (screenshots, Playwright/Lighthouse reports) and
+# temporary review-only pages — never deployed. Not a blanket *.png: real
+# images live in public/ and must stay tracked.
+/*.png
+/screenshots/
+/test-results/
+/playwright-report/
+/lighthouse*/
+/src/app/dev/

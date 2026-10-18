@@ -67,7 +67,7 @@ export function RookIcon(props: IconProps) {
   );
 }
 
-export function BishopIcon(props: IconProps) {
+function BishopIcon(props: IconProps) {
   return (
     <svg {...base} {...props}>
       <circle cx="12" cy="4.1" r="0.7" fill="currentColor" stroke="none" />
