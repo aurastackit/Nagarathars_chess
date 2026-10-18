@@ -21,15 +21,25 @@ const BUTTON_SIZES: Record<ButtonSize, string> = {
   sm: "px-4 py-2 text-xs",
 };
 
+/**
+ * Focus ring per surface: charcoal on light backgrounds, gold on charcoal ones
+ * (a charcoal ring disappears on the dark hero; gold fails 3:1 on ivory).
+ */
+const FOCUS_RING = {
+  light: "focus-visible:ring-charcoal focus-visible:ring-offset-background",
+  dark: "focus-visible:ring-gold focus-visible:ring-offset-charcoal",
+};
+
 /** Single source of truth for button-styled visuals — shared by Button, LinkButton, and the rare plain `<a>` (e.g. file downloads) that can't go through next/link. */
 export function buttonClasses(
   variant: ButtonVariant = "primary",
   size: ButtonSize = "md",
-  className = ""
+  className = "",
+  surface: "light" | "dark" = "light"
 ) {
   const base =
-    "inline-flex items-center justify-center rounded-md font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal focus-visible:ring-offset-2 focus-visible:ring-offset-background";
-  return `${base} ${BUTTON_SIZES[size]} ${BUTTON_VARIANTS[variant]} ${className}`;
+    "inline-flex items-center justify-center rounded-md font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
+  return `${base} ${FOCUS_RING[surface]} ${BUTTON_SIZES[size]} ${BUTTON_VARIANTS[variant]} ${className}`;
 }
 
 export function Button({
@@ -46,16 +56,19 @@ export function LinkButton({
   className = "",
   variant = "primary",
   size = "md",
+  surface = "light",
   children,
 }: {
   href: string;
   className?: string;
   variant?: ButtonVariant;
   size?: ButtonSize;
+  /** The background the button sits on — picks a focus ring that's visible there. */
+  surface?: "light" | "dark";
   children: React.ReactNode;
 }) {
   return (
-    <Link href={href} className={buttonClasses(variant, size, className)}>
+    <Link href={href} className={buttonClasses(variant, size, className, surface)}>
       {children}
     </Link>
   );
@@ -150,17 +163,6 @@ export function Badge({
   );
 }
 
-/** Page-width wrapper used to keep content aligned to the site's max content width. */
-export function Container({
-  className = "",
-  children,
-}: {
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return <div className={`mx-auto max-w-6xl px-4 ${className}`}>{children}</div>;
-}
-
 /** Consistent section title block: optional gold eyebrow label, serif heading, optional description. */
 export function SectionHeading({
   eyebrow,
@@ -170,7 +172,7 @@ export function SectionHeading({
   className = "",
 }: {
   eyebrow?: string;
-  title: string;
+  title: ReactNode;
   description?: string;
   align?: "left" | "center";
   className?: string;
@@ -199,7 +201,8 @@ export function SectionHeading({
  * (via SectionHeading) above the content. Use `tone="dark"` for a
  * charcoal/photo-background section (flips the heading to white); pass a
  * `background` node (e.g. an absolutely-positioned `<Image fill>` + overlay)
- * to layer imagery behind the content.
+ * to layer imagery behind the content. `action` (e.g. a "View all" link)
+ * sits to the right of a left-aligned heading.
  */
 export function Section({
   eyebrow,
@@ -208,34 +211,44 @@ export function Section({
   align = "center",
   tone = "light",
   background,
+  action,
   className = "",
   headingClassName = "",
   children,
 }: {
   eyebrow?: string;
-  title?: string;
+  title?: ReactNode;
   subtitle?: string;
   align?: "left" | "center";
   tone?: "light" | "dark";
   background?: ReactNode;
+  action?: ReactNode;
   className?: string;
   headingClassName?: string;
   children?: ReactNode;
 }) {
+  const heading = title && (
+    <SectionHeading
+      eyebrow={eyebrow}
+      title={title}
+      description={subtitle}
+      align={align}
+      className={`${tone === "dark" ? "[&_h2]:text-white [&_p]:text-white/70" : ""} ${headingClassName}`}
+    />
+  );
   return (
     <section
       className={`relative overflow-hidden py-16 sm:py-24 ${tone === "dark" ? "bg-charcoal text-white" : ""} ${className}`}
     >
       {background}
-      <div className="relative mx-auto max-w-[1200px] px-4">
-        {title && (
-          <SectionHeading
-            eyebrow={eyebrow}
-            title={title}
-            description={subtitle}
-            align={align}
-            className={`${tone === "dark" ? "[&_h2]:text-white [&_p]:text-white/70" : ""} ${headingClassName}`}
-          />
+      <div className="relative mx-auto max-w-6xl px-4">
+        {action ? (
+          <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
+            {heading}
+            <div className="flex-none">{action}</div>
+          </div>
+        ) : (
+          heading
         )}
         {children && <div className={title ? "mt-10" : ""}>{children}</div>}
       </div>

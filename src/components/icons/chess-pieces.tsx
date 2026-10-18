@@ -89,6 +89,59 @@ export function KnightIcon(props: IconProps) {
   );
 }
 
+export type PieceKind = "K" | "Q" | "R" | "B" | "N" | "P";
+export type PieceSide = "w" | "b";
+
+const PIECE_ICONS = {
+  K: KingIcon,
+  Q: QueenIcon,
+  R: RookIcon,
+  B: BishopIcon,
+  N: KnightIcon,
+  P: PawnIcon,
+} satisfies Record<PieceKind, unknown>;
+
+// The pieces only draw inside roughly x 7.6–16.4, y 3.3–20.7 of their 24-unit
+// box; cropping to that lets a board piece fill its square.
+const PIECE_CROP = "3 2.5 18 19.5";
+
+/**
+ * One piece in the shared board style — ivory with a charcoal outline for
+ * white, charcoal with a gold rim for black — used by the hero Live Board and
+ * the Why Chess vignettes. x/y/size are in the parent SVG's units; the outline
+ * stays 1.5px at any scale (see .chess-piece in globals.css).
+ */
+export function BoardPiece({
+  kind,
+  side,
+  x = 0,
+  y = 0,
+  size,
+}: {
+  kind: PieceKind;
+  side: PieceSide;
+  x?: number;
+  y?: number;
+  size: number;
+}) {
+  const Icon = PIECE_ICONS[kind];
+  const stroke = side === "w" ? "var(--charcoal)" : "var(--gold)";
+  return (
+    <Icon
+      x={x}
+      y={y}
+      width={size}
+      height={size}
+      viewBox={PIECE_CROP}
+      fill={side === "w" ? "var(--card)" : "var(--charcoal)"}
+      stroke={stroke}
+      strokeWidth={1.5}
+      className="chess-piece"
+      style={{ color: stroke }}
+    />
+  );
+}
+
 export function TrophyIcon(props: IconProps) {
   return (
     <svg {...base} {...props}>

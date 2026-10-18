@@ -7,6 +7,7 @@ import { endOfDayIST } from "@/lib/datetime";
 export function Countdown({
   target,
   initialTimeLeft,
+  compact = false,
 }: {
   target: string;
   /**
@@ -16,6 +17,8 @@ export function Countdown({
    * (necessarily using the client's own clock) only starts after mount.
    */
   initialTimeLeft: TimeLeft;
+  /** Single-line "3d 11h left" form for tight spaces (e.g. the hero tournament chip) instead of the 4-box grid. */
+  compact?: boolean;
 }) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(initialTimeLeft);
 
@@ -28,6 +31,19 @@ export function Countdown({
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
   }, [target]);
+
+  if (compact) {
+    const parts = [
+      timeLeft.d > 0 ? `${timeLeft.d}d` : null,
+      timeLeft.d > 0 || timeLeft.h > 0 ? `${timeLeft.h}h` : null,
+      `${timeLeft.m}m`,
+    ].filter(Boolean);
+    return (
+      <span className="font-semibold tabular-nums text-white">
+        {parts.join(" ")} <span className="font-normal text-white/65">left</span>
+      </span>
+    );
+  }
 
   const units = [
     { label: "Days", value: timeLeft.d },
