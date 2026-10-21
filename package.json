@@ -12,7 +12,8 @@
     "check": "npm run lint && tsc --noEmit && npm run build",
     "postinstall": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
-    "photos:committee": "node scripts/process-committee-photos.mjs"
+    "photos:committee": "node scripts/process-committee-photos.mjs",
+    "test": "node --import tsx --test \"src/**/*.test.{ts,tsx}\""
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -49,6 +50,7 @@
     "eslint-config-prettier": "^10.1.8",
     "onnxruntime-node": "^1.17.3",
     "prettier": "^3.9.8",
+    "schema-dts": "^2.1.0",
     "sharp": "^0.35.5",
     "tailwindcss": "^4",
     "tsx": "^4.23.12",

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd } from "@/lib/seo/structured-data";
+import { JsonLd } from "@/components/json-ld";
 import { prisma } from "@/lib/prisma";
 import { LinkButton, Card, Section } from "@/components/ui";
 import { Reveal } from "@/components/reveal";
@@ -54,6 +56,7 @@ export default async function AboutPage() {
 
   return (
     <main>
+      <JsonLd data={breadcrumbJsonLd([{ name: "About", path: "/about" }])} />
       <section className="bg-charcoal text-white">
         <div className="mx-auto max-w-4xl px-4 py-16 text-center">
           <h1 className="h1 animate-fade-up">About us</h1>

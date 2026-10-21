@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd } from "@/lib/seo/structured-data";
+import { JsonLd } from "@/components/json-ld";
 import { prisma } from "@/lib/prisma";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { isValidImageUrl } from "@/lib/image-url";
@@ -79,6 +81,7 @@ export default async function GalleryPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-14">
+      <JsonLd data={breadcrumbJsonLd([{ name: "Gallery", path: "/gallery" }])} />
       <div className="text-center">
         <h1 className="h1 text-charcoal">Gallery</h1>
         <p className="text-body mx-auto mt-2 max-w-xl text-muted">

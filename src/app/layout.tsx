@@ -3,6 +3,8 @@ import { Inter, Playfair_Display } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SITE_URL } from "@/lib/site";
 import { SITE_NAME } from "@/lib/seo";
+import { organizationJsonLd, websiteJsonLd } from "@/lib/seo/structured-data";
+import { JsonLd } from "@/components/json-ld";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
@@ -55,6 +57,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             navigation. See the comment on getNextTournament() for why. */}
         {children}
         <SiteFooter />
+        <JsonLd data={organizationJsonLd()} />
+        <JsonLd data={websiteJsonLd()} />
       </body>
     </html>
   );

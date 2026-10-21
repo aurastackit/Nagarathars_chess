@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd } from "@/lib/seo/structured-data";
+import { JsonLd } from "@/components/json-ld";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { ClassFilters } from "@/components/class-filters";
@@ -20,6 +22,7 @@ export default async function ClassesPage() {
 
   return (
     <main>
+      <JsonLd data={breadcrumbJsonLd([{ name: "Online Classes", path: "/classes" }])} />
       <section className="relative flex min-h-48 items-end overflow-hidden bg-charcoal pt-16 text-white sm:min-h-56">
         <Image
           src={CLASSES_HEADER_PHOTO.src}

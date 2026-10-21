@@ -32,6 +32,9 @@ import {
 import { DrawUnderline } from "@/components/draw-underline";
 import { ScrollMotion } from "@/components/scroll-motion";
 import { pageMetadata } from "@/lib/seo";
+import { faqJsonLd } from "@/lib/seo/structured-data";
+import { JsonLd } from "@/components/json-ld";
+import { FAQS } from "@/data/faqs";
 import { EmptyTournaments } from "@/components/illustrations/empty-states";
 
 export const dynamic = "force-dynamic";
@@ -157,25 +160,6 @@ const LEVEL_INFO: Record<string, { label: string; body: string }> = {
   },
 };
 const LEVEL_ORDER = ["beginner", "intermediate", "advanced"];
-
-const FAQS = [
-  {
-    q: "Do I need a FIDE rating to register?",
-    a: "No. Every tournament is open to non-rated players — FIDE ID and rating fields are optional on the registration form.",
-  },
-  {
-    q: "Is there an entry fee?",
-    a: "Most of our tournaments are free to enter. Where a fee applies, it's shown clearly on the tournament page before you register.",
-  },
-  {
-    q: "How is my age category decided?",
-    a: "Automatically, from the year of birth you enter when you register: Under 11, Under 19 or Above 19, based on your age in the tournament year.",
-  },
-  {
-    q: "How do online classes work?",
-    a: "Classes run live online in small groups or one-on-one, from beginner fundamentals through advanced tactics. Check the Online Classes page for current schedules.",
-  },
-];
 
 export default async function HomePage() {
   // All in parallel: each query is a full round trip to the database.
@@ -619,6 +603,7 @@ export default async function HomePage() {
       )}
 
       <Section title="Frequently asked questions" align="left" className={nextBand()}>
+        <JsonLd data={faqJsonLd(FAQS)} />
         <div className="max-w-3xl space-y-6">
           {FAQS.map((f) => (
             <div key={f.q} className="border-b border-border pb-6 last:border-0">

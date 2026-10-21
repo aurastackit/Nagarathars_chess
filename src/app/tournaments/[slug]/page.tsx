@@ -18,7 +18,10 @@ import { registrationAckCookie } from "@/lib/registration-flow";
 import { parseRules } from "@/lib/rules";
 import { SITE_URL } from "@/lib/site";
 import { fitDescription, pageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd } from "@/lib/seo/structured-data";
+import { tournamentEventJsonLd } from "@/lib/seo/tournament-event";
 import { isTestContent } from "@/lib/next-tournament";
+import { JsonLd } from "@/components/json-ld";
 import { isValidImageUrl } from "@/lib/image-url";
 import { RulesAccordion } from "@/components/rules-accordion";
 import { VenueMap } from "@/components/venue-map";
@@ -105,44 +108,14 @@ export default async function TournamentDetailPage({
     `${tournament.title} — ${formatDateRange(tournament.startDate, tournament.endDate)} at ${tournament.venue}, ${tournament.city}. ${detailUrl}`
   );
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    name: tournament.title,
-    description: tournament.description,
-    startDate: tournament.startDate.toISOString(),
-    endDate: tournament.endDate.toISOString(),
-    eventStatus: "https://schema.org/EventScheduled",
-    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-    location: {
-      "@type": "Place",
-      name: capitalizeWords(tournament.venue),
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: capitalizeWords(tournament.city),
-        addressCountry: "IN",
-      },
-    },
-    ...(isValidImageUrl(tournament.posterImageUrl) ? { image: [tournament.posterImageUrl] } : {}),
-    organizer: {
-      "@type": "Organization",
-      name: "Nagarathar's Chess Championship",
-      url: SITE_URL,
-    },
-    offers: {
-      "@type": "Offer",
-      url: detailUrl,
-      price: tournament.entryFee,
-      priceCurrency: "INR",
-      availability: canRegister ? "https://schema.org/InStock" : "https://schema.org/SoldOut",
-    },
-  };
-
   return (
     <main>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      <JsonLd data={tournamentEventJsonLd(tournament, seatsUsed, now)} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Tournaments", path: "/tournaments" },
+          { name: tournament.title, path: `/tournaments/${tournament.slug}` },
+        ])}
       />
       {showNotice && (
         <RegistrationGate
