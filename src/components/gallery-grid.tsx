@@ -92,8 +92,11 @@ export function GalleryGrid({
                     src={item.src}
                     alt={item.title}
                     fill
-                    // The first row is above the fold and is the page's LCP.
-                    loading={i < 3 ? "eager" : "lazy"}
+                    // The first photo is the page's LCP; the rest of the first row is
+                    // above the fold too, so eager — but not preloaded ahead of it.
+                    priority={i === 0}
+                    loading={i > 0 && i < 3 ? "eager" : undefined}
+                    fetchPriority={i > 0 && i < 3 ? "low" : undefined}
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className={item.fit === "cover" ? "object-cover" : "object-contain"}
                   />

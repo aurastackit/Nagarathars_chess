@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { EmptyState } from "@/components/ui";
@@ -8,11 +9,12 @@ import { TOURNAMENTS_HEADER_PHOTO } from "@/lib/featured-photos";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Tournaments",
+export const metadata: Metadata = pageMetadata({
+  title: "Chennai Chess Tournaments",
   description:
-    "Browse local chess tournaments and register — free entry to most events, open to non-rated players of every age.",
-};
+    "Upcoming chess tournaments in Chennai for kids and adults. Free entry to most events and no FIDE rating needed – see dates, venues and register online today.",
+  path: "/tournaments",
+});
 
 export default async function TournamentsPage() {
   const rows = await prisma.tournament.findMany({
@@ -48,6 +50,8 @@ export default async function TournamentsPage() {
       </section>
 
       <div className="mx-auto max-w-6xl px-4 py-12">
+        {/* Keeps the outline h1 → h2 → h3 (cards use h3) without changing the design. */}
+        <h2 className="sr-only">Upcoming and recent tournaments</h2>
         {tournaments.length === 0 ? (
           <EmptyState
             icon={<EmptyTournaments className="h-16 w-16" />}

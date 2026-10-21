@@ -115,12 +115,16 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <Link href="/" className="flex items-center gap-3" onClick={() => setMenuOpen(false)}>
+            {/* Decorative: the link's text already names the site. Eager (it's always
+                above the fold) but low priority — it's never the page's LCP element,
+                so it shouldn't be preloaded ahead of the real LCP image. */}
             <Image
               src="/images/logo.png"
-              alt="Logo"
+              alt=""
               width={40}
               height={40}
-              priority
+              loading="eager"
+              fetchPriority="low"
               className="h-10 w-10 object-contain"
             />
             <span className="font-semibold text-charcoal leading-tight">
@@ -196,12 +200,13 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
             <Link href="/" className="flex items-center gap-3" onClick={() => setMenuOpen(false)}>
               <Image
                 src="/images/logo.png"
-                alt="Logo"
+                alt=""
                 width={36}
                 height={36}
                 // Same optimised URL as the header logo; if this copy were lazy, Next's
                 // dev LCP check would flag the header logo as lazy too.
                 loading="eager"
+                fetchPriority="low"
                 className="h-9 w-9 object-contain"
               />
               <span className="font-semibold leading-tight">

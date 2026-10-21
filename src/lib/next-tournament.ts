@@ -18,6 +18,9 @@ import { endOfDayIST } from "@/lib/datetime";
 // tournaments like "Chess Contest" or "Latest Rapid Open" in production.
 const TEST_TITLE = /\btest/i;
 
+/** True for a test tournament that should stay out of production listings, sitemaps and search results. */
+export const isTestContent = (title: string) => process.env.NODE_ENV === "production" && TEST_TITLE.test(title);
+
 export const getNextTournament = cache(async () => {
   const now = new Date();
   // Loose DB-level filter (deadlines are midnight UTC of the chosen date,
@@ -29,11 +32,10 @@ export const getNextTournament = cache(async () => {
     orderBy: { registrationDeadline: "asc" },
     take: 10,
   });
-  const hideTestTitles = process.env.NODE_ENV === "production";
   return (
     candidates.find(
       (t) =>
-        !(hideTestTitles && TEST_TITLE.test(t.title)) && endOfDayIST(t.registrationDeadline) > now
+        !isTestContent(t.title) && endOfDayIST(t.registrationDeadline) > now
     ) ?? null
   );
 });

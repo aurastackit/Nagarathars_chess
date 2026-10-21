@@ -31,9 +31,17 @@ import {
 } from "@/components/illustrations/why-chess";
 import { DrawUnderline } from "@/components/draw-underline";
 import { ScrollMotion } from "@/components/scroll-motion";
+import { pageMetadata } from "@/lib/seo";
 import { EmptyTournaments } from "@/components/illustrations/empty-states";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = pageMetadata({
+  title: "Chess Tournaments & Classes in Chennai | Nagarathar's Chess",
+  description:
+    "Free chess tournaments in Chennai for kids and adults – no FIDE rating needed. Register online for Nagarathar's Chess Championship and join online classes.",
+  path: "/",
+});
 
 function ViewAll({ href }: { href: string }) {
   return (

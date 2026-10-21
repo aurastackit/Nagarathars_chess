@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { prisma } from "@/lib/prisma";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { isValidImageUrl } from "@/lib/image-url";
@@ -9,10 +10,12 @@ import { EmptyGallery } from "@/components/illustrations/empty-states";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Gallery",
-  description: "Photos from our tournaments and classes.",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "Photos & Video Highlights",
+  description:
+    "Photos and video highlights from Nagarathar's Chess Championship tournaments and classes in Chennai – young players, families and memorable games.",
+  path: "/gallery",
+});
 
 export default async function GalleryPage() {
   const [curatedGallery, tournaments, classes] = await Promise.all([

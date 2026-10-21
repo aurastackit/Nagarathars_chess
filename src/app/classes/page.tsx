@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { ClassFilters } from "@/components/class-filters";
@@ -7,11 +8,12 @@ import { SkillProgression } from "@/components/illustrations/skill-progression";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Online Classes",
+export const metadata: Metadata = pageMetadata({
+  title: "Online Chess Classes",
   description:
-    "Structured online chess coaching for every level — beginner fundamentals through advanced tournament preparation, group or 1-on-1.",
-};
+    "Online chess classes for kids and adults in Chennai and beyond – beginner to advanced, group or one-on-one, taught live by coaches. Join or get on the waitlist.",
+  path: "/classes",
+});
 
 export default async function ClassesPage() {
   const classes = await prisma.classProgram.findMany({ orderBy: { createdAt: "asc" } });
@@ -39,6 +41,8 @@ export default async function ClassesPage() {
 
       <div className="mx-auto max-w-6xl px-4 py-12">
         <SkillProgression className="mb-10" />
+        {/* Keeps the outline h1 → h2 → h3 (class cards use h3) without changing the design. */}
+        <h2 className="sr-only">Class programmes</h2>
         <ClassFilters classes={classes} />
       </div>
     </main>

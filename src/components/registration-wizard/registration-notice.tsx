@@ -36,7 +36,7 @@ export function RegistrationNotice({
       <section className={PANEL}>
         <div className="grid gap-6 md:grid-cols-2">
           <div>
-            <h2 className={PANEL_TITLE}>Note</h2>
+            <h3 className={PANEL_TITLE}>Note</h3>
             <ul className={BULLETS}>
               <li>
                 Players must register with a <B>valid email</B> and verify using OTP
@@ -51,7 +51,7 @@ export function RegistrationNotice({
             </ul>
           </div>
           <div>
-            <h2 className={PANEL_TITLE}>Registration protocol</h2>
+            <h3 className={PANEL_TITLE}>Registration protocol</h3>
             <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-foreground/80">
               <li>
                 Click <B>Continue to registration</B> below and enter your email
@@ -78,7 +78,7 @@ export function RegistrationNotice({
       </section>
 
       <section className={PANEL}>
-        <h2 className={PANEL_TITLE}>Player divisions</h2>
+        <h3 className={PANEL_TITLE}>Player divisions</h3>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full text-left text-sm">
             <caption className="sr-only">Player divisions by age</caption>
@@ -118,7 +118,7 @@ export function RegistrationNotice({
 
       {SUPPORT_CONTACTS.length > 0 && (
         <section className={PANEL}>
-          <h2 className={PANEL_TITLE}>Support contact</h2>
+          <h3 className={PANEL_TITLE}>Support contact</h3>
           <div className="mt-3 overflow-x-auto">
             <table className="w-full text-left text-sm">
               <caption className="sr-only">People to contact for help with registration</caption>
@@ -158,10 +158,10 @@ export function RegistrationNotice({
       )}
 
       <section className="rounded-lg border border-warning/30 bg-warning/5 p-4 sm:p-5">
-        <h2 className="flex items-center gap-2 text-base font-semibold text-warning">
+        <h3 className="flex items-center gap-2 text-base font-semibold text-warning">
           <ShieldIcon className="h-5 w-5 flex-none" aria-hidden="true" />
           Stay safe
-        </h2>
+        </h3>
         <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-foreground/80 marker:text-warning">
           <li>
             We will <B>never</B> ask for your OTP, passwords, or card PIN

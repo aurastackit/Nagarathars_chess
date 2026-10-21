@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { isRazorpayConfigured } from "@/lib/razorpay";
 import { Badge, buttonClasses } from "@/components/ui";
@@ -14,9 +14,11 @@ import {
   TOURNAMENT_STATUS_LABEL,
   TOURNAMENT_FORMAT_LABEL,
 } from "@/lib/tournament-status";
-import { registerPath, registrationAckCookie } from "@/lib/registration-flow";
+import { registrationAckCookie } from "@/lib/registration-flow";
 import { parseRules } from "@/lib/rules";
 import { SITE_URL } from "@/lib/site";
+import { fitDescription, pageMetadata } from "@/lib/seo";
+import { isTestContent } from "@/lib/next-tournament";
 import { isValidImageUrl } from "@/lib/image-url";
 import { RulesAccordion } from "@/components/rules-accordion";
 import { VenueMap } from "@/components/venue-map";
@@ -37,24 +39,25 @@ export async function generateMetadata({
   const tournament = await prisma.tournament.findUnique({ where: { slug } });
   if (!tournament || tournament.status === "draft") return {};
 
-  const description =
-    `${formatDateRange(tournament.startDate, tournament.endDate)} at ${tournament.venue}, ${tournament.city}. ${tournament.description}`.slice(
-      0,
-      160
-    );
+  const city = capitalizeWords(tournament.city);
+  const venue = capitalizeWords(tournament.venue);
+  const fee = tournament.entryFee === 0 ? "Free entry" : `Entry fee ₹${tournament.entryFee}`;
+  const registration = canRegisterFor(tournament)
+    ? `register by ${formatDate(tournament.registrationDeadline)}`
+    : "registration has closed";
+  const path = `/tournaments/${tournament.slug}`;
 
-  return {
-    title: tournament.title,
-    description,
-    // The registration pop-up lives at ?notice=1; it isn't a separate page.
-    alternates: { canonical: `/tournaments/${tournament.slug}` },
-    openGraph: {
-      title: tournament.title,
-      description,
-      type: "website",
-      url: `${SITE_URL}/tournaments/${tournament.slug}`,
-    },
-  };
+  return pageMetadata({
+    title: `${tournament.title} – ${formatDate(tournament.startDate)}, ${city}`,
+    description: fitDescription(
+      `${tournament.title}: ${formatDateRange(tournament.startDate, tournament.endDate)} at ${venue}, ${city}. ${fee}; ${registration}.`,
+      ["Open to non-rated players of every age.", "No FIDE rating needed."]
+    ),
+    // Canonical is always the clean URL — the registration pop-up lives at ?notice=1.
+    path,
+    image: `${path}/opengraph-image`,
+    noindex: isTestContent(tournament.title),
+  });
 }
 
 export default async function TournamentDetailPage({
@@ -77,14 +80,13 @@ export default async function TournamentDetailPage({
 
   const status = getTournamentStatus(tournament);
   const canRegister = canRegisterFor(tournament);
-  // Registering starts with the notice pop-up, and while it's showing nothing else
-  // is: Register buttons send visitors here with ?notice, and anyone who hasn't
-  // accepted it yet is sent to it too. Accepting sets this cookie and opens the page.
+  // Registering starts with the notice pop-up: anyone who hasn't accepted it yet
+  // sees it as a modal over the (inert) page, and Register buttons open it with
+  // ?notice. Accepting sets this cookie and closes it. It's rendered in place
+  // rather than via a redirect so the page keeps one URL — crawlers get the full
+  // event details, and visitors get no second page load or layout shift.
   const acknowledged = (await cookies()).get(registrationAckCookie(tournament.slug))?.value === "1";
-  if (canRegister && notice === undefined && !acknowledged) {
-    redirect(registerPath(tournament.slug));
-  }
-  const showNotice = canRegister && notice !== undefined;
+  const showNotice = canRegister && (notice !== undefined || !acknowledged);
   const rules = parseRules(tournament.rulesText);
   const seatsUsed = tournament._count.registrations;
   const seatsPct = tournament.maxParticipants
@@ -142,13 +144,13 @@ export default async function TournamentDetailPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {showNotice ? (
+      {showNotice && (
         <RegistrationGate
           slug={tournament.slug}
           notice={<RegistrationNotice tournament={tournament} />}
         />
-      ) : (
-        <>
+      )}
+      <div inert={showNotice}>
           <section className="relative overflow-hidden bg-charcoal text-white">
             {isValidImageUrl(tournament.posterImageUrl) ? (
               <div className="relative h-64 w-full sm:h-80">
@@ -348,18 +350,24 @@ export default async function TournamentDetailPage({
                 </div>
               ) : (
                 <div className="mt-4">
-                  <RegistrationWizard
-                    tournamentSlug={tournament.slug}
-                    tournamentTitle={tournament.title}
-                    tournamentStartDate={tournament.startDate}
-                    entryFee={isRazorpayConfigured() ? tournament.entryFee : 0}
-                  />
+                  {/* The form can't be used until the notice is accepted, so don't load
+                      its code (react-hook-form, zod, six steps) behind the notice — same
+                      placeholder as the lazy loader, so accepting doesn't shift the page. */}
+                  {showNotice ? (
+                    <div className="h-64 rounded-lg bg-charcoal/5" aria-hidden="true" />
+                  ) : (
+                    <RegistrationWizard
+                      tournamentSlug={tournament.slug}
+                      tournamentTitle={tournament.title}
+                      tournamentStartDate={tournament.startDate}
+                      entryFee={isRazorpayConfigured() ? tournament.entryFee : 0}
+                    />
+                  )}
                 </div>
               )}
             </section>
           </div>
-        </>
-      )}
+      </div>
     </main>
   );
 }

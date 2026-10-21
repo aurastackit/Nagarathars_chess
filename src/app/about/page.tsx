@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { prisma } from "@/lib/prisma";
 import { LinkButton, Card, Section } from "@/components/ui";
 import { Reveal } from "@/components/reveal";
@@ -7,10 +8,12 @@ import { COMMITTEE } from "@/data/committee";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "About",
-  description: "Our story, our promise, and our goal for community chess.",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "About Us & Our Trustees",
+  description:
+    "Meet the trustees behind Nagarathar's Chess Championship, a community-run chess initiative in Chennai making tournaments and coaching free and welcoming.",
+  path: "/about",
+});
 
 const PROMISES = [
   {

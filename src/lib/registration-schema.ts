@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { mightBeMinor } from "@/lib/age-category";
 import { KOVILS } from "@/lib/kovils";
 

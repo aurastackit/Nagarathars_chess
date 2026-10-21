@@ -43,18 +43,18 @@ export async function RegistrationEventCard({
         <h3 className="text-base font-semibold text-charcoal">{tournament.title}</h3>
         <dl className="mt-3 space-y-2 text-sm text-foreground/80">
           <div className="flex items-start gap-2">
-            <CalendarIcon className="mt-0.5 h-4 w-4 flex-none text-gold-ink" aria-hidden="true" />
-            <div>
-              <dt className="sr-only">Date</dt>
-              <dd>{when}</dd>
-            </div>
+            <dt className="flex-none">
+              <CalendarIcon className="mt-0.5 h-4 w-4 text-gold-ink" aria-hidden="true" />
+              <span className="sr-only">Date</span>
+            </dt>
+            <dd>{when}</dd>
           </div>
           <div className="flex items-start gap-2">
-            <MapPinIcon className="mt-0.5 h-4 w-4 flex-none text-gold-ink" aria-hidden="true" />
-            <div>
-              <dt className="sr-only">Venue</dt>
-              <dd>{place}</dd>
-            </div>
+            <dt className="flex-none">
+              <MapPinIcon className="mt-0.5 h-4 w-4 text-gold-ink" aria-hidden="true" />
+              <span className="sr-only">Venue</span>
+            </dt>
+            <dd>{place}</dd>
           </div>
         </dl>
         <div className="mt-4 flex flex-wrap gap-2">

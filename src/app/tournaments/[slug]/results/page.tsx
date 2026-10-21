@@ -7,6 +7,10 @@ import { ageCategoryLabel } from "@/lib/age-category";
 import { computeStandings, categoryWinners } from "@/lib/standings";
 import { TrophyIcon } from "@/components/icons/chess-pieces";
 import { EmptyTournaments } from "@/components/illustrations/empty-states";
+import { fitDescription, pageMetadata } from "@/lib/seo";
+import { isTestContent } from "@/lib/next-tournament";
+import { formatDateRange } from "@/lib/format";
+import { capitalizeWords } from "@/lib/text";
 
 export const dynamic = "force-dynamic";
 
@@ -25,10 +29,17 @@ export async function generateMetadata({
   const { slug } = await params;
   const tournament = await prisma.tournament.findUnique({ where: { slug } });
   if (!tournament || !tournament.resultsPublished) return {};
-  return {
-    title: `Results — ${tournament.title}`,
-    description: `Final standings and round-by-round results for ${tournament.title}.`,
-  };
+  const city = capitalizeWords(tournament.city);
+  return pageMetadata({
+    title: `${tournament.title} Results – ${city}`,
+    description: fitDescription(
+      `Final standings, round-by-round results and category champions from ${tournament.title}, played ${formatDateRange(tournament.startDate, tournament.endDate)} at ${capitalizeWords(tournament.venue)}, ${city}.`,
+      ["See every player's score.", "Congratulations to all players."]
+    ),
+    path: `/tournaments/${tournament.slug}/results`,
+    image: `/tournaments/${tournament.slug}/opengraph-image`,
+    noindex: isTestContent(tournament.title),
+  });
 }
 
 export default async function TournamentResultsPage({

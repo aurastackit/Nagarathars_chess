@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { isValidImageUrl } from "@/lib/image-url";
 
 const optionalText = z.string().trim().optional().or(z.literal(""));

@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
+import { PRIVACY_LAST_UPDATED } from "@/lib/legal";
 import Link from "next/link";
 
-export const metadata: Metadata = {
-  title: "Privacy Policy",
+export const metadata: Metadata = pageMetadata({
+  title: "Privacy Policy & Your Data",
   description:
-    "What personal information Nagarathar's Chess Championship collects, why, who can see it, and how to have it corrected or deleted.",
-};
+    "What personal information Nagarathar's Chess Championship collects, why, who can see it, and how parents and players can have it corrected or deleted.",
+  path: "/privacy",
+});
 
-const LAST_UPDATED = "14 October 2026";
+const LAST_UPDATED = PRIVACY_LAST_UPDATED.toLocaleDateString("en-IN", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "Asia/Kolkata",
+});
 
 const LINK = "font-semibold text-charcoal underline underline-offset-2 hover:text-gold-ink";
 const LIST = "mt-3 list-disc space-y-2 pl-5";

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SITE_URL } from "@/lib/site";
+import { SITE_NAME } from "@/lib/seo";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
@@ -9,30 +10,37 @@ export const dynamic = "force-dynamic";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const playfairDisplay = Playfair_Display({
   variable: "--font-display",
   subsets: ["latin"],
+  display: "swap",
 });
 
+// Site-wide defaults; each public page overrides title/description/canonical
+// through pageMetadata() in lib/seo. The template must match TITLE_SUFFIX there.
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  applicationName: SITE_NAME,
   title: {
-    default: "Nagarathar's Chess Championship",
-    template: "%s | Nagarathar's Chess Championship",
+    default: SITE_NAME,
+    template: `%s | ${SITE_NAME}`,
   },
   description:
-    "Chess tournaments and online coaching for local, non-rated players — register for upcoming tournaments and classes.",
+    "Free chess tournaments in Chennai for kids and adults – no FIDE rating needed. Register online for Nagarathar's Chess Championship and join online classes.",
   openGraph: {
-    siteName: "Nagarathar's Chess Championship",
+    siteName: SITE_NAME,
     type: "website",
+    locale: "en_IN",
   },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfairDisplay.variable} h-full antialiased`}>
+    <html lang="en-IN" className={`${inter.variable} ${playfairDisplay.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         {/* First tab stop on every page; hidden above the viewport until focused.
             Targets the page wrapper in template.tsx. */}

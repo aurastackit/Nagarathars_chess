@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { ContactForm } from "@/components/contact-form";
 
-export const metadata: Metadata = {
-  title: "Contact",
+export const metadata: Metadata = pageMetadata({
+  title: "Contact the Organisers",
   description:
-    "Questions about a tournament or class? Send us a message and we'll get back to you.",
-};
+    "Questions about a chess tournament, registration or online class in Chennai? Send the Nagarathar's Chess Championship team a message and we'll reply soon.",
+  path: "/contact",
+});
 
 export default function ContactPage() {
   return (

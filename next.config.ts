@@ -36,6 +36,18 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" },
     ],
   },
+  async redirects() {
+    // www served a duplicate copy of the site (200, no redirect) — send it to the apex.
+    // Trailing slashes are already handled by Next's default /path/ → /path redirect.
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.nagaratharschesschampionship.org" }],
+        destination: "https://nagaratharschesschampionship.org/:path*",
+        statusCode: 301,
+      },
+    ];
+  },
   async headers() {
     return [
       {

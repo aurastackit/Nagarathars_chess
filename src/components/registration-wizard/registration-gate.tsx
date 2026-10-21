@@ -73,6 +73,9 @@ export function RegistrationGate({ slug, notice }: { slug: string; notice: React
     }
     startTransition(() => {
       router.replace(`/tournaments/${slug}#register`);
+      // On the clean URL that's only a hash change, which doesn't re-render the
+      // server page — refresh so it reads the new cookie and drops the notice.
+      router.refresh();
     });
   }
 
@@ -90,9 +93,10 @@ export function RegistrationGate({ slug, notice }: { slug: string; notice: React
           <Link href="/tournaments" className="text-sm font-semibold text-gold-ink hover:underline">
             &larr; Back to tournaments
           </Link>
-          <h1 id={titleId} className="h2 mt-3 text-charcoal">
+          {/* h2: the dialog sits over the tournament page, which has its own h1. */}
+          <h2 id={titleId} className="h2 mt-3 text-charcoal">
             Player registration
-          </h1>
+          </h2>
           <p className="mt-1 text-sm text-foreground/80">
             Please read the description and category details carefully before proceeding.
           </p>
@@ -101,7 +105,7 @@ export function RegistrationGate({ slug, notice }: { slug: string; notice: React
             {notice}
 
             <section className={PANEL}>
-              <h2 className={PANEL_TITLE}>Declaration &amp; consent</h2>
+              <h3 className={PANEL_TITLE}>Declaration &amp; consent</h3>
               <p className="mt-2 text-sm text-foreground/80">
                 By proceeding, you agree to the following:
               </p>
