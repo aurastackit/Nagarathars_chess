@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
-import { LinkButton, Card } from "@/components/ui";
+import { LinkButton, Card, Section } from "@/components/ui";
 import { Reveal } from "@/components/reveal";
+import { TrusteesOrbit } from "@/components/trustees-orbit";
+import { COMMITTEE } from "@/data/committee";
 
 export const dynamic = "force-dynamic";
 
@@ -100,6 +102,16 @@ export default async function AboutPage() {
           ))}
         </Reveal>
       </section>
+
+      <Section
+        eyebrow="Our trustees"
+        title="The trustees behind the vision"
+        subtitle="The trustees who guide our vision and make every tournament, class and registration possible."
+        align="left"
+        className="bg-card"
+      >
+        <TrusteesOrbit members={COMMITTEE} />
+      </Section>
 
       <section className="bg-charcoal/5 py-14">
         <div className="mx-auto max-w-4xl px-4">

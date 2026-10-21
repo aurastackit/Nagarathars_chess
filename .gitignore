@@ -54,3 +54,9 @@ next-env.d.ts
 /playwright-report/
 /lighthouse*/
 /src/app/dev/
+
+# committee portraits: only the processed webp files are published —
+# originals, cut-outs, debug overlays and the review contact sheet stay local
+/public/images/committee/raw/
+/public/images/committee/committee-contact-sheet.png
+/scripts/.models/
