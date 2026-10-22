@@ -1,5 +1,6 @@
 import "server-only";
 import { SESClient, SendEmailCommand, SendRawEmailCommand } from "@aws-sdk/client-ses";
+import { buildRawEmail, type MimeAttachment } from "@/lib/email/mime";
 
 /** Every variable sending email needs. All four must be set in the Amplify console. */
 export const SES_ENV_VARS = [
@@ -38,72 +39,52 @@ function getClient() {
   });
 }
 
-export type EmailAttachment = {
-  filename: string;
-  contentBase64: string;
-  contentType?: string;
-};
+export type EmailAttachment = MimeAttachment;
 
 /**
- * Sends an email via SES. Plain emails use SendEmailCommand; anything with
- * attachments needs a hand-built MIME message via SendRawEmailCommand, since
- * SES's simple API has no attachment support.
+ * Sends an email via SES, always with an HTML and a plain-text part, in UTF-8.
+ * Plain emails use SendEmailCommand; anything with attachments needs a
+ * hand-built MIME message (src/lib/email/mime.ts) via SendRawEmailCommand,
+ * since SES's simple API has no attachment support.
  */
 export async function sendEmail(params: {
   to: string;
   subject: string;
   html: string;
+  text: string;
+  replyTo?: string | null;
   attachments?: EmailAttachment[];
 }) {
   const client = getClient();
   const from = process.env.SES_FROM_EMAIL || "";
   if (!from) throw new Error("Email is not configured: missing SES_FROM_EMAIL");
+  const replyTo = params.replyTo || undefined;
 
   if (!params.attachments || params.attachments.length === 0) {
     return client.send(
       new SendEmailCommand({
         Source: from,
         Destination: { ToAddresses: [params.to] },
+        ...(replyTo && { ReplyToAddresses: [replyTo] }),
         Message: {
-          Subject: { Data: params.subject },
-          Body: { Html: { Data: params.html } },
+          Subject: { Data: params.subject, Charset: "UTF-8" },
+          Body: {
+            Html: { Data: params.html, Charset: "UTF-8" },
+            Text: { Data: params.text, Charset: "UTF-8" },
+          },
         },
       })
     );
   }
 
-  const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-  const lines = [
-    `From: ${from}`,
-    `To: ${params.to}`,
-    `Subject: ${params.subject}`,
-    "MIME-Version: 1.0",
-    `Content-Type: multipart/mixed; boundary="${boundary}"`,
-    "",
-    `--${boundary}`,
-    "Content-Type: text/html; charset=UTF-8",
-    "Content-Transfer-Encoding: 7bit",
-    "",
-    params.html,
-    "",
-  ];
-
-  for (const attachment of params.attachments) {
-    lines.push(
-      `--${boundary}`,
-      `Content-Type: ${attachment.contentType ?? "application/octet-stream"}; name="${attachment.filename}"`,
-      "Content-Transfer-Encoding: base64",
-      `Content-Disposition: attachment; filename="${attachment.filename}"`,
-      "",
-      attachment.contentBase64,
-      ""
-    );
-  }
-  lines.push(`--${boundary}--`, "");
-
-  return client.send(
-    new SendRawEmailCommand({
-      RawMessage: { Data: Buffer.from(lines.join("\r\n")) },
-    })
-  );
+  const raw = buildRawEmail({
+    from,
+    to: params.to,
+    replyTo,
+    subject: params.subject,
+    html: params.html,
+    text: params.text,
+    attachments: params.attachments,
+  });
+  return client.send(new SendRawEmailCommand({ RawMessage: { Data: Buffer.from(raw, "utf8") } }));
 }

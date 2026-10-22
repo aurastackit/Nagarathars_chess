@@ -59,8 +59,9 @@ export function buildTournamentIcs(tournament: {
     "BEGIN:VEVENT",
     `UID:${tournament.slug}@nagaratharschess`,
     `DTSTAMP:${toIcsDate(new Date())}`,
-    `DTSTART:${toIcsDate(tournament.startDate)}`,
-    `DTEND:${toIcsDate(tournament.endDate)}`,
+    // All-day, like the Google link: tournaments store dates, not times, and DTEND is exclusive.
+    `DTSTART;VALUE=DATE:${toGoogleAllDay(tournament.startDate)}`,
+    `DTEND;VALUE=DATE:${toGoogleAllDay(new Date(tournament.endDate.getTime() + 24 * 60 * 60 * 1000))}`,
     `SUMMARY:${escapeIcsText(tournament.title)}`,
     `DESCRIPTION:${escapeIcsText(tournament.description)}`,
     `LOCATION:${escapeIcsText(`${tournament.venue}, ${tournament.city}`)}`,
