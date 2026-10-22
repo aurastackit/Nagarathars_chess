@@ -3,6 +3,16 @@
 Things that are built but waiting on access, credentials or a decision. Tick
 them off here as they're done.
 
+## Must fix before go-live
+
+- [ ] **Delete must remove the documents.** Deleting a registration leaves its
+      photo and age proof in S3; delete them with the record (Step 9, privacy),
+      plus a retention rule for old documents.
+- [ ] **Unknown pages must return HTTP 404.** Not-found pages answer 200 (they show
+      "Page not found" with noindex) because the root `loading.tsx` starts
+      streaming before `notFound()` runs — public pages like
+      `/tournaments/<bad-slug>` are soft 404s for search engines.
+
 ## Access and credentials
 
 - [ ] **CRON_SECRET doesn't reach the app.** `POST /api/cron/expire-changes-requests`
@@ -44,6 +54,8 @@ them off here as they're done.
       no SES keys, so sending fails by design and is logged as `email_failed`).
 - [ ] Poster upload end to end (needs working local S3 keys; the bucket's CORS
       also only allows the production origin, so test from the live admin).
+- [ ] Player detail page on live: approve / reject / request-changes emails, and
+      photo + age-proof previews from S3 (locally only the inline legacy files work).
 
 ## Follow-ups
 
@@ -57,3 +69,4 @@ them off here as they're done.
 - [ ] Admin pages are slow on live: the dashboard's first byte takes ~5–6 s
       (session check, tournament list and data are sequential trips to Sydney).
       The Mumbai move is the main fix; caching the tournament list would save a trip.
+- [ ] Re-open and withdraw by an admin don't email the player yet — Step 6.
