@@ -1,98 +1,20 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
-import { toXlsxBuffer } from "@/lib/xlsx";
-import { formatDate } from "@/lib/format";
-import { ageCategoryLabel } from "@/lib/age-category";
+import { exportResponse } from "@/lib/admin-exports";
+import { DEFAULT_FILTERS } from "@/lib/player-filters";
+import { registrationsExportTable } from "@/lib/player-list";
 
+/** Every registration for one tournament — the same columns as the player list export. */
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await requireAdminApi();
-  if (!session) {
+  if (!(await requireAdminApi())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
   const { id } = await params;
-  const tournament = await prisma.tournament.findUnique({
-    where: { id },
-    include: { registrations: { orderBy: { registeredAt: "asc" } } },
-  });
-
+  const tournament = await prisma.tournament.findUnique({ where: { id }, select: { slug: true } });
   if (!tournament) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-
-  const buffer = toXlsxBuffer(
-    "Registrations",
-    [
-      "Full name",
-      "Email",
-      "Phone",
-      "Birth year",
-      "Gender",
-      "City",
-      "Address",
-      "Rating",
-      "FIDE ID",
-      "Native",
-      "Kovil",
-      "Pirivu",
-      "Father name",
-      "Mother name",
-      "Father side grandparents",
-      "Mother side grandparents",
-      "Mother native",
-      "Mother Kovil",
-      "Mother Pirivu",
-      "Sangam member",
-      "Sangam relative",
-      "Age proof type",
-      "Age proof uploaded",
-      "Passport photo uploaded",
-      "Age category",
-      "Payment status",
-      "Amount paid",
-      "Review status",
-      "Rejection reason",
-      "Registered at",
-    ],
-    tournament.registrations.map((r) => [
-      r.fullName,
-      r.email,
-      r.phone,
-      r.dob ? r.dob.getUTCFullYear() : "",
-      r.gender ?? "",
-      r.city ?? "",
-      r.address ?? "",
-      r.rating ?? "",
-      r.fideId ?? "",
-      r.native ?? "",
-      r.kovil ?? "",
-      r.pirivu ?? "",
-      r.fatherName ?? "",
-      r.motherName ?? "",
-      r.fatherGrandparents ?? "",
-      r.motherGrandparents ?? "",
-      r.motherNative ?? "",
-      r.motherKovil ?? "",
-      r.motherPirivu ?? "",
-      r.sangamMember ? "Yes" : "No",
-      r.sangamRelativeName ?? "",
-      r.ageProofType ?? "",
-      r.ageProofKey || r.aadhaarImageData ? "Yes" : "No",
-      r.passportPhotoKey || r.passportPhotoData ? "Yes" : "No",
-      ageCategoryLabel(r.ageCategory),
-      r.paymentStatus,
-      r.amountPaid ?? "",
-      r.status,
-      r.rejectionReason ?? "",
-      formatDate(r.registeredAt),
-    ])
-  );
-
-  return new NextResponse(new Uint8Array(buffer), {
-    headers: {
-      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="${tournament.slug}-registrations.xlsx"`,
-    },
-  });
+  const table = await registrationsExportTable({ ...DEFAULT_FILTERS, t: id });
+  return exportResponse({ name: "Registrations", ...table }, "xlsx", `${tournament.slug}-registrations`);
 }
