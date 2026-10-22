@@ -40,6 +40,8 @@ them off here as they're done.
 
 - [ ] Daily expiry job on live (needs CRON_SECRET).
 - [ ] Real email delivery of the changes-requested and "Fix by" emails.
+- [ ] Bulk approve / request-changes emails on live (a local production build has
+      no SES keys, so sending fails by design and is logged as `email_failed`).
 - [ ] Poster upload end to end (needs working local S3 keys; the bucket's CORS
       also only allows the production origin, so test from the live admin).
 
@@ -50,5 +52,8 @@ them off here as they're done.
 - [ ] Home page takes ~2.75 s on live (others ~1.45 s): some helper reads the
       database in sequence; moot after the Mumbai move, otherwise parallelise.
 - [ ] Home page layout shift 0.061 (the footer moves when a section above it loads).
-- [ ] Oversized age proof (> 1 MB) gets "Invalid upload request" instead of
-      "…must be under 1 MB" (planned for Step 4).
+- [x] Oversized age proof (> 1 MB) gets "Invalid upload request" instead of
+      "…must be under 1 MB" — fixed in Step 4.
+- [ ] Admin pages are slow on live: the dashboard's first byte takes ~5–6 s
+      (session check, tournament list and data are sequential trips to Sydney).
+      The Mumbai move is the main fix; caching the tournament list would save a trip.
