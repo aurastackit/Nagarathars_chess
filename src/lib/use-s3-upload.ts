@@ -2,12 +2,19 @@
 
 import { useState } from "react";
 import { compressIfImage } from "@/lib/image-compression";
-import { UPLOAD_MAX_BYTES, UPLOAD_TYPES, formatUploadLimit, type UploadKind } from "@/lib/upload-limits";
+import {
+  UPLOAD_MAX_BYTES,
+  UPLOAD_TYPES,
+  formatUploadLimit,
+  type UploadKind,
+} from "@/lib/upload-limits";
 
 export type { UploadKind };
 
 // Compression targets sit a little under the hard limits the server signs into the URL.
 const COMPRESS_TO_MB: Record<UploadKind, number> = { ageProof: 0.9, passportPhoto: 0.45 };
+// Passport photos are stored as JPEG so they can be printed on the ID card.
+const ENCODE_AS: Partial<Record<UploadKind, string>> = { passportPhoto: "image/jpeg" };
 
 export function useS3Upload(tournamentSlug: string) {
   const [uploading, setUploading] = useState<Record<string, boolean>>({});
@@ -26,7 +33,7 @@ export function useS3Upload(tournamentSlug: string) {
 
     setUploading((s) => ({ ...s, [kind]: true }));
     try {
-      const compressed = await compressIfImage(file, COMPRESS_TO_MB[kind]);
+      const compressed = await compressIfImage(file, COMPRESS_TO_MB[kind], ENCODE_AS[kind]);
 
       if (compressed.size > UPLOAD_MAX_BYTES[kind]) {
         throw new Error(`File must be under ${formatUploadLimit(kind)}`);
