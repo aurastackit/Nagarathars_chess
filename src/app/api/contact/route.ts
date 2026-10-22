@@ -4,6 +4,7 @@ import { contactSchema } from "@/lib/validations";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { isHoneypotTriggered } from "@/lib/honeypot";
 import { isReadOnly, readOnlyResponse } from "@/lib/read-only";
+import { sendContactNotification } from "@/lib/notify";
 
 export async function POST(req: Request) {
   if (isReadOnly()) return readOnlyResponse();
@@ -27,7 +28,14 @@ export async function POST(req: Request) {
     );
   }
 
-  await prisma.contactMessage.create({ data: parsed.data });
+  const message = await prisma.contactMessage.create({ data: parsed.data });
+
+  // Tell the organisers; the message is saved (and in the admin Messages page) whatever happens.
+  try {
+    await sendContactNotification(message);
+  } catch (err) {
+    console.error("[contact] notification email failed:", err);
+  }
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }
