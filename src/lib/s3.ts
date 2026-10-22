@@ -142,3 +142,25 @@ export async function getPosterObject(file: string) {
     throw err;
   }
 }
+
+/** A private object's bytes (server use: ID-card photos and cached PDFs); null if it doesn't exist. */
+export async function getObjectBytes(key: string) {
+  if (!isS3Configured()) return null;
+  try {
+    const res = await getClient().send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
+    if (!res.Body) return null;
+    return Buffer.from(await res.Body.transformToByteArray());
+  } catch (err) {
+    const name = (err as { name?: string }).name;
+    if (name === "NoSuchKey" || name === "AccessDenied") return null;
+    throw err;
+  }
+}
+
+/** Stores a private object (the ID-card PDF cache under `id-cards/`). */
+export async function putObjectBytes(key: string, body: Buffer, contentType: string) {
+  if (!isS3Configured()) throw new Error("S3 is not configured");
+  await getClient().send(
+    new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: body, ContentType: contentType })
+  );
+}

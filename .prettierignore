@@ -4,3 +4,4 @@ build
 out
 prisma/migrations
 package-lock.json
+src/lib/id-card/assets.generated.ts
