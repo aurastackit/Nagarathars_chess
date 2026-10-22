@@ -60,3 +60,6 @@ next-env.d.ts
 /public/images/committee/raw/
 /public/images/committee/committee-contact-sheet.png
 /scripts/.models/
+
+# db-move scripts: copy timestamps (scripts/db-move/README.md)
+/scripts/db-move/state/
