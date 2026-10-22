@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { Registration } from "@prisma/client";
 import { Badge, Card, EmptyState, Select } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 import { AGE_CATEGORIES, ageCategoryLabel } from "@/lib/age-category";
 import { KOVILS } from "@/lib/kovils";
+import { registrationAdminHref } from "@/lib/admin-links";
 
 const STATUS_OPTIONS = [
   { value: "pending", label: "Pending" },
@@ -173,7 +175,14 @@ export function RegistrantsPanel({
                     id={`reg-${r.id}`}
                     className="scroll-mt-24 border-t border-border align-top target:bg-gold/10"
                   >
-                    <td className="px-4 py-2">{r.fullName}</td>
+                    <td className="px-4 py-2">
+                      <Link
+                        href={registrationAdminHref(r.id)}
+                        className="font-medium text-charcoal underline-offset-2 hover:underline"
+                      >
+                        {r.fullName}
+                      </Link>
+                    </td>
                     <td className="px-4 py-2">{r.email}</td>
                     <td className="px-4 py-2">{r.phone}</td>
                     <td className="px-4 py-2">{r.dob ? r.dob.getUTCFullYear() : "—"}</td>

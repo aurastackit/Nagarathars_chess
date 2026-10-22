@@ -14,6 +14,7 @@ import { registrationAdminHref } from "@/lib/admin-links";
 import { normalizeStatus } from "@/lib/registration-status";
 import { StatusBadges } from "@/components/admin/status-badge";
 import { Modal } from "@/components/modal";
+import { IdCardViewer } from "@/components/admin/id-card-frame";
 import { Button, buttonClasses } from "@/components/ui";
 import type { BulkResult } from "@/app/admin/registrations/actions";
 
@@ -87,64 +88,9 @@ function IdCardButton({
 
 /** The CR80 card as the server renders it, with download and print. */
 function IdCardPreview({ row, onClose }: { row: PlayerRow; onClose: () => void }) {
-  const frame = useRef<HTMLIFrameElement>(null);
-  // Some browsers (e.g. Chrome on Android) can't show a PDF inside the page.
-  const [inline] = useState(() => navigator.pdfViewerEnabled !== false);
-  const src = `/api/admin/id-cards/${row.id}`;
   return (
     <Modal title={`ID card · ${row.registrationNo ?? row.fullName}`} onClose={onClose} wide>
-      <div className="relative mx-auto aspect-[54/86] w-full max-w-[17rem] overflow-hidden rounded-md border border-border bg-background">
-        {inline ? (
-          <>
-            <p className="absolute inset-0 flex items-center justify-center text-xs text-foreground/50">
-              Preparing the card…
-            </p>
-            <iframe
-              ref={frame}
-              src={`${src}#toolbar=0&navpanes=0&view=Fit`}
-              title={`ID card for ${row.fullName}`}
-              className="relative block size-full"
-            />
-          </>
-        ) : (
-          <a
-            href={src}
-            target="_blank"
-            rel="noopener"
-            className="absolute inset-0 flex flex-col items-center justify-center gap-1 p-4 text-center text-sm font-medium text-charcoal underline"
-          >
-            Open the card
-            <span className="text-xs font-normal text-foreground/60 no-underline">
-              This browser can&apos;t preview PDFs here.
-            </span>
-          </a>
-        )}
-      </div>
-      <div className="mt-4 flex gap-2">
-        <a href={`${src}?download=1`} className={buttonClasses("primary", "sm", "flex-1")}>
-          Download PDF
-        </a>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          className="flex-1"
-          onClick={() => {
-            // Print the PDF itself; otherwise open it in a new tab to print from there.
-            try {
-              if (!frame.current?.contentWindow) throw new Error("no inline viewer");
-              frame.current.contentWindow.print();
-            } catch {
-              window.open(src, "_blank", "noopener");
-            }
-          }}
-        >
-          Print
-        </Button>
-      </div>
-      <p className="mt-2 text-xs text-foreground/60">
-        Print at 100% (&ldquo;Actual size&rdquo;) for a true 54 × 86 mm card.
-      </p>
+      <IdCardViewer registrationId={row.id} title={`ID card for ${row.fullName}`} />
     </Modal>
   );
 }
@@ -252,7 +198,7 @@ export function PlayerTable({
       else if (e.key === "k") go(active - 1);
       else if (e.key === "x" && rows[active]) toggle(rows[active].id);
       else if ((e.key === "o" || e.key === "Enter") && rows[active] && !el.closest("a, button")) {
-        router.push(registrationAdminHref(rows[active].tournamentId, rows[active].id));
+        router.push(registrationAdminHref(rows[active].id));
       } else if (e.key === "Escape") setSelected(new Set());
       else if (e.key === "?") setHelp((h) => !h);
     }
@@ -464,7 +410,7 @@ export function PlayerTable({
                   <div className="flex flex-col items-stretch gap-1.5">
                     <IdCardButton row={r} onOpen={setCard} />
                     <Link
-                      href={registrationAdminHref(r.tournamentId, r.id)}
+                      href={registrationAdminHref(r.id)}
                       className={buttonClasses("outline", "sm")}
                     >
                       View
@@ -525,7 +471,7 @@ export function PlayerTable({
             <div className="mt-3 flex gap-2">
               <IdCardButton row={r} onOpen={setCard} className="flex-1" />
               <Link
-                href={registrationAdminHref(r.tournamentId, r.id)}
+                href={registrationAdminHref(r.id)}
                 className={buttonClasses("outline", "sm", "flex-1")}
               >
                 View

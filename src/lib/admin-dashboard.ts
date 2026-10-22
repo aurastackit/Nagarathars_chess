@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { AGE_CATEGORIES, ageCategoryLabel } from "@/lib/age-category";
 import { formatDateTimeIST } from "@/lib/format";
+import { registrationAdminHref } from "@/lib/admin-links";
 import { SEAT_HOLDING_STATUSES, fixByDate } from "@/lib/registration-status";
 import {
   approvalRate,
@@ -38,10 +39,6 @@ const EVENT_LABEL: Record<string, string> = {
   document_viewed: "Viewed a document",
   date_change_confirmed: "Confirmed the new date",
 };
-
-/** Link to a registration in the admin (its tournament page, scrolled to the row). */
-const registrationHref = (tournamentId: string, registrationId: string) =>
-  `/admin/tournaments/${tournamentId}#reg-${registrationId}`;
 
 /**
  * Everything the dashboard shows, for one tournament or all of them
@@ -210,7 +207,7 @@ export async function getDashboard(tournamentId: string | null) {
   const attention: AttentionItem[] = [];
   for (const r of attentionRegs) {
     const who = `${r.fullName}${r.registrationNo ? ` · ${r.registrationNo}` : ""}`;
-    const href = registrationHref(r.tournamentId, r.id);
+    const href = registrationAdminHref(r.id);
     if (r.status === "pending") {
       const waiting = now.getTime() - r.updatedAt.getTime();
       attention.push({
@@ -258,7 +255,7 @@ export async function getDashboard(tournamentId: string | null) {
       title: "Email didn't go out",
       who: `${e.registration.fullName}${e.registration.registrationNo ? ` · ${e.registration.registrationNo}` : ""}`,
       detail: `${e.note ?? "Email"} · ${relativeTime(e.createdAt, now)}`,
-      href: registrationHref(e.registration.tournamentId, e.registration.id),
+      href: registrationAdminHref(e.registration.id),
       at: e.createdAt,
     });
   }
@@ -308,7 +305,7 @@ export async function getDashboard(tournamentId: string | null) {
             : "Player",
       when: relativeTime(e.createdAt, now),
       at: e.createdAt,
-      href: registrationHref(e.registration.tournamentId, e.registration.id),
+      href: registrationAdminHref(e.registration.id),
     })),
   };
 }
