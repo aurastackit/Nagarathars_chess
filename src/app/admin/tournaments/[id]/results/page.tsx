@@ -10,6 +10,8 @@ import { computeStandings } from "@/lib/standings";
 import { getOrCreatePlayer } from "@/lib/player";
 import { ageCategoryLabel } from "@/lib/age-category";
 import { revalidateTournamentPages } from "@/lib/revalidate-public";
+import { FlashMessage } from "@/components/admin/flash-message";
+import { ConfirmSubmitButton } from "@/components/admin/confirm-submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -106,17 +108,15 @@ export default async function TournamentResultsPage({
     const blackPlayerId = String(formData.get("blackPlayerId") ?? "");
     const result = String(formData.get("result") ?? "");
 
-    if (!roundId || !whitePlayerId || !result) {
-      redirect(
-        `/admin/tournaments/${id}/results?error=${encodeURIComponent("Fill in white player and result")}`
-      );
+    const fail = (message: string) =>
+      redirect(`/admin/tournaments/${id}/results?error=${encodeURIComponent(message)}`);
+    if (!roundId || !whitePlayerId || !blackPlayerId || !result) {
+      fail("Choose the white player, the black player (or Bye) and the result");
     }
-    const isBye = blackPlayerId === "" || blackPlayerId === "BYE";
-    if (isBye && result !== "BYE") {
-      redirect(
-        `/admin/tournaments/${id}/results?error=${encodeURIComponent("A pairing with no black player must use result BYE")}`
-      );
-    }
+    const isBye = blackPlayerId === "BYE";
+    if (isBye && result !== "BYE") fail("A bye must have the result Bye");
+    if (!isBye && result === "BYE") fail("The result Bye needs Black set to Bye");
+    if (whitePlayerId === blackPlayerId) fail("A player can't be paired against themselves");
 
     await prisma.pairing.create({
       data: {
@@ -278,14 +278,14 @@ export default async function TournamentResultsPage({
       </div>
 
       {error && (
-        <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <FlashMessage tone="error" param="error" className="mt-4">
           {error}
-        </div>
+        </FlashMessage>
       )}
       {imported && (
-        <div className="mt-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+        <FlashMessage tone="success" param="imported" className="mt-4">
           Imported {imported} pairing(s).
-        </div>
+        </FlashMessage>
       )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
@@ -370,12 +370,12 @@ export default async function TournamentResultsPage({
                         </td>
                         <td className="py-1.5">
                           <form action={deletePairing.bind(null, p.id)}>
-                            <button
-                              type="submit"
+                            <ConfirmSubmitButton
+                              message={`Delete this pairing (${p.whitePlayer?.fullName ?? "—"} vs ${p.blackPlayer?.fullName ?? "Bye"})?`}
                               className="text-xs font-medium text-red-600 hover:underline"
                             >
                               Delete
-                            </button>
+                            </ConfirmSubmitButton>
                           </form>
                         </td>
                       </tr>
@@ -441,14 +441,16 @@ export default async function TournamentResultsPage({
                     <select
                       id={`black-${round.id}`}
                       name="blackPlayerId"
+                      required
                       className="rounded-md border border-border bg-card px-2 py-1.5 text-sm"
                     >
-                      <option value="">Bye</option>
+                      <option value="">Select player</option>
                       {registrants.map((r) => (
                         <option key={r.id} value={r.player?.id}>
                           {r.fullName}
                         </option>
                       ))}
+                      <option value="BYE">Bye (no opponent)</option>
                     </select>
                   </div>
                   <div>
@@ -464,6 +466,7 @@ export default async function TournamentResultsPage({
                       required
                       className="rounded-md border border-border bg-card px-2 py-1.5 text-sm"
                     >
+                      <option value="">Select result</option>
                       <option value="1-0">1 – 0</option>
                       <option value="0.5-0.5">½ – ½</option>
                       <option value="0-1">0 – 1</option>

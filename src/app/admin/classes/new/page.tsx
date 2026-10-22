@@ -6,6 +6,7 @@ import { requireAdminPage } from "@/lib/require-admin";
 import { logAdminAction } from "@/lib/audit-log";
 import { isValidImageUrl } from "@/lib/image-url";
 import { revalidateClassPages } from "@/lib/revalidate-public";
+import { FlashMessage } from "@/components/admin/flash-message";
 
 async function createClass(formData: FormData) {
   "use server";
@@ -55,9 +56,9 @@ export default async function NewClassPage({
     <div>
       <h1 className="text-2xl font-bold text-charcoal">New Class</h1>
       {error && (
-        <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <FlashMessage tone="error" param="error" className="mt-4">
           {error}
-        </div>
+        </FlashMessage>
       )}
       <Card className="mt-6 p-6">
         <form action={createClass} className="space-y-4">

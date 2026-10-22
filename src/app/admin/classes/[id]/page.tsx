@@ -7,6 +7,7 @@ import { requireAdminPage } from "@/lib/require-admin";
 import { logAdminAction } from "@/lib/audit-log";
 import { isValidImageUrl } from "@/lib/image-url";
 import { revalidateClassPages } from "@/lib/revalidate-public";
+import { FlashMessage } from "@/components/admin/flash-message";
 
 export const dynamic = "force-dynamic";
 
@@ -72,9 +73,9 @@ export default async function ManageClassPage({
       </div>
 
       {error && (
-        <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <FlashMessage tone="error" param="error" className="mt-4">
           {error}
-        </div>
+        </FlashMessage>
       )}
 
       <Card className="mt-6 p-6">
