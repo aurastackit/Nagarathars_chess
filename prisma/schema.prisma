@@ -30,6 +30,11 @@ model Tournament {
   rulesText            String?
   status               String         @default("draft")
   resultsPublished     Boolean        @default(false)
+  /// Last number handed out for this tournament's registration numbers (NCC26-U11-0042 → 42).
+  registrationSeq      Int            @default(0)
+  /// Set when the event is rescheduled: the start date players originally signed up for.
+  previousStartDate    DateTime?
+  dateChangedAt        DateTime?
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
   registrations        Registration[]
@@ -38,53 +43,70 @@ model Tournament {
 }
 
 model Registration {
-  id                 String     @id @default(cuid())
-  tournament         Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  tournamentId       String
-  fullName           String
-  email              String
-  phone              String
-  dob                DateTime?
-  gender             String?
-  city               String?
-  address            String?
-  fideId             String?
-  rating             Int?
-  kovil              String?
-  pirivu             String?
-  native             String?
-  fatherName         String?
-  motherName         String?
-  fatherGrandparents String?
-  motherGrandparents String?
-  motherNative       String?
-  motherKovil        String?
-  motherPirivu       String?
-  sangamMember       Boolean    @default(false)
+  id                    String              @id @default(cuid())
+  tournament            Tournament          @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  tournamentId          String
+  fullName              String
+  email                 String
+  phone                 String
+  dob                   DateTime?
+  gender                String?
+  city                  String?
+  address               String?
+  fideId                String?
+  rating                Int?
+  kovil                 String?
+  pirivu                String?
+  native                String?
+  fatherName            String?
+  motherName            String?
+  fatherGrandparents    String?
+  motherGrandparents    String?
+  motherNative          String?
+  motherKovil           String?
+  motherPirivu          String?
+  sangamMember          Boolean             @default(false)
   // Name of the relative who belongs to the Sangam; the form requires it when sangamMember is ticked.
-  sangamRelativeName String?
+  sangamRelativeName    String?
   // Legacy base64 fields from the single-page form — kept for historical rows, no longer written to.
-  aadhaarImageData   String?
-  passportPhotoData  String?
+  aadhaarImageData      String?
+  passportPhotoData     String?
   // Current uploads: private S3 object keys only, never a public URL.
-  ageProofType       String?
-  ageProofKey        String?
-  passportPhotoKey   String?
-  consentAccepted    Boolean    @default(false)
-  guardianName       String?
-  guardianConsent    Boolean    @default(false)
-  ageCategory        String?
-  status             String     @default("pending")
-  rejectionReason    String?
-  paymentStatus      String     @default("not_required")
-  amountPaid         Int?
-  razorpayOrderId    String?
-  razorpayPaymentId  String?
-  player             Player?    @relation(fields: [playerId], references: [id])
-  playerId           String?
-  registeredAt       DateTime   @default(now())
+  ageProofType          String?
+  ageProofKey           String?
+  passportPhotoKey      String?
+  consentAccepted       Boolean             @default(false)
+  guardianName          String?
+  guardianConsent       Boolean             @default(false)
+  ageCategory           String?
+  /// Human-readable number, e.g. NCC26-U11-0042: tournament year, category at submission, per-tournament sequence.
+  /// Always set by the app; nullable only until a follow-up migration (old code may still insert during a deploy).
+  registrationNo        String?
+  /// pending | confirmed | rejected | changes_requested | withdrawn (transitions: src/lib/registration-status.ts)
+  status                String              @default("pending")
+  /// Shown to the player: why it was rejected or what needs changing.
+  rejectionReason       String?
+  /// Internal only, never shown to the player.
+  adminNotes            String?
+  reviewedAt            DateTime?
+  reviewedBy            String?
+  withdrawnAt           DateTime?
+  withdrawReason        String?
+  /// After the event date changes: pending | accepted | declined (null = no change to respond to).
+  dateChangeResponse    String?
+  dateChangeRespondedAt DateTime?
+  paymentStatus         String              @default("not_required")
+  amountPaid            Int?
+  razorpayOrderId       String?
+  razorpayPaymentId     String?
+  player                Player?             @relation(fields: [playerId], references: [id])
+  playerId              String?
+  registeredAt          DateTime            @default(now())
+  updatedAt             DateTime            @default(now()) @updatedAt
+  events                RegistrationEvent[]
 
   @@unique([tournamentId, email, dob])
+  @@unique([tournamentId, registrationNo])
 }
 
 /** A person who has played in tournaments, matched across tournaments by email. */
@@ -254,4 +276,23 @@ model OtpCode {
   createdAt  DateTime  @default(now())
 
   @@index([userId, consumedAt])
+}
+
+/// Audit trail for one registration: what happened, who did it, and an optional note.
+model RegistrationEvent {
+  id             String       @id @default(cuid())
+  registration   Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  registrationId String
+  /// submitted | edited | confirmed | rejected | changes_requested | reopened | withdrawn |
+  /// email_sent | email_failed | document_viewed | date_change_confirmed
+  type           String
+  /// player | admin | system
+  actorType      String
+  /// Admin email or the player's email; null for system events.
+  actor          String?
+  note           String?
+  createdAt      DateTime     @default(now())
+
+  @@index([registrationId, createdAt])
+  @@index([type, createdAt])
 }
