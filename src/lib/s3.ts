@@ -69,13 +69,20 @@ export async function createUploadUrl(params: {
   return { uploadUrl, key };
 }
 
-/** Short-lived signed GET URL for viewing a private document (admin use only). */
-export async function getDownloadUrl(key: string) {
+/**
+ * Short-lived signed GET URL for viewing a private document (admin use only).
+ * With `downloadAs`, S3 serves it as an attachment with that file name.
+ */
+export async function getDownloadUrl(key: string, downloadAs?: string) {
   if (!isS3Configured()) {
     throw new Error("S3 is not configured");
   }
   const client = getClient();
-  const command = new GetObjectCommand({ Bucket: BUCKET, Key: key });
+  const command = new GetObjectCommand({
+    Bucket: BUCKET,
+    Key: key,
+    ...(downloadAs && { ResponseContentDisposition: `attachment; filename="${downloadAs}"` }),
+  });
   return getSignedUrl(client, command, { expiresIn: 120 });
 }
 
