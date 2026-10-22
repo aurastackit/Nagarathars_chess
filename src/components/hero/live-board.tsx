@@ -11,6 +11,10 @@ import {
 } from "./board-geometry";
 import { LiveBoardPieces } from "./live-board-pieces";
 
+/** Frame around the squares, in board units (1 unit ≈ 1px at full size); coordinates sit in it. */
+const FRAME = 26;
+const FRAMED = BOARD + FRAME * 2;
+
 /**
  * The homepage hero's centerpiece: a real 8x8 board that plays
  * 1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5, then holds and loops.
@@ -20,16 +24,18 @@ import { LiveBoardPieces } from "./live-board-pieces";
  * layer (32 <use> references). First paint is always the static starting
  * position; LiveBoardPieces starts the moves only after the page has loaded.
  * Focusable so keyboard users can pause it (WCAG 2.2.2), like hovering does.
+ * The focus outline is currentColor, so it follows whatever the hero's text
+ * colour is.
  */
 export function LiveBoard({ className = "" }: { className?: string }) {
   return (
     <div
       data-live-board
       tabIndex={0}
-      className={`rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-gold/70 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal ${className}`}
+      className={`rounded-[10px] shadow-[0_24px_48px_rgba(0,0,0,0.18)] outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current focus-visible:outline-solid ${className}`}
     >
       <svg
-        viewBox={`0 0 ${BOARD} ${BOARD}`}
+        viewBox={`${-FRAME} ${-FRAME} ${FRAMED} ${FRAMED}`}
         className="h-auto w-full"
         role="img"
         aria-label="Animated chessboard playing the opening 1. e4 e5 2. Knight f3 Knight c6 3. Bishop c4 Bishop c5"
@@ -48,7 +54,11 @@ export function LiveBoard({ className = "" }: { className?: string }) {
           </marker>
           {PIECE_KINDS.flatMap((kind) =>
             (["w", "b"] as const).map((side) => (
-              <symbol key={pieceSymbolId(kind, side)} id={pieceSymbolId(kind, side)} overflow="visible">
+              <symbol
+                key={pieceSymbolId(kind, side)}
+                id={pieceSymbolId(kind, side)}
+                overflow="visible"
+              >
                 <BoardPiece kind={kind} side={side} size={GLYPH} />
               </symbol>
             ))
@@ -56,6 +66,14 @@ export function LiveBoard({ className = "" }: { className?: string }) {
         </defs>
 
         <g aria-hidden="true">
+          <rect
+            x={-FRAME}
+            y={-FRAME}
+            width={FRAMED}
+            height={FRAMED}
+            rx={10}
+            fill="var(--board-frame)"
+          />
           {RANKS.flatMap((_, row) =>
             FILES.map((_, col) => (
               <rect
@@ -64,40 +82,35 @@ export function LiveBoard({ className = "" }: { className?: string }) {
                 y={row * SQUARE}
                 width={SQUARE}
                 height={SQUARE}
-                fill={isDarkSquare(col, row) ? "var(--walnut)" : "var(--background)"}
+                fill={isDarkSquare(col, row) ? "var(--board-dark)" : "var(--board-light)"}
               />
             ))
           )}
-          {FILES.map((f, col) => {
-            const row = 7;
-            return (
-              <text
-                key={`file-${f}`}
-                x={col * SQUARE + 6}
-                y={row * SQUARE + SQUARE - 6}
-                fontSize="11"
-                fill={isDarkSquare(col, row) ? "var(--background)" : "var(--walnut)"}
-                opacity={0.55}
-              >
+          <rect
+            x={-1.5}
+            y={-1.5}
+            width={BOARD + 3}
+            height={BOARD + 3}
+            fill="none"
+            stroke="var(--gold-ink)"
+            strokeWidth={1}
+            vectorEffect="non-scaling-stroke"
+          />
+          {/* Coordinates live in the frame, off the squares: files along the
+              bottom (high in the margin, clear of the chip that overlaps its
+              lower edge), ranks down the left. */}
+          <g fill="var(--board-coord)" fontSize="13" fontWeight="600" textAnchor="middle">
+            {FILES.map((f, col) => (
+              <text key={`file-${f}`} x={col * SQUARE + SQUARE / 2} y={BOARD + 14}>
                 {f}
               </text>
-            );
-          })}
-          {RANKS.map((r) => {
-            const row = 8 - r;
-            return (
-              <text
-                key={`rank-${r}`}
-                x={5}
-                y={row * SQUARE + 14}
-                fontSize="11"
-                fill={isDarkSquare(0, row) ? "var(--background)" : "var(--walnut)"}
-                opacity={0.55}
-              >
+            ))}
+            {RANKS.map((r) => (
+              <text key={`rank-${r}`} x={-FRAME / 2} y={(8 - r) * SQUARE + SQUARE / 2 + 4}>
                 {r}
               </text>
-            );
-          })}
+            ))}
+          </g>
         </g>
 
         <LiveBoardPieces />

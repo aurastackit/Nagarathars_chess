@@ -107,8 +107,9 @@ const PIECE_CROP = "3 2.5 18 19.5";
 
 /**
  * One piece in the shared board style — ivory with a charcoal outline for
- * white, charcoal with a gold rim for black — used by the hero Live Board and
- * the Why Chess vignettes. x/y/size are in the parent SVG's units; the outline
+ * white (visible on the light squares), charcoal with a light rim for black
+ * (visible on the dark green ones) — used by the hero Live Board and the
+ * home-page vignettes. x/y/size are in the parent SVG's units; the outline
  * stays 1.5px at any scale (see .chess-piece in globals.css).
  */
 export function BoardPiece({
@@ -125,7 +126,7 @@ export function BoardPiece({
   size: number;
 }) {
   const Icon = PIECE_ICONS[kind];
-  const stroke = side === "w" ? "var(--charcoal)" : "var(--gold)";
+  const stroke = side === "w" ? "var(--charcoal)" : "var(--piece-black-edge)";
   return (
     <Icon
       x={x}

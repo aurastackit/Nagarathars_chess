@@ -16,8 +16,7 @@ import { resolveVideoPlayback, type ShortsItem } from "@/lib/video";
 import { ShortsRow } from "@/components/shorts-row";
 import { CTA_PHOTO } from "@/lib/stock-photos";
 import { KnightIcon, PawnIcon, RookIcon, TrophyIcon } from "@/components/icons/chess-pieces";
-import { LiveBoard } from "@/components/hero/live-board";
-import { TournamentChip } from "@/components/hero/tournament-chip";
+import { HomeHero } from "@/components/hero/home-hero";
 import { VignetteCard } from "@/components/illustrations/vignettes/vignette-card";
 import { BrowseVignette } from "@/components/illustrations/how-it-works/browse-vignette";
 import { RegisterVignette } from "@/components/illustrations/how-it-works/register-vignette";
@@ -242,97 +241,7 @@ export default async function HomePage() {
 
   return (
     <main>
-      <section className="relative overflow-hidden bg-charcoal text-white">
-        <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
-          <defs>
-            <pattern id="athangudi-tile" width="64" height="64" patternUnits="userSpaceOnUse">
-              <path d="M32 4 60 32 32 60 4 32Z" fill="none" stroke="var(--gold)" strokeWidth="1" />
-              <path
-                d="M32 18 46 32 32 46 18 32Z"
-                fill="none"
-                stroke="var(--gold)"
-                strokeWidth="1"
-              />
-              <circle cx="32" cy="32" r="1.6" fill="var(--gold)" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#athangudi-tile)" opacity="0.05" />
-        </svg>
-        {/* Upper-right light — the same direction the Why Chess vignettes are lit from. */}
-        <div className="hero-light pointer-events-none absolute -top-48 right-0 h-[760px] w-[760px] translate-x-1/3" />
-
-        <div className="relative mx-auto max-w-6xl px-4 pb-[clamp(3.5rem,9svh,5.5rem)] pt-[clamp(2.5rem,7svh,4.5rem)]">
-          <div className="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-8">
-            <div className="flex flex-col items-start gap-5 lg:col-span-6">
-              <h1
-                className="animate-fade-up max-w-xl font-display font-bold tracking-tight"
-                style={{
-                  fontSize: "clamp(2.5rem, 1.7rem + 3vw, 4rem)",
-                  lineHeight: 1.05,
-                  animationDelay: "80ms",
-                }}
-              >
-                Chess tournaments and coaching, built for your community.
-              </h1>
-              <p
-                className="animate-fade-up max-w-[52ch] text-lg text-white/75"
-                style={{ animationDelay: "160ms" }}
-              >
-                Register for upcoming local tournaments, join online chess classes, and represent
-                your community — no rating required to get started.
-              </p>
-              <div
-                className="animate-fade-up flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4"
-                style={{ animationDelay: "240ms" }}
-              >
-                <LinkButton surface="dark"
-                  href="/tournaments"
-                  className="w-full py-3 sm:w-auto"
-                >
-                  View Tournaments
-                </LinkButton>
-                <LinkButton surface="dark"
-                  href="/classes"
-                  variant="outline"
-                  className="w-full border-white/40 py-3 text-white hover:bg-white hover:text-charcoal sm:w-auto"
-                >
-                  Explore Classes
-                </LinkButton>
-              </div>
-              <div
-                className="animate-fade-up flex flex-wrap gap-x-6 gap-y-2 pt-1 text-sm text-white/70"
-                style={{ animationDelay: "300ms" }}
-              >
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="text-gold">✓</span> No FIDE rating needed
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="text-gold">✓</span> Free entry to most events
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="text-gold">✓</span> Every age welcome
-                </span>
-              </div>
-            </div>
-
-            <div
-              className="animate-fade-up lg:col-span-6"
-              style={{ animationDelay: "200ms" }}
-            >
-              {/* Board width tracks viewport height (svh) so board + chip stay above
-                  the fold on short laptop screens, never dropping below 480px. */}
-              <div className="mx-auto w-full max-w-[420px] lg:max-w-[clamp(480px,calc(100svh-280px),520px)]">
-                <LiveBoard className="w-full" />
-                <TournamentChip
-                  tournament={nextTournament}
-                  timeLeft={nextTournamentTimeLeft}
-                  className="relative z-10 mt-4 lg:-ml-6 lg:-mt-6 lg:w-[23rem]"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HomeHero nextTournament={nextTournament} timeLeft={nextTournamentTimeLeft} />
 
       {/* Scoreboard overlapping the hero's bottom edge: each tile's content rises
           in one after another (CSS only, skipped under reduced motion) and the

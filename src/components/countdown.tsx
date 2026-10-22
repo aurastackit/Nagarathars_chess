@@ -39,8 +39,8 @@ export function Countdown({
       `${timeLeft.m}m`,
     ].filter(Boolean);
     return (
-      <span className="font-semibold tabular-nums text-white">
-        {parts.join(" ")} <span className="font-normal text-white/65">left</span>
+      <span className="font-semibold tabular-nums">
+        {parts.join(" ")} <span className="font-normal opacity-75">left</span>
       </span>
     );
   }

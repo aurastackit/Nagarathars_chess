@@ -34,7 +34,7 @@ export function BrowseVignette() {
             width={CELL}
             height={CELL}
             rx={2}
-            fill={(col + row) % 2 === 1 ? "var(--walnut)" : "var(--background)"}
+            fill={(col + row) % 2 === 1 ? "var(--board-dark)" : "var(--board-light)"}
             fillOpacity={(col + row) % 2 === 1 ? 0.3 : 1}
           />
         );

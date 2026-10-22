@@ -20,7 +20,7 @@ export function VignetteSvg({ children }: { children: ReactNode }) {
   );
 }
 
-/** A cols x rows patch of the hero's ivory/walnut board, with a thin walnut frame. */
+/** A cols x rows patch of the hero's board (same square colours), with a thin frame-green edge. */
 export function BoardFragment({
   x,
   y,
@@ -44,7 +44,7 @@ export function BoardFragment({
             y={y + r * size}
             width={size}
             height={size}
-            fill={(c + r) % 2 === 1 ? "var(--walnut)" : "var(--background)"}
+            fill={(c + r) % 2 === 1 ? "var(--board-dark)" : "var(--board-light)"}
           />
         ))
       )}
@@ -54,7 +54,7 @@ export function BoardFragment({
         width={cols * size}
         height={rows * size}
         fill="none"
-        stroke="var(--walnut)"
+        stroke="var(--board-frame)"
         strokeWidth={1.5}
         vectorEffect="non-scaling-stroke"
       />

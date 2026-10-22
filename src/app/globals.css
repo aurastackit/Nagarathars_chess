@@ -19,10 +19,13 @@
  *   --gold-ink                    gold TEXT on LIGHT surfaces only — base
  *                                 --gold fails WCAG AA there (~2.5:1), this
  *                                 passes (~4.8:1+) while staying "gold"
- *   --walnut                      the board's dark squares, shared by the
- *                                 hero Live Board and the Why Chess
- *                                 vignettes (ivory/walnut board, not
- *                                 generic black/white)
+ *   --walnut                      line work in the home-page vignettes
+ *                                 (calendar, form card, clock outlines)
+ *   --board-*                     the one chessboard look, shared by the
+ *                                 hero Live Board and every vignette:
+ *                                 light/dark squares, frame, coordinates,
+ *                                 and last-move highlight (the move
+ *                                 arrow is --gold at 85% opacity)
  *   --success / --warning         status text/accents (confirmations, limited
  *                                 seats, etc.) — not used for brand accents
  *
@@ -48,6 +51,13 @@
   --gold: #c8922f;
   --gold-ink: #8a6416;
   --walnut: #6b4428;
+  --board-light: #f1eedc;
+  --board-dark: #5e8b5a;
+  --board-frame: #2f4a33;
+  --board-coord: #d4cdb0;
+  --board-highlight: rgb(200 146 47 / 0.35);
+  /* Black pieces' rim: a light edge so they don't sink into the dark squares. */
+  --piece-black-edge: #e9e3cc;
   --success: #166534;
   --warning: #b45309;
 }
@@ -144,15 +154,32 @@ body {
   vector-effect: non-scaling-stroke;
 }
 
-/* The hero's soft upper-right gold light. A radial gradient, not a blur() filter —
-   a 100px+ blur on a large element is one of the most expensive things to paint on mobile. */
-.hero-light {
+/*
+ * Home hero backgrounds (components/hero/home-hero.tsx). Glows are radial
+ * gradients, not blur() filters — a 100px+ blur on a large element is one of
+ * the most expensive things to paint on mobile.
+ */
+.hero-ivory {
+  background: radial-gradient(ellipse 120% 100% at 35% 30%, #f6f1e7 0%, #efe6d2 100%);
+}
+
+
+.hero-glow {
   background: radial-gradient(
     circle,
-    color-mix(in srgb, var(--gold) 24%, transparent) 0%,
-    color-mix(in srgb, var(--gold) 10%, transparent) 35%,
-    transparent 68%
+    color-mix(in srgb, var(--board-dark) 26%, transparent) 0%,
+    color-mix(in srgb, var(--board-dark) 10%, transparent) 40%,
+    transparent 70%
   );
+}
+
+
+/* Static film grain (one small tiled SVG) that dithers the gradients so 8-bit
+   displays don't show bands across the wide, low-contrast ramps. */
+.hero-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0.33 0.33 0.33 0 0 0.33 0.33 0.33 0 0 0.33 0.33 0.33 0 0 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: soft-light;
 }
 
 /*

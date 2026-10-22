@@ -37,7 +37,7 @@ function ArrowMark({ from, to }: { from: string; to: string }) {
       strokeWidth={4}
       strokeLinecap="round"
       markerEnd="url(#live-board-arrowhead)"
-      opacity={0.9}
+      opacity={0.85}
       className="animate-arrow-fade"
     />
   );
@@ -160,7 +160,7 @@ export function LiveBoardPieces() {
         <>
           {[lastMove.from, lastMove.to].map((sq) => {
             const { x, y } = squareXY(sq);
-            return <rect key={sq} x={x} y={y} width={SQUARE} height={SQUARE} fill="var(--gold)" opacity={0.25} />;
+            return <rect key={sq} x={x} y={y} width={SQUARE} height={SQUARE} fill="var(--board-highlight)" />;
           })}
           <ArrowMark key={`${lastMove.from}-${lastMove.to}`} from={lastMove.from} to={lastMove.to} />
         </>
