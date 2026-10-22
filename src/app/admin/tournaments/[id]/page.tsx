@@ -6,13 +6,13 @@ import { parseTournamentForm, type TournamentFormState } from "@/lib/tournament-
 import { TournamentForm } from "@/components/admin/tournament-form";
 import { requireAdminPage } from "@/lib/require-admin";
 import { logAdminAction } from "@/lib/audit-log";
-import { sendRegistrationDecisionEmail } from "@/lib/notify";
+import { emailForStatusChange } from "@/lib/registration-notify";
+import { announceDateChange, dayOf } from "@/lib/date-change";
 import { RegistrantsPanel } from "@/components/admin/registrants-panel";
 import Link from "next/link";
 import { revalidateTournamentPages, revalidateTournamentSeats } from "@/lib/revalidate-public";
 import { StaleStatusError, changeRegistrationStatus } from "@/lib/registration-workflow";
 import { InvalidTransitionError } from "@/lib/registration-status";
-import { sendRegistrationEmail } from "@/lib/registration-events";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +44,10 @@ export default async function ManageTournamentPage({
     if (!parsed.ok) return parsed.state;
 
     const { data, status } = parsed;
+    const before = await prisma.tournament.findUniqueOrThrow({
+      where: { id },
+      select: { startDate: true },
+    });
     await prisma.tournament.update({
       where: { id },
       data: {
@@ -74,10 +78,21 @@ export default async function ManageTournamentPage({
       targetId: id,
       summary: `Updated "${data.title}"`,
     });
+
+    // A new start date: every player holding a seat is asked to confirm it or withdraw.
+    let notice: string | undefined;
+    if (dayOf(before.startDate) !== dayOf(data.startDate)) {
+      const r = await announceDateChange(id, before.startDate);
+      if (r.players > 0) {
+        notice = `The start date changed, so ${r.sent} of ${r.players} player${r.players === 1 ? "" : "s"} holding a seat ${r.sent === 1 ? "was" : "were"} emailed to confirm the new date or withdraw.${r.failed ? ` ${r.failed} email${r.failed === 1 ? "" : "s"} failed — see each player's timeline.` : ""}`;
+      }
+    }
+
     revalidatePath(`/admin/tournaments/${id}`);
     revalidatePath("/admin/tournaments");
+    revalidatePath("/admin");
     revalidateTournamentPages();
-    return { saves: (state?.saves ?? 0) + 1 };
+    return { saves: (state?.saves ?? 0) + 1, notice };
   }
 
   async function setRegistrationStatus(formData: FormData) {
@@ -114,19 +129,7 @@ export default async function ManageTournamentPage({
       summary: `${next === "confirmed" ? "Confirmed" : "Rejected"} ${registration.fullName}'s registration for "${registration.tournament.title}"${reason ? ` — ${reason}` : ""}`,
     });
 
-    await sendRegistrationEmail(
-      registration.id,
-      next === "confirmed" ? "Confirmation" : "Rejection",
-      () =>
-        sendRegistrationDecisionEmail({
-          to: registration.email,
-          fullName: registration.fullName,
-          registrationId: registration.id,
-          tournamentTitle: registration.tournament.title,
-          decision: next,
-          reason,
-        })
-    );
+    await emailForStatusChange(registration.id, next, { reason });
 
     revalidatePath(`/admin/tournaments/${id}`);
     revalidatePath(`/registration/${registrationId}`);

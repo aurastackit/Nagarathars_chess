@@ -74,6 +74,14 @@ export function TournamentForm({
       )}
       {/* key: remount after each response so the restored values become the inputs' defaults. */}
       <form key={JSON.stringify(state)} action={formAction} className="space-y-4" noValidate>
+        {state?.notice && (
+          <div
+            role="status"
+            className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800"
+          >
+            {state.notice}
+          </div>
+        )}
         {errorCount > 0 && (
           <div
             role="alert"
@@ -115,7 +123,14 @@ export function TournamentForm({
             )}
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          {field("startDate", "Start date", <Input {...p("startDate")} type="date" required />)}
+          {field(
+            "startDate",
+            "Start date",
+            <Input {...p("startDate")} type="date" required />,
+            mode === "edit"
+              ? "Changing it emails every player holding a seat, asking them to confirm the new date or withdraw."
+              : undefined
+          )}
           {field("endDate", "End date", <Input {...p("endDate")} type="date" required />)}
         </div>
         <div className="grid gap-4 sm:grid-cols-2">

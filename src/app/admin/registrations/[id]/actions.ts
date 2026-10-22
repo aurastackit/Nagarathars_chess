@@ -5,13 +5,11 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdminPage } from "@/lib/require-admin";
 import { logAdminAction, type AdminAction } from "@/lib/audit-log";
-import { sendChangesRequestedEmail, sendRegistrationDecisionEmail } from "@/lib/notify";
-import { sendRegistrationEmail } from "@/lib/registration-events";
+import { emailForStatusChange } from "@/lib/registration-notify";
 import { StaleStatusError, changeRegistrationStatus } from "@/lib/registration-workflow";
 import {
   InvalidTransitionError,
   REGISTRATION_STATUSES,
-  fixByDate,
   type RegistrationStatus,
 } from "@/lib/registration-status";
 import {
@@ -96,44 +94,15 @@ export async function reviewRegistration(
     summary: `${audit.verb} ${r.fullName}'s registration (${r.registrationNo ?? id}) for "${r.tournament.title}"${reason && action !== "approve" && action !== "reopen" ? ` — ${reason}` : ""}`,
   });
 
-  let emailed: boolean | null = null;
-  if (action === "approve" || action === "reject") {
-    emailed = await sendRegistrationEmail(
-      r.id,
-      action === "approve" ? "Confirmation" : "Rejection",
-      () =>
-        sendRegistrationDecisionEmail({
-          to: r.email,
-          fullName: r.fullName,
-          registrationId: r.id,
-          tournamentTitle: r.tournament.title,
-          decision: action === "approve" ? "confirmed" : "rejected",
-          reason,
-        })
-    );
-  } else if (action === "changes") {
-    emailed = await sendRegistrationEmail(r.id, "Changes requested", () =>
-      sendChangesRequestedEmail({
-        to: r.email,
-        fullName: r.fullName,
-        registrationId: r.id,
-        tournamentTitle: r.tournament.title,
-        reason: reason ?? "",
-        fixBy: fixByDate(r.reviewedAt ?? new Date()),
-      })
-    );
-  }
+  const emailed = await emailForStatusChange(r.id, ACTION_TARGET[action], { reason });
 
   revalidateRegistration(id, r.tournamentId);
   revalidateTournamentSeats(r.tournament.slug);
 
   const done = `${audit.verb} ${r.fullName}'s registration.`;
-  const email =
-    emailed === null
-      ? " No email goes out for this yet (the player emails for re-open and withdraw come with the email update)."
-      : emailed
-        ? " The player has been emailed."
-        : " The email to the player failed — see the timeline.";
+  const email = emailed
+    ? " The player has been emailed."
+    : " The email to the player failed — see the timeline.";
   return { ok: true, message: done + email };
 }
 

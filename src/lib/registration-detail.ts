@@ -11,7 +11,15 @@ export async function getRegistrationDetail(id: string) {
     where: { id },
     include: {
       tournament: {
-        select: { id: true, title: true, slug: true, startDate: true, endDate: true, city: true },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          startDate: true,
+          endDate: true,
+          venue: true,
+          city: true,
+        },
       },
       events: { orderBy: { createdAt: "desc" } },
     },

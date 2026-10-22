@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { sendRegistrationDecisionEmail } from "@/lib/notify";
-import { sendRegistrationEmail } from "@/lib/registration-events";
+import { emailForStatusChange } from "@/lib/registration-notify";
 import { StaleStatusError, changeRegistrationStatus } from "@/lib/registration-workflow";
 import { CHANGES_EXPIRED_REASON, CHANGES_REQUESTED_DAYS } from "@/lib/registration-status";
 import { revalidateTournamentSeats } from "@/lib/revalidate-public";
@@ -33,16 +32,10 @@ export async function expireChangesRequests(now = new Date()) {
       throw err;
     }
     expired.push(registration.registrationNo ?? registration.id);
-    await sendRegistrationEmail(registration.id, "Rejection (no update within 7 days)", () =>
-      sendRegistrationDecisionEmail({
-        to: registration.email,
-        fullName: registration.fullName,
-        registrationId: registration.id,
-        tournamentTitle: registration.tournament.title,
-        decision: "rejected",
-        reason: CHANGES_EXPIRED_REASON,
-      })
-    );
+    await emailForStatusChange(registration.id, "rejected", {
+      reason: CHANGES_EXPIRED_REASON,
+      label: "Rejection (no update within 7 days)",
+    });
     revalidateTournamentSeats(registration.tournament.slug);
   }
   return { checked: overdue.length, expired };

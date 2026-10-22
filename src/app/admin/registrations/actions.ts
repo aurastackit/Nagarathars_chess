@@ -3,10 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { requireAdminPage } from "@/lib/require-admin";
 import { logAdminAction } from "@/lib/audit-log";
-import { sendChangesRequestedEmail, sendRegistrationDecisionEmail } from "@/lib/notify";
-import { sendRegistrationEmail } from "@/lib/registration-events";
+import { emailForStatusChange } from "@/lib/registration-notify";
 import { StaleStatusError, changeRegistrationStatus } from "@/lib/registration-workflow";
-import { InvalidTransitionError, fixByDate } from "@/lib/registration-status";
+import { InvalidTransitionError } from "@/lib/registration-status";
 import { revalidateTournamentSeats } from "@/lib/revalidate-public";
 
 export type BulkResult = { done: number; skipped: number; message: string } | null;
@@ -49,28 +48,7 @@ async function bulkChange(
     }
     done++;
     slugs.add(r.tournament.slug);
-    if (to === "confirmed") {
-      await sendRegistrationEmail(r.id, "Confirmation", () =>
-        sendRegistrationDecisionEmail({
-          to: r.email,
-          fullName: r.fullName,
-          registrationId: r.id,
-          tournamentTitle: r.tournament.title,
-          decision: "confirmed",
-        })
-      );
-    } else {
-      await sendRegistrationEmail(r.id, "Changes requested", () =>
-        sendChangesRequestedEmail({
-          to: r.email,
-          fullName: r.fullName,
-          registrationId: r.id,
-          tournamentTitle: r.tournament.title,
-          reason: reason ?? "",
-          fixBy: fixByDate(r.reviewedAt ?? new Date()),
-        })
-      );
-    }
+    await emailForStatusChange(r.id, to, { reason });
   }
 
   const verb = to === "confirmed" ? "Approved" : "Asked for changes on";

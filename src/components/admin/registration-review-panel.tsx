@@ -3,7 +3,16 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui";
-import { changesRequestedEmail, decisionEmail, type EmailContent } from "@/lib/registration-emails";
+import type { EmailContent } from "@/lib/email/render";
+import {
+  approvedEmail,
+  changesRequestedEmail,
+  rejectedEmail,
+  reopenedEmail,
+  withdrawnEmail,
+  type EmailTournament,
+} from "@/lib/email/templates";
+import { EmailFrame } from "@/components/admin/email-frame";
 import { fixByDate, type RegistrationStatus } from "@/lib/registration-status";
 import {
   MAX_REASON,
@@ -22,7 +31,8 @@ type Props = {
   status: RegistrationStatus;
   fullName: string;
   email: string;
-  tournamentTitle: string;
+  registrationNo: string | null;
+  tournament: EmailTournament;
   nextPendingId: string | null;
   action: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
 };
@@ -37,14 +47,26 @@ const CONFIRM_LABEL: Record<ReviewAction, string> = {
 
 const DANGER: ReviewAction[] = ["reject", "withdraw"];
 
-/** The email this action would send, exactly as notify.ts sends it; null when it sends none (yet). */
-function emailFor(action: ReviewAction, p: Props, reason: string, now: Date): EmailContent | null {
-  const base = { fullName: p.fullName, registrationId: p.id, tournamentTitle: p.tournamentTitle };
-  if (action === "approve") return decisionEmail({ ...base, decision: "confirmed" });
-  if (action === "reject") return decisionEmail({ ...base, decision: "rejected", reason });
-  if (action === "changes")
-    return changesRequestedEmail({ ...base, reason, fixBy: fixByDate(now) });
-  return null;
+/** The email this action sends — the same templates src/lib/registration-notify.ts uses. */
+function emailFor(action: ReviewAction, p: Props, reason: string, now: Date): EmailContent {
+  const r = {
+    id: p.id,
+    fullName: p.fullName,
+    registrationNo: p.registrationNo,
+    tournament: p.tournament,
+  };
+  switch (action) {
+    case "approve":
+      return approvedEmail(r);
+    case "reject":
+      return rejectedEmail(r, { reason });
+    case "changes":
+      return changesRequestedEmail(r, { reason, fixBy: fixByDate(now) });
+    case "reopen":
+      return reopenedEmail(r);
+    case "withdraw":
+      return withdrawnEmail(r, { reason: reason || null, byPlayer: false });
+  }
 }
 
 /**
@@ -168,29 +190,26 @@ export function RegistrationReviewPanel(props: Props) {
 
           <div>
             <p className="font-medium text-charcoal">Email preview</p>
-            {preview ? (
-              <div className="mt-2 overflow-hidden rounded-md border border-border bg-card">
-                <dl className="grid grid-cols-[4.5rem_1fr] gap-x-2 gap-y-1 border-b border-border px-3 py-2 text-xs">
-                  <dt className="text-foreground/50">To</dt>
-                  <dd className="break-all">{email}</dd>
-                  <dt className="text-foreground/50">Subject</dt>
-                  <dd className="font-medium" data-testid="email-subject">
-                    {preview.subject}
-                  </dd>
-                </dl>
-                <div
-                  data-testid="email-body"
-                  className="space-y-2 px-3 py-3 text-sm text-foreground/80 [&_a]:break-all [&_a]:text-gold-ink [&_a]:underline"
-                  // Built by registration-emails.ts, which escapes everything typed in.
-                  dangerouslySetInnerHTML={{ __html: preview.html }}
-                />
+            <div className="mt-2 overflow-hidden rounded-md border border-border bg-card">
+              <dl className="grid grid-cols-[4.5rem_1fr] gap-x-2 gap-y-1 border-b border-border px-3 py-2 text-xs">
+                <dt className="text-foreground/50">To</dt>
+                <dd className="[overflow-wrap:anywhere]">{email}</dd>
+                <dt className="text-foreground/50">Subject</dt>
+                <dd className="font-medium" data-testid="email-subject">
+                  {preview?.subject}
+                </dd>
+                {chosen === "approve" && (
+                  <>
+                    <dt className="text-foreground/50">Attached</dt>
+                    <dd>Player ID card (PDF), calendar file (.ics)</dd>
+                  </>
+                )}
+              </dl>
+              {/* Built by src/lib/email, which escapes everything typed in; shown sandboxed. */}
+              <div data-testid="email-body" className="overflow-x-auto bg-[#f6f1e7] p-2">
+                <EmailFrame html={preview?.html ?? ""} width={600} title="Email preview" />
               </div>
-            ) : (
-              <p className="mt-1 text-foreground/60">
-                No email is sent for this yet — the player emails for re-open and withdraw come with
-                the email update.
-              </p>
-            )}
+            </div>
           </div>
 
           <div className="flex flex-wrap gap-2">

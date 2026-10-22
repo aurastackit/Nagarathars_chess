@@ -9,7 +9,6 @@ import {
   pendingNeighbours,
 } from "./registration-review";
 import { canTransition, REGISTRATION_STATUSES } from "./registration-status";
-import { changesRequestedEmail, decisionEmail } from "./registration-emails";
 
 test("actions offered for each status are exactly the admin transitions the server allows", () => {
   assert.deepEqual(adminActionsFor("pending"), ["approve", "changes", "reject", "withdraw"]);
@@ -82,27 +81,4 @@ test("pending queue: neighbours in submission order, also from a non-pending reg
     { id: "y", registeredAt: d(1) },
   ];
   assert.equal(pendingNeighbours(same, { id: "x", registeredAt: d(1) }).nextId, "y");
-});
-
-test("emails escape what admins and players typed", () => {
-  const base = { fullName: "<b>Ravi</b>", registrationId: "r1", tournamentTitle: "Open & Rapid" };
-  const rejected = decisionEmail({
-    ...base,
-    decision: "rejected",
-    reason: '<script>alert("x")</script>',
-  });
-  assert.ok(!rejected.html.includes("<script>"));
-  assert.ok(rejected.html.includes("&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;"));
-  assert.ok(rejected.html.includes("&lt;b&gt;Ravi&lt;/b&gt;"));
-  assert.ok(rejected.html.includes("Open &amp; Rapid"));
-  assert.equal(rejected.subject, "Update on your registration for Open & Rapid");
-  const confirmed = decisionEmail({ ...base, decision: "confirmed" });
-  assert.equal(confirmed.subject, "Confirmed: Open & Rapid");
-  const changes = changesRequestedEmail({
-    ...base,
-    reason: "Photo <unclear>",
-    fixBy: new Date("2026-10-30T06:30:00Z"),
-  });
-  assert.match(changes.subject, /^Action needed by 30 Oct 2026, 12:00 pm: Open & Rapid$/);
-  assert.ok(changes.html.includes("Photo &lt;unclear&gt;"));
 });

@@ -215,7 +215,8 @@ export default async function RegistrationPage({ params }: { params: Promise<{ i
             status={r.status}
             fullName={r.fullName}
             email={r.email}
-            tournamentTitle={r.tournament.title}
+            registrationNo={r.registrationNo}
+            tournament={r.tournament}
             nextPendingId={queue.nextId}
             action={reviewRegistration}
           />

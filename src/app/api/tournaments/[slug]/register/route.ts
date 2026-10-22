@@ -4,9 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { SEAT_HOLDING_STATUSES } from "@/lib/tournament-status";
 import { ageByYear, naturalAgeCategory } from "@/lib/age-category";
 import { createRegistrationWizardSchema } from "@/lib/registration-schema";
-import { sendRegistrationConfirmationEmail } from "@/lib/notify";
+import { emailRegistration } from "@/lib/registration-notify";
 import { TRANSACTION_TIMEOUTS, nextRegistrationNo } from "@/lib/registration-number";
-import { recordRegistrationEvent, sendRegistrationEmail } from "@/lib/registration-events";
+import { recordRegistrationEvent } from "@/lib/registration-events";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { isHoneypotTriggered } from "@/lib/honeypot";
 import { EMAIL_VERIFICATION_VALIDITY_MS } from "@/lib/otp";
@@ -153,14 +153,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
 
   // Best effort: the registration has succeeded whatever happens to the email.
   if (!requiresPayment) {
-    await sendRegistrationEmail(registrationId, "Submission confirmation", () =>
-      sendRegistrationConfirmationEmail({
-        to: data.email,
-        fullName: data.fullName,
-        registrationId,
-        tournament,
-      })
-    );
+    await emailRegistration(registrationId, "received");
   }
 
   return NextResponse.json(

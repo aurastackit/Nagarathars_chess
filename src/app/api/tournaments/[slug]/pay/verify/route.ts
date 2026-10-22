@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { verifyRazorpaySignature } from "@/lib/razorpay";
-import { sendRegistrationConfirmationEmail } from "@/lib/notify";
-import { sendRegistrationEmail } from "@/lib/registration-events";
+import { emailRegistration } from "@/lib/registration-notify";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const verifySchema = z.object({
@@ -57,14 +56,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     },
   });
 
-  await sendRegistrationEmail(registration.id, "Submission confirmation (after payment)", () =>
-    sendRegistrationConfirmationEmail({
-      to: registration.email,
-      fullName: registration.fullName,
-      registrationId: registration.id,
-      tournament,
-    })
-  );
+  await emailRegistration(registration.id, "received", {
+    label: "Application received (after payment)",
+  });
 
   return NextResponse.json({ ok: true });
 }

@@ -8,6 +8,8 @@ export type TournamentFormState = {
   values?: Record<string, string>;
   /** How many times the edit form has saved successfully — changes on every save. */
   saves?: number;
+  /** Shown after a save that did more than save (e.g. players emailed about a new date). */
+  notice?: string;
 } | null;
 
 export const TOURNAMENT_STATUSES = ["draft", "published", "closed", "completed"] as const;
