@@ -82,6 +82,8 @@ model Registration {
   /// Human-readable number, e.g. NCC26-U11-0042: tournament year, category at submission, per-tournament sequence.
   /// Always set by the app; nullable only until a follow-up migration (old code may still insert during a deploy).
   registrationNo        String?
+  /// Random token in the ID card's QR code (/verify/<token>); set when the registration is first confirmed, never changed.
+  verifyToken           String?             @unique
   /// pending | confirmed | rejected | changes_requested | withdrawn (transitions: src/lib/registration-status.ts)
   status                String              @default("pending")
   /// Shown to the player: why it was rejected or what needs changing.

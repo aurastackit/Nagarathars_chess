@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { newVerifyToken } from "@/lib/id-card/verify-token";
 import { TRANSACTION_TIMEOUTS } from "@/lib/registration-number";
 import { recordRegistrationEvent, type EventActor } from "@/lib/registration-events";
 import {
@@ -38,7 +39,7 @@ export async function changeRegistrationStatus(params: {
   return prisma.$transaction(async (tx) => {
     const current = await tx.registration.findUniqueOrThrow({
       where: { id: registrationId },
-      select: { status: true },
+      select: { status: true, verifyToken: true },
     });
     const from = normalizeStatus(current.status);
     assertTransition(from, to, actor.type);
@@ -47,7 +48,12 @@ export async function changeRegistrationStatus(params: {
     const reviewed = { reviewedAt: now, reviewedBy: actor.email ?? actor.type };
     const fields =
       to === "confirmed"
-        ? { ...reviewed, rejectionReason: null }
+        ? {
+            ...reviewed,
+            rejectionReason: null,
+            // The ID card's QR token; kept if it was confirmed before, so a printed card stays valid.
+            ...(!current.verifyToken && { verifyToken: newVerifyToken() }),
+          }
         : to === "rejected" || to === "changes_requested"
           ? { ...reviewed, rejectionReason: reason }
           : to === "withdrawn"
