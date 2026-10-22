@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { compressIfImage } from "@/lib/image-compression";
+import { UPLOAD_MAX_BYTES, UPLOAD_TYPES, formatUploadLimit, type UploadKind } from "@/lib/upload-limits";
 
-export type UploadKind = "ageProof" | "passportPhoto";
+export type { UploadKind };
 
-const MAX_SIZE_BYTES = { ageProof: 5 * 1024 * 1024, passportPhoto: 2 * 1024 * 1024 } as const;
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+// Compression targets sit a little under the hard limits the server signs into the URL.
+const COMPRESS_TO_MB: Record<UploadKind, number> = { ageProof: 0.9, passportPhoto: 0.45 };
 
 export function useS3Upload(tournamentSlug: string) {
   const [uploading, setUploading] = useState<Record<string, boolean>>({});
@@ -14,30 +15,32 @@ export function useS3Upload(tournamentSlug: string) {
 
   async function upload(kind: UploadKind, file: File): Promise<string> {
     setError(null);
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      const msg = "Only JPG, PNG, WEBP, or PDF files are allowed";
+    if (!(UPLOAD_TYPES[kind] as readonly string[]).includes(file.type)) {
+      const msg =
+        kind === "passportPhoto"
+          ? "Only JPG, PNG, or WEBP images are allowed"
+          : "Only JPG, PNG, WEBP, or PDF files are allowed";
       setError(msg);
       throw new Error(msg);
     }
 
     setUploading((s) => ({ ...s, [kind]: true }));
     try {
-      const compressed =
-        kind === "passportPhoto"
-          ? await compressIfImage(file)
-          : file.type.startsWith("image/")
-            ? await compressIfImage(file)
-            : file;
+      const compressed = await compressIfImage(file, COMPRESS_TO_MB[kind]);
 
-      if (compressed.size > MAX_SIZE_BYTES[kind]) {
-        const maxMb = MAX_SIZE_BYTES[kind] / (1024 * 1024);
-        throw new Error(`File must be under ${maxMb}MB`);
+      if (compressed.size > UPLOAD_MAX_BYTES[kind]) {
+        throw new Error(`File must be under ${formatUploadLimit(kind)}`);
       }
 
       const presignRes = await fetch("/api/uploads/presign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tournamentSlug, kind, contentType: compressed.type }),
+        body: JSON.stringify({
+          tournamentSlug,
+          kind,
+          contentType: compressed.type,
+          size: compressed.size,
+        }),
       });
       if (!presignRes.ok) {
         const body = await presignRes.json().catch(() => null);

@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { isAllowedUpload, type UploadKind } from "@/lib/upload-limits";
 
 const REGION = process.env.S3_REGION;
 const BUCKET = process.env.S3_BUCKET_NAME;
@@ -18,16 +19,10 @@ function getClient() {
       accessKeyId: process.env.S3_ACCESS_KEY_ID!,
       secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
     },
+    // No checksum of the (empty) body in presigned URLs — the browser sends the real body later.
+    requestChecksumCalculation: "WHEN_REQUIRED",
   });
 }
-
-export const ALLOWED_UPLOAD_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "application/pdf",
-] as const;
-export type UploadKind = "ageProof" | "passportPhoto";
 
 const EXT_BY_TYPE: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -38,6 +33,8 @@ const EXT_BY_TYPE: Record<string, string> = {
 
 /**
  * Issues a pre-signed PUT URL for a private object under `registrations/`.
+ * Content-Type and the exact Content-Length are part of the signature, so S3
+ * rejects an upload of a different type or size (the caller checks the limits).
  * The bucket has no public access — objects are only ever reachable via a
  * short-lived signed URL (this one for upload, `getDownloadUrl` for viewing).
  */
@@ -45,14 +42,15 @@ export async function createUploadUrl(params: {
   tournamentSlug: string;
   kind: UploadKind;
   contentType: string;
+  size: number;
 }) {
   if (!isS3Configured()) {
     throw new Error(
       "S3 is not configured — set S3_BUCKET_NAME, S3_REGION, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY"
     );
   }
-  if (!ALLOWED_UPLOAD_TYPES.includes(params.contentType as (typeof ALLOWED_UPLOAD_TYPES)[number])) {
-    throw new Error("Unsupported file type");
+  if (!isAllowedUpload(params.kind, params.contentType, params.size)) {
+    throw new Error("Unsupported file type or size");
   }
   const ext = EXT_BY_TYPE[params.contentType];
   const key = `registrations/${params.tournamentSlug}/${params.kind}-${randomUUID()}.${ext}`;
@@ -61,8 +59,12 @@ export async function createUploadUrl(params: {
     Bucket: BUCKET,
     Key: key,
     ContentType: params.contentType,
+    ContentLength: params.size,
   });
-  const uploadUrl = await getSignedUrl(client, command, { expiresIn: 300 });
+  const uploadUrl = await getSignedUrl(client, command, {
+    expiresIn: 300,
+    signableHeaders: new Set(["content-type", "content-length"]),
+  });
   return { uploadUrl, key };
 }
 

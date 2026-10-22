@@ -2,7 +2,7 @@
 
 import { useState, type ChangeEvent } from "react";
 import type { FieldError } from "react-hook-form";
-import type { UploadKind } from "@/lib/use-s3-upload";
+import { UPLOAD_TYPES, type UploadKind } from "@/lib/upload-limits";
 
 export function FileUploadField({
   label,
@@ -65,7 +65,7 @@ export function FileUploadField({
       <input
         id={kind}
         type="file"
-        accept="image/jpeg,image/png,image/webp,application/pdf"
+        accept={UPLOAD_TYPES[kind].join(",")}
         onChange={handleChange}
         className="hidden"
       />

@@ -47,7 +47,7 @@ export function DocumentsStep({ tournamentSlug }: { tournamentSlug: string }) {
         <div />
         <FileUploadField
           label="Age proof"
-          helper="Aadhaar (mask all but the last 4 digits before uploading), a birth certificate, or a school ID. Under 5MB."
+          helper="Aadhaar (mask all but the last 4 digits before uploading), a birth certificate, or a school ID. JPG, PNG or PDF, up to 1 MB — photos are shrunk automatically."
           kind="ageProof"
           value={ageProofKey ?? ""}
           error={errors.ageProofKey}
@@ -60,7 +60,7 @@ export function DocumentsStep({ tournamentSlug }: { tournamentSlug: string }) {
         />
         <FileUploadField
           label="Passport photo"
-          helper="A recent passport-size photograph (without borders). Under 2MB."
+          helper="A recent passport-size photograph (without borders). JPG or PNG, up to 512 KB — shrunk automatically."
           kind="passportPhoto"
           value={passportPhotoKey ?? ""}
           error={errors.passportPhotoKey}
