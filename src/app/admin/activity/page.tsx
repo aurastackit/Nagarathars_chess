@@ -22,6 +22,8 @@ const ACTION_LABEL: Record<string, string> = {
   "registration.reject": "Rejected registration",
   "class.create": "Created class",
   "class.update": "Updated class",
+  "auth.login_failed": "Failed sign-in",
+  "auth.login_success": "Signed in",
 };
 
 export default async function AdminActivityPage() {

@@ -9,13 +9,15 @@ export type AdminAction =
   | "registration.confirm"
   | "registration.reject"
   | "class.create"
-  | "class.update";
+  | "class.update"
+  | "auth.login_failed"
+  | "auth.login_success";
 
 /** Records an admin action. Never throws — a logging failure shouldn't block the action itself. */
 export async function logAdminAction(params: {
   actorEmail: string;
   action: AdminAction;
-  targetType: "Tournament" | "Registration" | "ClassProgram";
+  targetType: "Tournament" | "Registration" | "ClassProgram" | "AdminLogin";
   targetId: string;
   summary: string;
 }) {

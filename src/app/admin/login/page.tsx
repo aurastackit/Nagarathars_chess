@@ -1,4 +1,4 @@
-import { AuthError } from "next-auth";
+import { AuthError, CredentialsSignin } from "next-auth";
 import { redirect } from "next/navigation";
 import { signIn } from "@/lib/auth";
 import { Button, Input, Label, Card } from "@/components/ui";
@@ -12,6 +12,9 @@ async function loginAction(formData: FormData) {
       redirectTo: "/admin",
     });
   } catch (err) {
+    if (err instanceof CredentialsSignin && err.code === "throttled") {
+      redirect("/admin/login?error=throttled");
+    }
     if (err instanceof AuthError) {
       redirect("/admin/login?error=1");
     }
@@ -42,7 +45,13 @@ export default async function AdminLoginPage({
             <Label htmlFor="password">Password</Label>
             <Input id="password" name="password" type="password" required />
           </div>
-          {error && <p className="text-sm text-red-600">Invalid email or password.</p>}
+          {error && (
+            <p role="alert" className="text-sm text-red-600">
+              {error === "throttled"
+                ? "Too many failed attempts. Wait a few minutes and try again."
+                : "Invalid email or password."}
+            </p>
+          )}
           <Button type="submit" className="w-full">
             Sign in
           </Button>
