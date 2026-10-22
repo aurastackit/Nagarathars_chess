@@ -1,3 +1,4 @@
+import "server-only";
 import "./env-runtime";
 import { createHash, timingSafeEqual } from "crypto";
 import NextAuth from "next-auth";

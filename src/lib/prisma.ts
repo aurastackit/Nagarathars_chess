@@ -1,3 +1,4 @@
+import "server-only";
 import "./env-runtime";
 import { PrismaClient } from "@prisma/client";
 

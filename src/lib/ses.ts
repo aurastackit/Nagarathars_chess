@@ -1,3 +1,4 @@
+import "server-only";
 import { SESClient, SendEmailCommand, SendRawEmailCommand } from "@aws-sdk/client-ses";
 
 export function isSesConfigured() {
