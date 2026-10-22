@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
+import { PublicOnly } from "@/components/public-only";
 import { SITE_URL, absoluteUrl } from "@/lib/site";
 import { DEFAULT_OG_IMAGE, SITE_NAME } from "@/lib/seo";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo/structured-data";
@@ -66,7 +67,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             moved there because, unlike this layout, templates re-run on every
             navigation. See the comment on getNextTournament() for why. */}
         {children}
-        <SiteFooter />
+        <PublicOnly>
+          <SiteFooter />
+        </PublicOnly>
         <JsonLd data={organizationJsonLd()} />
         <JsonLd data={websiteJsonLd()} />
       </body>

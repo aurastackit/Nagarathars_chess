@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { signOut } from "@/lib/auth";
 import { getAdminSession } from "@/lib/require-admin";
+import { AdminNav } from "@/components/admin/admin-nav";
 
 // Admin pages are per-request (session, live data), never cached.
 export const dynamic = "force-dynamic";
@@ -10,54 +12,71 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/** Compact admin header; the public header, announcement bar and footer are hidden here (PublicOnly). */
+function AdminHeader({ children }: { children?: React.ReactNode }) {
+  return (
+    <header className="bg-charcoal text-background">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 pt-3 pb-2">
+        <Link href="/admin" className="flex items-center gap-3">
+          <Image
+            src="/brand/lockup-compact-dark.svg"
+            alt="Nagarathar's Chess Championship"
+            width={115}
+            height={30}
+            unoptimized
+            className="h-[30px] w-[115px] object-contain"
+          />
+          <span className="rounded bg-gold px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-charcoal">
+            Admin
+          </span>
+        </Link>
+        {children}
+      </div>
+    </header>
+  );
+}
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getAdminSession();
 
   if (!session) {
-    // Middleware (src/middleware.ts) already redirects unauthenticated
-    // requests away from every /admin/** route except /admin/login — this
-    // branch only ever renders for the login page itself, which has no nav.
-    return <>{children}</>;
+    // The proxy (src/proxy.ts) already redirects unauthenticated requests away
+    // from every /admin/** route except /admin/login — this branch only ever
+    // renders for the login page itself, which has no nav.
+    return (
+      <>
+        <AdminHeader />
+        <div className="flex-1">{children}</div>
+      </>
+    );
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <div className="mb-6 flex items-start justify-between gap-4 border-b border-border pb-4">
-        <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-foreground/80">
-          <Link href="/admin" className="hover:text-charcoal">
-            Dashboard
+    <>
+      <AdminHeader>
+        <div className="flex items-center gap-4 text-sm">
+          <Link href="/" className="whitespace-nowrap text-background/70 hover:text-background">
+            View site ↗
           </Link>
-          <Link href="/admin/tournaments" className="hover:text-charcoal">
-            Tournaments
-          </Link>
-          <Link href="/admin/classes" className="hover:text-charcoal">
-            Classes
-          </Link>
-          <Link href="/admin/messages" className="hover:text-charcoal">
-            Messages
-          </Link>
-          <Link href="/admin/waitlist" className="hover:text-charcoal">
-            Waitlist
-          </Link>
-          <Link href="/admin/activity" className="hover:text-charcoal">
-            Activity
-          </Link>
-        </nav>
-        <form
-          action={async () => {
-            "use server";
-            await signOut({ redirectTo: "/" });
-          }}
-        >
-          <button
-            type="submit"
-            className="whitespace-nowrap text-sm font-medium text-foreground/60 hover:text-charcoal"
+          <form
+            action={async () => {
+              "use server";
+              await signOut({ redirectTo: "/admin/login" });
+            }}
           >
-            Sign out
-          </button>
-        </form>
-      </div>
-      {children}
-    </div>
+            <button
+              type="submit"
+              className="whitespace-nowrap font-medium text-background/70 hover:text-background"
+            >
+              Sign out
+            </button>
+          </form>
+        </div>
+        <div className="w-full pb-1">
+          <AdminNav />
+        </div>
+      </AdminHeader>
+      <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</div>
+    </>
   );
 }

@@ -1,4 +1,5 @@
 import { SiteHeader } from "@/components/site-header";
+import { PublicOnly } from "@/components/public-only";
 import { getNextTournament } from "@/lib/next-tournament";
 import { labelUntilEndOfDayIST } from "@/lib/countdown-format";
 
@@ -15,18 +16,20 @@ export default async function Template({ children }: { children: React.ReactNode
 
   return (
     <>
-      <SiteHeader
-        nextTournament={
-          nextTournament
-            ? {
-                title: nextTournament.title,
-                slug: nextTournament.slug,
-                registrationDeadline: nextTournament.registrationDeadline.toISOString(),
-                initialLabel: labelUntilEndOfDayIST(nextTournament.registrationDeadline),
-              }
-            : null
-        }
-      />
+      <PublicOnly>
+        <SiteHeader
+          nextTournament={
+            nextTournament
+              ? {
+                  title: nextTournament.title,
+                  slug: nextTournament.slug,
+                  registrationDeadline: nextTournament.registrationDeadline.toISOString(),
+                  initialLabel: labelUntilEndOfDayIST(nextTournament.registrationDeadline),
+                }
+              : null
+          }
+        />
+      </PublicOnly>
       {/* Preserves layout.tsx's original <SiteHeader/><div class="flex-1">{page}</div><SiteFooter/> structure.
           id = the skip link's target (layout.tsx); scroll margin clears the sticky header. */}
       <div id="main-content" className="flex-1 scroll-mt-20">
