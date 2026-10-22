@@ -1,10 +1,31 @@
 import "server-only";
 import { SESClient, SendEmailCommand, SendRawEmailCommand } from "@aws-sdk/client-ses";
 
-export function isSesConfigured() {
-  return Boolean(
-    process.env.SES_REGION && process.env.SES_ACCESS_KEY_ID && process.env.SES_SECRET_ACCESS_KEY
-  );
+/** Every variable sending email needs. All four must be set in the Amplify console. */
+export const SES_ENV_VARS = [
+  "SES_REGION",
+  "SES_ACCESS_KEY_ID",
+  "SES_SECRET_ACCESS_KEY",
+  "SES_FROM_EMAIL",
+] as const;
+
+export function missingSesVars() {
+  // `||`-style emptiness check: on Amplify a missing variable arrives as "" (see env-runtime.ts).
+  return SES_ENV_VARS.filter((k) => !process.env[k]);
+}
+
+/**
+ * Whether to log emails instead of sending them. Only allowed outside
+ * production: a production server without SES config throws, so a missing
+ * variable shows up as an error rather than emails silently never arriving.
+ */
+export function shouldStubEmail() {
+  const missing = missingSesVars();
+  if (missing.length === 0) return false;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(`Email is not configured: missing ${missing.join(", ")}`);
+  }
+  return true;
 }
 
 function getClient() {
@@ -16,8 +37,6 @@ function getClient() {
     },
   });
 }
-
-const DEFAULT_FROM = "Nagarathar's Chess <no-reply@example.com>";
 
 export type EmailAttachment = {
   filename: string;
@@ -37,7 +56,8 @@ export async function sendEmail(params: {
   attachments?: EmailAttachment[];
 }) {
   const client = getClient();
-  const from = process.env.SES_FROM_EMAIL ?? DEFAULT_FROM;
+  const from = process.env.SES_FROM_EMAIL || "";
+  if (!from) throw new Error("Email is not configured: missing SES_FROM_EMAIL");
 
   if (!params.attachments || params.attachments.length === 0) {
     return client.send(

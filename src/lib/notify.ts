@@ -1,12 +1,10 @@
 import { buildTournamentIcs } from "@/lib/ics";
 import { formatDateRange } from "@/lib/format";
 import { SITE_URL } from "@/lib/site";
-import { isSesConfigured, sendEmail } from "@/lib/ses";
+import { sendEmail, shouldStubEmail } from "@/lib/ses";
 
-// Stubbed for the trial phase: logs instead of sending a real email.
-// Falls back to this when SES isn't configured — nothing else needs to
-// change, since every call site already awaits this function and only
-// cares that it resolves.
+// Logs instead of sending a real email. Used when SES isn't configured,
+// which is only allowed outside production (see shouldStubEmail).
 export async function notifyRegistration(params: {
   to: string;
   fullName: string;
@@ -22,7 +20,7 @@ export async function notifyRegistration(params: {
 /**
  * Sends the tournament registration confirmation, with a .ics calendar
  * invite attached. Falls back to the console.log stub when SES isn't
- * configured, so this is safe to call in every environment.
+ * configured outside production.
  */
 export async function sendRegistrationConfirmationEmail(params: {
   to: string;
@@ -41,7 +39,7 @@ export async function sendRegistrationConfirmationEmail(params: {
   const statusUrl = `${SITE_URL}/registration/${params.registrationId}`;
   const subject = `Registered: ${params.tournament.title}`;
 
-  if (!isSesConfigured()) {
+  if (shouldStubEmail()) {
     return notifyRegistration({
       to: params.to,
       fullName: params.fullName,
@@ -93,7 +91,7 @@ export async function sendRegistrationDecisionEmail(params: {
       ? `Confirmed: ${params.tournamentTitle}`
       : `Update on your registration for ${params.tournamentTitle}`;
 
-  if (!isSesConfigured()) {
+  if (shouldStubEmail()) {
     return notifyRegistration({
       to: params.to,
       fullName: params.fullName,

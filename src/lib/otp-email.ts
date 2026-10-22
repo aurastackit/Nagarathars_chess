@@ -1,10 +1,10 @@
-import { isSesConfigured, sendEmail } from "@/lib/ses";
+import { sendEmail, shouldStubEmail } from "@/lib/ses";
 
-/** Sends the login one-time code via Amazon SES. Falls back to a console.log stub when SES isn't configured. */
+/** Sends the login one-time code via Amazon SES. Falls back to a console.log stub when SES isn't configured outside production. */
 export async function sendOtpEmail(params: { to: string; code: string }) {
   const subject = "Your sign-in code";
 
-  if (!isSesConfigured()) {
+  if (shouldStubEmail()) {
     console.log(`[otp-email:stub] Would email ${params.to} — code ${params.code}`);
     return { status: "stubbed" as const };
   }
