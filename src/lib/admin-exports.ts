@@ -32,15 +32,25 @@ export async function waitlistTable(): Promise<Table> {
   };
 }
 
+/**
+ * A CSV download. Sent as raw bytes with a non-text content type: Amplify's
+ * response layer decodes text/* bodies as text, which silently drops the
+ * byte-order mark Excel needs to read Tamil correctly.
+ */
+export function csvDownload(csv: string, disposition: string) {
+  return new NextResponse(new Uint8Array(Buffer.from(csv, "utf8")), {
+    headers: {
+      "Content-Type": "application/octet-stream",
+      "Content-Disposition": disposition,
+    },
+  });
+}
+
 /** A table as a CSV or XLSX download named `<filename>-<yyyy-mm-dd>.<ext>`. */
 export function exportResponse(table: Table, format: "csv" | "xlsx", filename: string) {
   const stamp = new Date().toISOString().slice(0, 10);
   const disposition = `attachment; filename="${filename}-${stamp}.${format}"`;
-  if (format === "csv") {
-    return new NextResponse(toCsv(table.headers, table.rows), {
-      headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": disposition },
-    });
-  }
+  if (format === "csv") return csvDownload(toCsv(table.headers, table.rows), disposition);
   return new NextResponse(new Uint8Array(toXlsxBuffer(table.name, table.headers, table.rows)), {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

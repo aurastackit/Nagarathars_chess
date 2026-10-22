@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
 import { toCsv } from "@/lib/csv";
+import { csvDownload } from "@/lib/admin-exports";
 import { formatDate } from "@/lib/format";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -32,10 +33,5 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     ])
   );
 
-  return new NextResponse(csv, {
-    headers: {
-      "Content-Type": "text/csv",
-      "Content-Disposition": `attachment; filename="${classProgram.slug}-enrollments.csv"`,
-    },
-  });
+  return csvDownload(csv, `attachment; filename="${classProgram.slug}-enrollments.csv"`);
 }
