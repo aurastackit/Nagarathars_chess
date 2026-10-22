@@ -12,7 +12,8 @@ export type AdminAction =
   | "class.update"
   | "auth.login_failed"
   | "auth.login_success"
-  | "auth.logout";
+  | "auth.logout"
+  | "registration.bulk";
 
 /** Records an admin action. Never throws — a logging failure shouldn't block the action itself. */
 export async function logAdminAction(params: {

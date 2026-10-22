@@ -25,6 +25,7 @@ const ACTION_LABEL: Record<string, string> = {
   "auth.login_failed": "Failed sign-in",
   "auth.login_success": "Signed in",
   "auth.logout": "Signed out",
+  "registration.bulk": "Bulk action on registrations",
 };
 
 export default async function AdminActivityPage() {
