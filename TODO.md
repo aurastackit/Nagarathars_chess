@@ -15,6 +15,10 @@ them off here as they're done.
 
 ## Access and credentials
 
+- [ ] **ORGANISERS_EMAIL** in Amplify: the organisers' inbox. It receives
+      contact-form messages and is the Reply-To on player emails. Until it's set,
+      contact messages are only in the admin Messages page.
+
 - [ ] **CRON_SECRET doesn't reach the app.** `POST /api/cron/expire-changes-requests`
       still answers 503 `{"error":"CRON_SECRET is not set"}`. Check the Amplify build
       log for `amplify.yml from repo v3 - CRON_SECRET present - …`:
@@ -49,6 +53,7 @@ them off here as they're done.
 ## Live tests skipped (need CRON_SECRET or local SES keys)
 
 - [ ] Daily expiry job on live (needs CRON_SECRET).
+- [ ] 3-day event reminder on live (same daily workflow, needs CRON_SECRET).
 - [ ] Real email delivery of the changes-requested and "Fix by" emails.
 - [ ] Bulk approve / request-changes emails on live (a local production build has
       no SES keys, so sending fails by design and is logged as `email_failed`).
@@ -69,4 +74,7 @@ them off here as they're done.
 - [ ] Admin pages are slow on live: the dashboard's first byte takes ~5–6 s
       (session check, tournament list and data are sequential trips to Sydney).
       The Mumbai move is the main fix; caching the tournament list would save a trip.
-- [ ] Re-open and withdraw by an admin don't email the player yet — Step 6.
+- [ ] Class enrolment still only logs a stub "email" — give it a real template
+      when classes open.
+- [ ] Date-change emails go out one by one while the admin waits on Save; fine for
+      tens of players, move to a background job before it's hundreds.
