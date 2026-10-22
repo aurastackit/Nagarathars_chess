@@ -33,37 +33,43 @@ export default async function TournamentResultsPage({
   const { id } = await params;
   const { error, imported } = await searchParams;
 
-  const tournament = await prisma.tournament.findUnique({
-    where: { id },
-    include: {
-      registrations: { where: { status: { in: ["confirmed", "registered"] } } },
-    },
-  });
+  // The three reads are independent: run them together (each is a full round
+  // trip to the database in Sydney, so doing them one by one took ~3x as long).
+  const loadRegistrants = () =>
+    prisma.registration.findMany({
+      where: { tournamentId: id, status: { in: ["confirmed", "registered"] } },
+      include: { player: true },
+      orderBy: { fullName: "asc" },
+    });
+  const [tournament, loadedRegistrants, rounds] = await Promise.all([
+    prisma.tournament.findUnique({
+      where: { id },
+      select: { id: true, title: true, resultsPublished: true },
+    }),
+    loadRegistrants(),
+    prisma.round.findMany({
+      where: { tournamentId: id },
+      orderBy: { number: "asc" },
+      include: {
+        pairings: {
+          include: { whitePlayer: true, blackPlayer: true },
+          orderBy: { board: "asc" },
+        },
+      },
+    }),
+  ]);
   if (!tournament) notFound();
 
-  // Backfill playerId for confirmed registrations created before this feature existed.
-  const missingPlayer = tournament.registrations.filter((r) => !r.playerId);
-  for (const r of missingPlayer) {
-    const player = await getOrCreatePlayer({ email: r.email, fullName: r.fullName, dob: r.dob });
-    await prisma.registration.update({ where: { id: r.id }, data: { playerId: player.id } });
+  // Backfill playerId for confirmed registrations created before this feature existed (rare).
+  let registrants = loadedRegistrants;
+  const missingPlayer = registrants.filter((r) => !r.playerId);
+  if (missingPlayer.length > 0) {
+    for (const r of missingPlayer) {
+      const player = await getOrCreatePlayer({ email: r.email, fullName: r.fullName, dob: r.dob });
+      await prisma.registration.update({ where: { id: r.id }, data: { playerId: player.id } });
+    }
+    registrants = await loadRegistrants();
   }
-
-  const registrants = await prisma.registration.findMany({
-    where: { tournamentId: id, status: { in: ["confirmed", "registered"] } },
-    include: { player: true },
-    orderBy: { fullName: "asc" },
-  });
-
-  const rounds = await prisma.round.findMany({
-    where: { tournamentId: id },
-    orderBy: { number: "asc" },
-    include: {
-      pairings: {
-        include: { whitePlayer: true, blackPlayer: true },
-        orderBy: { board: "asc" },
-      },
-    },
-  });
 
   const allPairings = rounds.flatMap((r) => r.pairings);
   const playersInStandings = registrants
@@ -253,7 +259,7 @@ export default async function TournamentResultsPage({
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-charcoal">Results — {tournament.title}</h1>
           <p className="mt-1 text-sm text-foreground/60">
@@ -289,9 +295,9 @@ export default async function TournamentResultsPage({
       )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <Card className="p-5">
+        <Card className="min-w-0 p-5">
           <h2 className="text-sm font-semibold text-charcoal">Add a round</h2>
-          <form action={addRound} className="mt-3 flex items-end gap-3">
+          <form action={addRound} className="mt-3 flex flex-wrap items-end gap-3">
             <div>
               <label
                 htmlFor="round-number"
@@ -312,13 +318,13 @@ export default async function TournamentResultsPage({
           </form>
         </Card>
 
-        <Card className="p-5">
+        <Card className="min-w-0 p-5">
           <h2 className="text-sm font-semibold text-charcoal">Import results (CSV)</h2>
           <p className="mt-1 text-xs text-foreground/50">
             Columns: round,board,white_email,black_email,result. Result is one of 1-0, 0-1, 0.5-0.5,
             BYE (leave black_email empty for a bye).
           </p>
-          <form action={importCsv} className="mt-3 flex items-end gap-3">
+          <form action={importCsv} className="mt-3 flex flex-wrap items-end gap-3">
             <div>
               <label
                 htmlFor="pairings-csv"
@@ -332,7 +338,7 @@ export default async function TournamentResultsPage({
                 name="file"
                 accept=".csv,text/csv"
                 required
-                className="text-sm"
+                className="max-w-full text-sm"
               />
             </div>
             <Button type="submit">Import</Button>
@@ -349,46 +355,48 @@ export default async function TournamentResultsPage({
             {rounds.map((round) => (
               <Card key={round.id} className="p-5">
                 <h3 className="font-semibold text-charcoal">Round {round.number}</h3>
-                <table className="mt-3 w-full text-left text-sm">
-                  <thead className="text-foreground/50">
-                    <tr>
-                      <th className="py-1.5 pr-3 font-medium">Board</th>
-                      <th className="py-1.5 pr-3 font-medium">White</th>
-                      <th className="py-1.5 pr-3 font-medium">Black</th>
-                      <th className="py-1.5 pr-3 font-medium">Result</th>
-                      <th className="py-1.5 font-medium"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {round.pairings.map((p) => (
-                      <tr key={p.id} className="border-t border-border">
-                        <td className="py-1.5 pr-3">{p.board ?? "—"}</td>
-                        <td className="py-1.5 pr-3">{p.whitePlayer?.fullName ?? "—"}</td>
-                        <td className="py-1.5 pr-3">{p.blackPlayer?.fullName ?? "Bye"}</td>
-                        <td className="py-1.5 pr-3">
-                          {p.result ? (RESULT_LABEL[p.result] ?? p.result) : "—"}
-                        </td>
-                        <td className="py-1.5">
-                          <form action={deletePairing.bind(null, p.id)}>
-                            <ConfirmSubmitButton
-                              message={`Delete this pairing (${p.whitePlayer?.fullName ?? "—"} vs ${p.blackPlayer?.fullName ?? "Bye"})?`}
-                              className="text-xs font-medium text-red-600 hover:underline"
-                            >
-                              Delete
-                            </ConfirmSubmitButton>
-                          </form>
-                        </td>
-                      </tr>
-                    ))}
-                    {round.pairings.length === 0 && (
+                <div className="mt-3 overflow-x-auto">
+                  <table className="w-full min-w-[28rem] text-left text-sm">
+                    <thead className="text-foreground/50">
                       <tr>
-                        <td colSpan={5} className="py-3 text-center text-foreground/40">
-                          No pairings yet.
-                        </td>
+                        <th className="py-1.5 pr-3 font-medium">Board</th>
+                        <th className="py-1.5 pr-3 font-medium">White</th>
+                        <th className="py-1.5 pr-3 font-medium">Black</th>
+                        <th className="py-1.5 pr-3 font-medium">Result</th>
+                        <th className="py-1.5 font-medium"></th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {round.pairings.map((p) => (
+                        <tr key={p.id} className="border-t border-border">
+                          <td className="py-1.5 pr-3">{p.board ?? "—"}</td>
+                          <td className="py-1.5 pr-3">{p.whitePlayer?.fullName ?? "—"}</td>
+                          <td className="py-1.5 pr-3">{p.blackPlayer?.fullName ?? "Bye"}</td>
+                          <td className="py-1.5 pr-3">
+                            {p.result ? (RESULT_LABEL[p.result] ?? p.result) : "—"}
+                          </td>
+                          <td className="py-1.5">
+                            <form action={deletePairing.bind(null, p.id)}>
+                              <ConfirmSubmitButton
+                                message={`Delete this pairing (${p.whitePlayer?.fullName ?? "—"} vs ${p.blackPlayer?.fullName ?? "Bye"})?`}
+                                className="text-xs font-medium text-red-600 hover:underline"
+                              >
+                                Delete
+                              </ConfirmSubmitButton>
+                            </form>
+                          </td>
+                        </tr>
+                      ))}
+                      {round.pairings.length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="py-3 text-center text-foreground/40">
+                            No pairings yet.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
 
                 <form
                   action={addPairing}
@@ -486,39 +494,41 @@ export default async function TournamentResultsPage({
       <section className="mt-8">
         <h2 className="text-lg font-semibold text-foreground">Standings preview</h2>
         <Card className="mt-4 overflow-hidden">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-charcoal/5 text-foreground/60">
-              <tr>
-                <th className="px-4 py-2 font-medium">Rank</th>
-                <th className="px-4 py-2 font-medium">Player</th>
-                <th className="px-4 py-2 font-medium">Category</th>
-                <th className="px-4 py-2 font-medium">Played</th>
-                <th className="px-4 py-2 font-medium">Score</th>
-                <th className="px-4 py-2 font-medium">Buchholz</th>
-                <th className="px-4 py-2 font-medium">Sonneborn-Berger</th>
-              </tr>
-            </thead>
-            <tbody>
-              {standings.map((s) => (
-                <tr key={s.player.id} className="border-t border-border">
-                  <td className="px-4 py-2 font-semibold">{s.rank}</td>
-                  <td className="px-4 py-2">{s.player.fullName}</td>
-                  <td className="px-4 py-2">{ageCategoryLabel(s.player.ageCategory)}</td>
-                  <td className="px-4 py-2">{s.played}</td>
-                  <td className="px-4 py-2 font-semibold">{s.score}</td>
-                  <td className="px-4 py-2">{s.buchholz}</td>
-                  <td className="px-4 py-2">{s.sonnebornBerger}</td>
-                </tr>
-              ))}
-              {standings.length === 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[40rem] text-left text-sm">
+              <thead className="bg-charcoal/5 text-foreground/60">
                 <tr>
-                  <td colSpan={7} className="px-4 py-6 text-center text-foreground/50">
-                    No results recorded yet.
-                  </td>
+                  <th className="px-4 py-2 font-medium">Rank</th>
+                  <th className="px-4 py-2 font-medium">Player</th>
+                  <th className="px-4 py-2 font-medium">Category</th>
+                  <th className="px-4 py-2 font-medium">Played</th>
+                  <th className="px-4 py-2 font-medium">Score</th>
+                  <th className="px-4 py-2 font-medium">Buchholz</th>
+                  <th className="px-4 py-2 font-medium">Sonneborn-Berger</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {standings.map((s) => (
+                  <tr key={s.player.id} className="border-t border-border">
+                    <td className="px-4 py-2 font-semibold">{s.rank}</td>
+                    <td className="px-4 py-2">{s.player.fullName}</td>
+                    <td className="px-4 py-2">{ageCategoryLabel(s.player.ageCategory)}</td>
+                    <td className="px-4 py-2">{s.played}</td>
+                    <td className="px-4 py-2 font-semibold">{s.score}</td>
+                    <td className="px-4 py-2">{s.buchholz}</td>
+                    <td className="px-4 py-2">{s.sonnebornBerger}</td>
+                  </tr>
+                ))}
+                {standings.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-6 text-center text-foreground/50">
+                      No results recorded yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </Card>
       </section>
     </div>
