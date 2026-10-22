@@ -1,22 +1,31 @@
 import { AuthError, CredentialsSignin } from "next-auth";
 import { redirect } from "next/navigation";
 import { signIn } from "@/lib/auth";
+import { adminCallbackPath } from "@/lib/safe-redirect";
 import { Button, Input, Label, Card } from "@/components/ui";
+
+/** Keeps the callbackUrl across a failed attempt. */
+function loginErrorUrl(error: string, redirectTo: string) {
+  const params = new URLSearchParams({ error });
+  if (redirectTo !== "/admin") params.set("callbackUrl", redirectTo);
+  return `/admin/login?${params}`;
+}
 
 async function loginAction(formData: FormData) {
   "use server";
+  const redirectTo = adminCallbackPath(formData.get("callbackUrl"));
   try {
     await signIn("credentials", {
       email: formData.get("email"),
       password: formData.get("password"),
-      redirectTo: "/admin",
+      redirectTo,
     });
   } catch (err) {
     if (err instanceof CredentialsSignin && err.code === "throttled") {
-      redirect("/admin/login?error=throttled");
+      redirect(loginErrorUrl("throttled", redirectTo));
     }
     if (err instanceof AuthError) {
-      redirect("/admin/login?error=1");
+      redirect(loginErrorUrl("1", redirectTo));
     }
     throw err;
   }
@@ -25,9 +34,9 @@ async function loginAction(formData: FormData) {
 export default async function AdminLoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; callbackUrl?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, callbackUrl } = await searchParams;
 
   return (
     <main className="mx-auto flex max-w-md flex-col justify-center px-4 py-20">
@@ -37,6 +46,7 @@ export default async function AdminLoginPage({
           Sign in to manage tournaments and view registrants.
         </p>
         <form action={loginAction} className="mt-6 space-y-4">
+          <input type="hidden" name="callbackUrl" value={adminCallbackPath(callbackUrl)} />
           <div>
             <Label htmlFor="email">Email</Label>
             <Input id="email" name="email" type="email" required />
