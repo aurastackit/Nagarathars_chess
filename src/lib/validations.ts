@@ -31,6 +31,13 @@ export const WAITLIST_INTEREST_LEVELS = [
   "not_sure",
 ] as const;
 
+export const WAITLIST_INTEREST_LABEL: Record<string, string> = {
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
+  not_sure: "Not sure yet",
+};
+
 export const classWaitlistSchema = z.object({
   email: z.string().trim().email("Enter a valid email"),
   phone: z.string().trim().optional().or(z.literal("")),
