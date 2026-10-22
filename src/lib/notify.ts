@@ -2,6 +2,7 @@ import { buildTournamentIcs } from "@/lib/ics";
 import { formatDateRange, formatDateTimeIST } from "@/lib/format";
 import { SITE_URL } from "@/lib/site";
 import { sendEmail, shouldStubEmail } from "@/lib/ses";
+import { changesRequestedEmail, decisionEmail } from "@/lib/registration-emails";
 
 // Logs instead of sending a real email. Used when SES isn't configured,
 // which is only allowed outside production (see shouldStubEmail).
@@ -76,7 +77,11 @@ export async function sendRegistrationConfirmationEmail(params: {
   });
 }
 
-/** Sent when an admin confirms or rejects a registration. Falls back to the console.log stub, same as above. */
+/**
+ * Sent when an admin confirms or rejects a registration. The content comes from
+ * src/lib/registration-emails.ts, which the admin page also uses for its preview.
+ * Falls back to the console.log stub, same as above.
+ */
 export async function sendRegistrationDecisionEmail(params: {
   to: string;
   fullName: string;
@@ -85,12 +90,7 @@ export async function sendRegistrationDecisionEmail(params: {
   decision: "confirmed" | "rejected";
   reason?: string | null;
 }) {
-  const statusUrl = `${SITE_URL}/registration/${params.registrationId}`;
-  const subject =
-    params.decision === "confirmed"
-      ? `Confirmed: ${params.tournamentTitle}`
-      : `Update on your registration for ${params.tournamentTitle}`;
-
+  const { subject, html } = decisionEmail(params);
   if (shouldStubEmail()) {
     return notifyRegistration({
       to: params.to,
@@ -98,33 +98,11 @@ export async function sendRegistrationDecisionEmail(params: {
       subject,
       context: `Registration ${params.registrationId} for ${params.tournamentTitle} — ${params.decision}${
         params.reason ? ` (${params.reason})` : ""
-      } — ${statusUrl}`,
+      } — ${SITE_URL}/registration/${params.registrationId}`,
     });
   }
-
-  const html =
-    params.decision === "confirmed"
-      ? `
-        <p>Hi ${params.fullName},</p>
-        <p>Your registration for <strong>${params.tournamentTitle}</strong> has been confirmed. See you there!</p>
-        <p>Track your registration at <a href="${statusUrl}">${statusUrl}</a>.</p>
-      `
-      : `
-        <p>Hi ${params.fullName},</p>
-        <p>We're sorry — your registration for <strong>${params.tournamentTitle}</strong> could not be confirmed.</p>
-        ${params.reason ? `<p><strong>Reason:</strong> ${params.reason}</p>` : ""}
-        <p>If you think this is a mistake, please get in touch with the organizers.</p>
-      `;
-
   return sendEmail({ to: params.to, subject, html });
 }
-
-// The older templates above get the same escaping (and branding) in the email redesign.
-const escapeHtml = (s: string) =>
-  s.replace(
-    /[&<>"']/g,
-    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!
-  );
 
 /** Sent when an admin asks the player to fix something, with the date the seat is held until. */
 export async function sendChangesRequestedEmail(params: {
@@ -135,27 +113,15 @@ export async function sendChangesRequestedEmail(params: {
   reason: string;
   fixBy: Date;
 }) {
-  const statusUrl = `${SITE_URL}/registration/${params.registrationId}`;
-  const fixBy = `${formatDateTimeIST(params.fixBy)} IST`;
-  const subject = `Action needed by ${formatDateTimeIST(params.fixBy)}: ${params.tournamentTitle}`;
-
+  const { subject, html } = changesRequestedEmail(params);
   if (shouldStubEmail()) {
     return notifyRegistration({
       to: params.to,
       fullName: params.fullName,
       subject,
-      context: `Changes requested (${params.reason}) — fix by ${fixBy} — ${statusUrl}`,
+      context: `Changes requested (${params.reason}) — fix by ${formatDateTimeIST(params.fixBy)} IST — ${SITE_URL}/registration/${params.registrationId}`,
     });
   }
-
-  const html = `
-    <p>Hi ${escapeHtml(params.fullName)},</p>
-    <p>Your application for <strong>${escapeHtml(params.tournamentTitle)}</strong> needs a change before it can be confirmed:</p>
-    <p><strong>${escapeHtml(params.reason)}</strong></p>
-    <p>Please update it by <strong>${fixBy}</strong>. Your seat is held until then; after that the application is rejected automatically.</p>
-    <p>See your application at <a href="${statusUrl}">${statusUrl}</a>.</p>
-  `;
-
   return sendEmail({ to: params.to, subject, html });
 }
 

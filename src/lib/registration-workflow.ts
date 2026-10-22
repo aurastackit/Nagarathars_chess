@@ -32,6 +32,8 @@ export async function changeRegistrationStatus(params: {
   reason?: string | null;
   /** Extra note for the timeline only. */
   note?: string | null;
+  /** The status the admin was looking at; if it has changed since, nothing happens (StaleStatusError). */
+  expectFrom?: RegistrationStatus;
 }) {
   const { registrationId, to, actor } = params;
   const reason = params.reason?.trim() || null;
@@ -42,6 +44,7 @@ export async function changeRegistrationStatus(params: {
       select: { status: true, verifyToken: true },
     });
     const from = normalizeStatus(current.status);
+    if (params.expectFrom && params.expectFrom !== from) throw new StaleStatusError();
     assertTransition(from, to, actor.type);
 
     const now = new Date();
