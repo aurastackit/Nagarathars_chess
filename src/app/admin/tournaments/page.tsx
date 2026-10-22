@@ -6,6 +6,10 @@ import { revalidatePath } from "next/cache";
 import { requireAdminPage } from "@/lib/require-admin";
 import { logAdminAction } from "@/lib/audit-log";
 import { revalidateTournamentPages } from "@/lib/revalidate-public";
+import {
+  DeleteTournamentButton,
+  type DeleteTournamentState,
+} from "@/components/admin/delete-tournament-button";
 
 export const dynamic = "force-dynamic";
 
@@ -25,21 +29,42 @@ async function togglePublish(id: string, currentStatus: string, title: string) {
   revalidateTournamentPages();
 }
 
-async function deleteTournament(id: string, title: string) {
+async function deleteTournament(
+  id: string,
+  _state: DeleteTournamentState,
+  formData: FormData
+): Promise<DeleteTournamentState> {
   "use server";
   const session = await requireAdminPage();
-  const count = await prisma.registration.count({ where: { tournamentId: id } });
-  if (count > 0) return;
-  await prisma.tournament.delete({ where: { id } });
+  const tournament = await prisma.tournament.findUnique({
+    where: { id },
+    select: { title: true, _count: { select: { registrations: true, galleryItems: true } } },
+  });
+  if (!tournament) return { error: "This tournament no longer exists." };
+  if (tournament._count.registrations > 0) {
+    return {
+      error: `It has ${tournament._count.registrations} registration(s), so it can't be deleted. Unpublish it instead.`,
+    };
+  }
+  if (String(formData.get("confirmTitle") ?? "").trim() !== tournament.title.trim()) {
+    return { error: "The title you typed doesn't match." };
+  }
+  // Gallery items reference the tournament without a cascade: keep the photos, unlink them.
+  await prisma.$transaction([
+    prisma.galleryItem.updateMany({ where: { tournamentId: id }, data: { tournamentId: null } }),
+    prisma.tournament.delete({ where: { id } }),
+  ]);
+  const unlinked = tournament._count.galleryItems;
   await logAdminAction({
     actorEmail: session.user!.email!,
     action: "tournament.delete",
     targetType: "Tournament",
     targetId: id,
-    summary: `Deleted "${title}" (had no registrations)`,
+    summary: `Deleted "${tournament.title}" (had no registrations${unlinked ? `; unlinked ${unlinked} gallery item(s)` : ""})`,
   });
   revalidatePath("/admin/tournaments");
   revalidateTournamentPages();
+  return null;
 }
 
 export default async function AdminTournamentsPage() {
@@ -104,16 +129,11 @@ export default async function AdminTournamentsPage() {
                   >
                     Manage
                   </Link>
-                  {t._count.registrations === 0 && (
-                    <form action={deleteTournament.bind(null, t.id, t.title)} className="inline">
-                      <button
-                        type="submit"
-                        className="text-xs font-medium text-red-600 hover:underline"
-                      >
-                        Delete
-                      </button>
-                    </form>
-                  )}
+                  <DeleteTournamentButton
+                    title={t.title}
+                    registrations={t._count.registrations}
+                    action={deleteTournament.bind(null, t.id)}
+                  />
                 </td>
               </tr>
             ))}
