@@ -1,9 +1,10 @@
 import { revalidatePath } from "next/cache";
 
 /*
- * The public pages are statically rendered and regenerated at most every five
- * minutes (`revalidate = 300`). Anything that changes what they show calls one
- * of these so the change appears on the next request instead.
+ * The public pages are statically rendered and regenerated at most every
+ * minute (`revalidate = 60`; the CDN caches them for the same s-maxage).
+ * Anything that changes what they show calls one of these so the change
+ * appears on the next request instead.
  */
 
 /**

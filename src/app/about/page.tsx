@@ -9,9 +9,9 @@ import { Reveal } from "@/components/reveal";
 import { TrusteesOrbit } from "@/components/trustees-orbit";
 import { COMMITTEE } from "@/data/committee";
 
-// Static, regenerated at most every 5 minutes or on demand after an admin
+// Static, regenerated at most every minute or on demand after an admin
 // change (lib/revalidate-public).
-export const revalidate = 300;
+export const revalidate = 60;
 
 export const metadata: Metadata = pageMetadata({
   title: "About Us & Our Trustees",

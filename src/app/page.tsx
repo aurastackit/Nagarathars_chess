@@ -36,9 +36,9 @@ import { JsonLd } from "@/components/json-ld";
 import { FAQS } from "@/data/faqs";
 import { EmptyTournaments } from "@/components/illustrations/empty-states";
 
-// Static, regenerated at most every 5 minutes or on demand after an admin
+// Static, regenerated at most every minute or on demand after an admin
 // change (lib/revalidate-public).
-export const revalidate = 300;
+export const revalidate = 60;
 
 export const metadata = pageMetadata({
   title: "Chess Tournaments & Classes in Chennai | Nagarathar's Chess",

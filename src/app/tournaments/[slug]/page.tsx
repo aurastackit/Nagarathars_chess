@@ -29,10 +29,10 @@ import { RegisterSlot, RegistrationFlow } from "@/components/registration-wizard
 import { RegistrationNotice } from "@/components/registration-wizard/registration-notice";
 import { TournamentPlaceholder } from "@/components/illustrations/tournament-placeholder";
 
-// Static, regenerated at most every 5 minutes or on demand when an admin
+// Static, regenerated at most every minute or on demand when an admin
 // changes the tournament (lib/revalidate-public). Who sees the registration
 // notice is decided in the browser (RegistrationFlow), so the HTML can be cached.
-export const revalidate = 300;
+export const revalidate = 60;
 
 export async function generateStaticParams() {
   const tournaments = await prisma.tournament.findMany({

@@ -7,11 +7,11 @@ import { organizationJsonLd, websiteJsonLd } from "@/lib/seo/structured-data";
 import { JsonLd } from "@/components/json-ld";
 import "./globals.css";
 
-// Default for every page: static, regenerated at most every 5 minutes (the
+// Default for every page: static, regenerated at most every minute (the
 // header and announcement bar read the next tournament). Admin, registration
 // status, player and results pages opt out with force-dynamic; API routes are
 // dynamic anyway.
-export const revalidate = 300;
+export const revalidate = 60;
 
 const inter = Inter({
   variable: "--font-inter",
