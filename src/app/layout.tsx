@@ -10,8 +10,10 @@ import { CLASSES_ENABLED } from "@/lib/features";
 import "./globals.css";
 
 // Default for every page: static, regenerated at most every minute (the
-// header and announcement bar read the next tournament). Admin, registration
-// status, player and results pages opt out with force-dynamic; API routes are
+// header and announcement bar read the next tournament). Pages that show live
+// tournament data — home, tournaments, tournament, results — plus admin,
+// registration status and player pages opt out with force-dynamic (Amplify
+// never regenerates these snapshots, see the home page); API routes are
 // dynamic anyway.
 export const revalidate = 60;
 

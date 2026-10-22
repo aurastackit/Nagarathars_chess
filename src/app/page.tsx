@@ -39,7 +39,10 @@ import { EmptyTournaments } from "@/components/illustrations/empty-states";
 
 // Static, regenerated at most every minute or on demand after an admin
 // change (lib/revalidate-public).
-export const revalidate = 60;
+// Rendered on every request: seat counts and tournament status must be current,
+// and Amplify Hosting never regenerates static snapshots (they only change on
+// deploy). The queries below run in parallel, so this costs one database round trip.
+export const dynamic = "force-dynamic";
 
 export const metadata = CLASSES_ENABLED
   ? pageMetadata({

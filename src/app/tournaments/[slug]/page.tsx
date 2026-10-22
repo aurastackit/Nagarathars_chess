@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { SEATS_TAKEN_COUNT } from "@/lib/tournament-status";
 import { isRazorpayConfigured } from "@/lib/razorpay";
@@ -30,18 +31,14 @@ import { RegisterSlot, RegistrationFlow } from "@/components/registration-wizard
 import { RegistrationNotice } from "@/components/registration-wizard/registration-notice";
 import { TournamentPlaceholder } from "@/components/illustrations/tournament-placeholder";
 
-// Static, regenerated at most every minute or on demand when an admin
-// changes the tournament (lib/revalidate-public). Who sees the registration
-// notice is decided in the browser (RegistrationFlow), so the HTML can be cached.
-export const revalidate = 60;
+// Rendered on every request so the seat count and registration status are
+// always current (Amplify never regenerates static snapshots; see the home page).
+export const dynamic = "force-dynamic";
 
-export async function generateStaticParams() {
-  const tournaments = await prisma.tournament.findMany({
-    where: { status: "published" },
-    select: { slug: true },
-  });
-  return tournaments.map(({ slug }) => ({ slug }));
-}
+/** One query per request, shared by generateMetadata and the page. */
+const getTournament = cache((slug: string) =>
+  prisma.tournament.findUnique({ where: { slug }, include: SEATS_TAKEN_COUNT })
+);
 
 export async function generateMetadata({
   params,
@@ -49,7 +46,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const tournament = await prisma.tournament.findUnique({ where: { slug } });
+  const tournament = await getTournament(slug);
   if (!tournament || tournament.status === "draft") return {};
 
   const city = capitalizeWords(tournament.city);
@@ -79,10 +76,7 @@ export default async function TournamentDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const tournament = await prisma.tournament.findUnique({
-    where: { slug },
-    include: SEATS_TAKEN_COUNT,
-  });
+  const tournament = await getTournament(slug);
 
   if (!tournament || tournament.status === "draft") {
     notFound();

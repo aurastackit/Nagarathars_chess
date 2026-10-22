@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { Badge, Card, EmptyState } from "@/components/ui";
 import { ageCategoryLabel } from "@/lib/age-category";
@@ -21,13 +22,16 @@ const RESULT_LABEL: Record<string, string> = {
   BYE: "Bye",
 };
 
+/** One query per request, shared by generateMetadata and the page. */
+const getTournament = cache((slug: string) => prisma.tournament.findUnique({ where: { slug } }));
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const tournament = await prisma.tournament.findUnique({ where: { slug } });
+  const tournament = await getTournament(slug);
   if (!tournament || !tournament.resultsPublished) return {};
   const city = capitalizeWords(tournament.city);
   return pageMetadata({
@@ -48,7 +52,7 @@ export default async function TournamentResultsPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const tournament = await prisma.tournament.findUnique({ where: { slug } });
+  const tournament = await getTournament(slug);
   if (!tournament || !tournament.resultsPublished) notFound();
 
   const [registrants, rounds] = await Promise.all([

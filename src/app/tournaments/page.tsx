@@ -8,9 +8,9 @@ import { TournamentCard } from "@/components/tournament-card";
 import { EmptyTournaments } from "@/components/illustrations/empty-states";
 import { TOURNAMENTS_HEADER_PHOTO } from "@/lib/featured-photos";
 
-// Static, regenerated at most every minute or on demand after an admin
-// change (lib/revalidate-public).
-export const revalidate = 60;
+// Rendered on every request so seat counts and status are always current
+// (Amplify never regenerates static snapshots; see the home page).
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = pageMetadata({
   title: "Chennai Chess Tournaments",
