@@ -11,7 +11,7 @@ const csp = [
   "img-src 'self' data: blob: https://*.supabase.co https://*.amazonaws.com",
   "font-src 'self' data:",
   "connect-src 'self' https://*.amazonaws.com https://checkout.razorpay.com https://lumberjack.razorpay.com https://api.razorpay.com",
-  "frame-src https://api.razorpay.com https://checkout.razorpay.com https://www.google.com https://maps.google.com",
+  "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://www.google.com https://maps.google.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -55,6 +55,17 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: securityHeaders,
+      },
+      {
+        // ID-card PDFs are previewed in an iframe on the admin Players page (later rules win).
+        source: "/api/admin/id-cards/:path*",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: csp.replace("frame-ancestors 'none'", "frame-ancestors 'self'"),
+          },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+        ],
       },
     ];
   },
