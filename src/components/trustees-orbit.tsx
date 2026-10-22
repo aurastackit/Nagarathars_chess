@@ -10,7 +10,7 @@ import {
   type KeyboardEvent,
   type RefObject,
 } from "react";
-import { roleOf, type CommitteeMember } from "@/data/committee";
+import type { CommitteeMember } from "@/data/committee";
 import {
   orbitKeyframes,
   poseTransform,
@@ -37,8 +37,8 @@ const RING_DRAW_MS = 500;
 const RING_DRAW_DELAY_MS = 150;
 const TEXT_OUT_MS = 150;
 
-const pad = (n: number) => String(n).padStart(2, "0");
-const altOf = (m: CommitteeMember) => `${m.name}, ${roleOf(m)}`;
+/** "EMC Palaniappan, Puthuvayal" — photo alt text and the avatars' accessible name. */
+const altOf = (m: CommitteeMember) => `${m.name}, ${m.place}`;
 
 /** selected = trustee in the centre; slots[k] = trustee on ring position k (k = 0 is the top before rotation). */
 type Orbit = { selected: number; slots: number[]; rotation: number };
@@ -71,37 +71,32 @@ function Arrow({ dir }: { dir: "left" | "right" }) {
   );
 }
 
-function Info({
-  member,
-  index,
-  total,
-  mode,
-}: {
-  member: CommitteeMember;
-  index: number;
-  total: number;
-  mode: "static" | "in" | "out";
-}) {
+function MapPin() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-3.5 flex-none" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z" />
+      <circle cx="12" cy="9.5" r="2.5" />
+    </svg>
+  );
+}
+
+function Info({ member, mode }: { member: CommitteeMember; mode: "static" | "in" | "out" }) {
   const d = (ms: number) => ({ "--d": `${ms}ms` }) as CSSProperties;
   return (
     <div
       className={`absolute inset-0 text-center lg:text-left ${mode === "in" ? "ts-in" : mode === "out" ? "ts-out" : ""}`}
       aria-hidden={mode === "out" || undefined}
     >
-      <p className="ts-item text-sm font-semibold tabular-nums tracking-wider text-gold-ink" style={d(0)}>
-        {pad(index + 1)} / {pad(total)}
-      </p>
-      <h3 className="ts-item mt-3 font-display text-[28px] font-bold leading-tight text-charcoal" style={d(60)}>
+      {/* One line from lg (the longest name fits at 1440); below that it may wrap — the card height is fixed. */}
+      <h3 className="ts-item text-balance font-display text-[28px] font-bold leading-tight text-charcoal lg:whitespace-nowrap" style={d(0)}>
         {member.name}
       </h3>
-      <p className="ts-item mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted" style={d(120)}>
-        {roleOf(member)}
-        {member.since !== null && (
-          <span className="font-normal normal-case tracking-normal"> &middot; Since {member.since}</span>
-        )}
+      <p className="ts-item mt-2 flex items-center justify-center gap-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-muted lg:justify-start" style={d(60)}>
+        <MapPin />
+        <span>{member.place}</span>
       </p>
-      <span className="ts-rule mx-auto mt-5 block h-0.5 w-10 origin-left bg-gold lg:mx-0" style={d(180)} />
-      <blockquote className="ts-item relative mx-auto mt-8 max-w-[32ch] lg:mx-0" style={d(240)}>
+      <span className="ts-rule mx-auto mt-5 block h-0.5 w-10 origin-left bg-gold lg:mx-0" style={d(120)} />
+      <blockquote className="ts-item relative mx-auto mt-8 max-w-[32ch] lg:mx-0" style={d(180)}>
         <span
           aria-hidden="true"
           className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 select-none font-display text-[96px] leading-[0.8] text-gold/25 lg:-left-6 lg:translate-x-0"
@@ -265,9 +260,9 @@ export function TrusteesOrbit({ members }: { members: CommitteeMember[] }) {
     <div className={`flex flex-col ${className}`}>
       <div aria-live="polite" className="relative flex-1">
         {leaving !== null && leaving !== selected && (
-          <Info key={`out-${leaving}`} member={members[leaving]} index={leaving} total={n} mode="out" />
+          <Info key={`out-${leaving}`} member={members[leaving]} mode="out" />
         )}
-        <Info key={`in-${selected}`} member={member} index={selected} total={n} mode={changed ? "in" : "static"} />
+        <Info key={`in-${selected}`} member={member} mode={changed ? "in" : "static"} />
       </div>
       <div className="mt-6 flex justify-center gap-3 lg:justify-start">
         <NavButton label="Previous trustee" dir="left" onClick={() => select(prev)} onWarm={() => warmUp(prev)} />
@@ -276,7 +271,7 @@ export function TrusteesOrbit({ members }: { members: CommitteeMember[] }) {
     </div>
   );
 
-  const hovered = hover !== null && hover !== selected ? { pose: poseOf(orbit, hover), name: members[hover].name } : null;
+  const hovered = hover !== null && hover !== selected ? { pose: poseOf(orbit, hover), member: members[hover] } : null;
 
   return (
     <div>
@@ -330,6 +325,7 @@ export function TrusteesOrbit({ members }: { members: CommitteeMember[] }) {
                 ref={(el) => setNode(avatars, i, el)}
                 type="button"
                 role="radio"
+                aria-label={altOf(m)}
                 aria-checked={i === selected}
                 tabIndex={i === selected ? 0 : -1}
                 onClick={() => select(i)}
@@ -398,7 +394,8 @@ export function TrusteesOrbit({ members }: { members: CommitteeMember[] }) {
                 style={{ left: STAGE / 2 + hovered.pose.x, top: STAGE / 2 + hovered.pose.y + SMALL / 2 + 10 }}
                 aria-hidden="true"
               >
-                {hovered.name}
+                {hovered.member.name}
+                <span className="font-normal text-white/70"> · {hovered.member.place}</span>
               </span>
             )}
           </div>
@@ -448,6 +445,8 @@ export function TrusteesOrbit({ members }: { members: CommitteeMember[] }) {
               ref={(el) => setNode(chips, i, el)}
               type="button"
               role="radio"
+              aria-label={altOf(m)}
+              title={altOf(m)}
               aria-checked={i === selected}
               tabIndex={i === selected ? 0 : -1}
               onClick={() => select(i)}
