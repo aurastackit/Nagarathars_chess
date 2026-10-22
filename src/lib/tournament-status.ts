@@ -1,10 +1,8 @@
 import { endOfDayIST } from "@/lib/datetime";
+import { SEAT_HOLDING_STATUSES } from "@/lib/registration-status";
 
-/**
- * Registrations that take a seat: pending and confirmed ("registered" is the
- * legacy name for confirmed). Rejected registrations free their seat.
- */
-export const SEAT_HOLDING_STATUSES = ["pending", "confirmed", "registered"];
+// Which registrations take a seat is defined with the status rules.
+export { SEAT_HOLDING_STATUSES };
 
 /** Prisma `_count` select for seats taken — use wherever "N / max seats" is shown or enforced. */
 export const SEATS_TAKEN_COUNT = {
