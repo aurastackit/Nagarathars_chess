@@ -13,10 +13,13 @@ export function Modal({
   onClose,
   title,
   children,
+  wide = false,
 }: {
   onClose: () => void;
   title: string;
   children: ReactNode;
+  /** A little wider than the default, for previews. */
+  wide?: boolean;
 }) {
   if (typeof document === "undefined") return null;
 
@@ -29,7 +32,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="w-full max-w-sm rounded-lg bg-card p-6 shadow-lg"
+        className={`w-full ${wide ? "max-w-md" : "max-w-sm"} rounded-lg bg-card p-6 shadow-lg`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">

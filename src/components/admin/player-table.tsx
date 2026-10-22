@@ -11,6 +11,7 @@ import {
   type PlayerSort,
 } from "@/lib/player-filters";
 import { registrationAdminHref } from "@/lib/admin-links";
+import { normalizeStatus } from "@/lib/registration-status";
 import { StatusBadges } from "@/components/admin/status-badge";
 import { Modal } from "@/components/modal";
 import { Button, buttonClasses } from "@/components/ui";
@@ -45,6 +46,106 @@ function DuplicateFlag({ dup }: { dup: PlayerRow["duplicate"] }) {
           : "Dup email"}
       <span className="sr-only">: {parts.join("; ")}</span>
     </span>
+  );
+}
+
+const NO_CARD_YET = "ID card available after approval";
+const isConfirmed = (r: PlayerRow) => normalizeStatus(r.status) === "confirmed";
+
+/** Opens the ID-card preview for confirmed players; others get a muted note instead of a button. */
+function IdCardButton({
+  row,
+  onOpen,
+  className = "",
+}: {
+  row: PlayerRow;
+  onOpen: (row: PlayerRow) => void;
+  className?: string;
+}) {
+  if (!isConfirmed(row)) {
+    return (
+      <span
+        title={NO_CARD_YET}
+        className={`inline-flex cursor-help items-center justify-center whitespace-nowrap px-2 text-xs text-foreground/35 ${className}`}
+      >
+        <span aria-hidden="true">ID card —</span>
+        <span className="sr-only">{NO_CARD_YET}</span>
+      </span>
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(row)}
+      data-testid="id-card-button"
+      className={buttonClasses("outline", "sm", `whitespace-nowrap ${className}`)}
+    >
+      ID card
+    </button>
+  );
+}
+
+/** The CR80 card as the server renders it, with download and print. */
+function IdCardPreview({ row, onClose }: { row: PlayerRow; onClose: () => void }) {
+  const frame = useRef<HTMLIFrameElement>(null);
+  // Some browsers (e.g. Chrome on Android) can't show a PDF inside the page.
+  const [inline] = useState(() => navigator.pdfViewerEnabled !== false);
+  const src = `/api/admin/id-cards/${row.id}`;
+  return (
+    <Modal title={`ID card · ${row.registrationNo ?? row.fullName}`} onClose={onClose} wide>
+      <div className="relative mx-auto aspect-[54/86] w-full max-w-[17rem] overflow-hidden rounded-md border border-border bg-background">
+        {inline ? (
+          <>
+            <p className="absolute inset-0 flex items-center justify-center text-xs text-foreground/50">
+              Preparing the card…
+            </p>
+            <iframe
+              ref={frame}
+              src={`${src}#toolbar=0&navpanes=0&view=Fit`}
+              title={`ID card for ${row.fullName}`}
+              className="relative block size-full"
+            />
+          </>
+        ) : (
+          <a
+            href={src}
+            target="_blank"
+            rel="noopener"
+            className="absolute inset-0 flex flex-col items-center justify-center gap-1 p-4 text-center text-sm font-medium text-charcoal underline"
+          >
+            Open the card
+            <span className="text-xs font-normal text-foreground/60 no-underline">
+              This browser can&apos;t preview PDFs here.
+            </span>
+          </a>
+        )}
+      </div>
+      <div className="mt-4 flex gap-2">
+        <a href={`${src}?download=1`} className={buttonClasses("primary", "sm", "flex-1")}>
+          Download PDF
+        </a>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="flex-1"
+          onClick={() => {
+            // Print the PDF itself; otherwise open it in a new tab to print from there.
+            try {
+              if (!frame.current?.contentWindow) throw new Error("no inline viewer");
+              frame.current.contentWindow.print();
+            } catch {
+              window.open(src, "_blank", "noopener");
+            }
+          }}
+        >
+          Print
+        </Button>
+      </div>
+      <p className="mt-2 text-xs text-foreground/60">
+        Print at 100% (&ldquo;Actual size&rdquo;) for a true 54 × 86 mm card.
+      </p>
+    </Modal>
   );
 }
 
@@ -103,6 +204,7 @@ export function PlayerTable({
   const [help, setHelp] = useState(false);
   const [asking, setAsking] = useState(false);
   const [result, setResult] = useState<BulkResult>(null);
+  const [card, setCard] = useState<PlayerRow | null>(null);
   const rowRefs = useRef<(HTMLElement | null)[]>([]);
 
   // Run a bulk action, then: show its summary, clear the selection if anything
@@ -133,7 +235,7 @@ export function PlayerTable({
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const el = e.target as HTMLElement;
-      if (asking || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (asking || card || e.metaKey || e.ctrlKey || e.altKey) return;
       if (el.closest("input, textarea, select, [contenteditable=true]")) {
         if (e.key === "Escape") (el as HTMLElement).blur();
         return;
@@ -156,11 +258,12 @@ export function PlayerTable({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [active, asking, rows, router]);
+  }, [active, asking, card, rows, router]);
 
   const plainHead =
     "sticky top-0 z-10 bg-card px-3 py-2 font-medium shadow-[inset_0_-1px_0_var(--border)]";
   const ids = [...selected];
+  const printable = rows.filter((r) => selected.has(r.id) && isConfirmed(r)).map((r) => r.id);
 
   return (
     <div className="space-y-3">
@@ -205,14 +308,31 @@ export function PlayerTable({
             >
               Export selected
             </a>
-            <button
-              type="button"
-              disabled
-              title="Arrives with ID cards"
-              className={buttonClasses("outline", "sm")}
-            >
-              Print ID cards
-            </button>
+            {printable.length > 0 ? (
+              <a
+                href={`/api/admin/id-cards/sheet?${new URLSearchParams({ ids: printable.join(",") })}`}
+                target="_blank"
+                rel="noopener"
+                data-testid="print-id-cards"
+                title={
+                  printable.length < selected.size
+                    ? `${selected.size - printable.length} selected player(s) aren't approved yet and are left out`
+                    : "A4 sheets, 10 cards per page, with crop marks"
+                }
+                className={buttonClasses("outline", "sm")}
+              >
+                Print ID cards ({printable.length})
+              </a>
+            ) : (
+              <button
+                type="button"
+                disabled
+                title={NO_CARD_YET}
+                className={buttonClasses("outline", "sm")}
+              >
+                Print ID cards
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setSelected(new Set())}
@@ -268,7 +388,7 @@ export function PlayerTable({
               <th scope="col" className={`${plainHead} w-10`}>
                 #
               </th>
-              <SortHead filters={filters} column="fullName" className="min-w-[15rem]">
+              <SortHead filters={filters} column="fullName" className="min-w-[13rem]">
                 Player
               </SortHead>
               <SortHead filters={filters} column="registrationNo">
@@ -331,7 +451,9 @@ export function PlayerTable({
                 <td className="px-3 py-2.5 capitalize">{r.gender ?? "—"}</td>
                 <td className="whitespace-nowrap px-3 py-2.5">{r.categoryLabel}</td>
                 <td className="px-3 py-2.5">{r.kovil ?? "—"}</td>
-                <td className="px-3 py-2.5">{r.native ?? "—"}</td>
+                <td className="max-w-[8rem] px-3 py-2.5 [overflow-wrap:anywhere]">
+                  {r.native ?? "—"}
+                </td>
                 <td className="px-3 py-2.5">
                   <StatusBadges status={r.status} dateChange={r.dateChangeResponse} />
                 </td>
@@ -339,12 +461,15 @@ export function PlayerTable({
                   <time dateTime={r.registeredAt}>{r.registeredLabel}</time>
                 </td>
                 <td className="px-3 py-2.5 text-right">
-                  <Link
-                    href={registrationAdminHref(r.tournamentId, r.id)}
-                    className={buttonClasses("outline", "sm")}
-                  >
-                    View
-                  </Link>
+                  <div className="flex flex-col items-stretch gap-1.5">
+                    <IdCardButton row={r} onOpen={setCard} />
+                    <Link
+                      href={registrationAdminHref(r.tournamentId, r.id)}
+                      className={buttonClasses("outline", "sm")}
+                    >
+                      View
+                    </Link>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -397,12 +522,15 @@ export function PlayerTable({
                 </dl>
               </div>
             </div>
-            <Link
-              href={registrationAdminHref(r.tournamentId, r.id)}
-              className={buttonClasses("outline", "sm", "mt-3 w-full")}
-            >
-              View
-            </Link>
+            <div className="mt-3 flex gap-2">
+              <IdCardButton row={r} onOpen={setCard} className="flex-1" />
+              <Link
+                href={registrationAdminHref(r.tournamentId, r.id)}
+                className={buttonClasses("outline", "sm", "flex-1")}
+              >
+                View
+              </Link>
+            </div>
           </li>
         ))}
       </ul>
@@ -443,6 +571,8 @@ export function PlayerTable({
           </form>
         </Modal>
       )}
+
+      {card && <IdCardPreview row={card} onClose={() => setCard(null)} />}
     </div>
   );
 }
