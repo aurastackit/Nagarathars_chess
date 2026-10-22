@@ -52,18 +52,31 @@ export const tournamentSchema = z
     title: z.string().trim().min(2, "Enter a title"),
     description: z.string().trim().min(1, "Enter a description"),
     category: z.string().trim().min(1, "Enter a category"),
-    format: z.enum(["classical", "rapid", "blitz"]),
+    format: z.enum(["classical", "rapid", "blitz"], { error: "Choose a format" }),
     startDate: z.coerce.date({ error: "Enter a valid start date" }),
     endDate: z.coerce.date({ error: "Enter a valid end date" }),
     venue: z.string().trim().min(1, "Enter a venue"),
     city: z.string().trim().min(1, "Enter a city"),
-    entryFee: z.coerce.number().int().min(0),
-    maxParticipants: z.coerce.number().int().min(1).optional().nullable(),
+    entryFee: z.coerce
+      .number({ error: "Enter the entry fee in whole rupees (0 = free)" })
+      .int("Enter the entry fee in whole rupees (0 = free)")
+      .min(0, "The entry fee can't be negative"),
+    maxParticipants: z.coerce
+      .number({ error: "Enter a whole number" })
+      .int("Enter a whole number")
+      .min(1, "Allow at least 1 participant")
+      .optional()
+      .nullable(),
     registrationDeadline: z.coerce.date({ error: "Enter a valid registration deadline" }),
     posterImageUrl: optionalImageUrl,
     brochurePdfUrl: optionalText,
     timeControl: optionalText,
-    rounds: z.coerce.number().int().min(1).optional().nullable(),
+    rounds: z.coerce
+      .number({ error: "Enter a whole number" })
+      .int("Enter a whole number")
+      .min(1, "At least 1 round")
+      .optional()
+      .nullable(),
     prizeStructure: optionalText,
     rulesText: optionalText,
   })
