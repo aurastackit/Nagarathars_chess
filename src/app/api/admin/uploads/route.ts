@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireAdminApi } from "@/lib/require-admin";
 import { getDownloadUrl } from "@/lib/s3";
 
 /** Admin-only: exchanges a stored S3 object key for a short-lived signed GET URL. */
 export async function GET(req: Request) {
-  const session = await auth();
+  const session = await requireAdminApi();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

@@ -24,6 +24,7 @@ const ACTION_LABEL: Record<string, string> = {
   "class.update": "Updated class",
   "auth.login_failed": "Failed sign-in",
   "auth.login_success": "Signed in",
+  "auth.logout": "Signed out",
 };
 
 export default async function AdminActivityPage() {

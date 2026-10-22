@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { auth, signOut } from "@/lib/auth";
+import { signOut } from "@/lib/auth";
+import { getAdminSession } from "@/lib/require-admin";
 
 // Admin pages are per-request (session, live data), never cached.
 export const dynamic = "force-dynamic";
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
+  const session = await getAdminSession();
 
   if (!session) {
     // Middleware (src/middleware.ts) already redirects unauthenticated
