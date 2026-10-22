@@ -8,6 +8,7 @@ import { AnnouncementBar } from "@/components/announcement-bar";
 import { buttonClasses } from "@/components/ui";
 import { registerPath } from "@/lib/registration-flow";
 import { CLASSES_ENABLED } from "@/lib/features";
+import { useNextTournament } from "@/lib/use-next-tournament";
 
 const NAV = [
   { href: "/", label: "Home" },
@@ -34,13 +35,6 @@ function SoonPill({ active = false, onDark = false }: { active?: boolean; onDark
     </>
   );
 }
-
-type NextTournament = {
-  title: string;
-  slug: string;
-  registrationDeadline: string;
-  initialLabel: string | null;
-} | null;
 
 const HOME_LABEL = "Nagarathar's Chess Championship – home";
 
@@ -72,8 +66,10 @@ function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function SiteHeader({ nextTournament }: { nextTournament: NextTournament }) {
+export function SiteHeader() {
   const pathname = usePathname();
+  // Fetched in the browser so cached pages never show a stale bar or Register link.
+  const nextTournament = useNextTournament();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -137,18 +133,14 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
     };
   }, [menuOpen]);
 
-  const registerHref = nextTournament ? registerPath(nextTournament.slug) : null;
+  // Nothing open for registration: point to the tournaments page instead.
+  const cta = nextTournament
+    ? { href: registerPath(nextTournament.slug), label: "Register Now" }
+    : { href: "/tournaments", label: "See tournaments" };
 
   return (
     <>
-      {nextTournament && (
-        <AnnouncementBar
-          title={nextTournament.title}
-          slug={nextTournament.slug}
-          registrationDeadline={nextTournament.registrationDeadline}
-          initialLabel={nextTournament.initialLabel}
-        />
-      )}
+      <AnnouncementBar tournament={nextTournament} />
       <header
         className={`sticky top-0 z-50 border-b transition-colors duration-300 ${
           scrolled
@@ -200,9 +192,24 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
           </nav>
 
           <div className="hidden items-center gap-2 sm:flex">
-            {registerHref && (
-              <Link href={registerHref} className={buttonClasses("primary", "md", "rounded-full!")}>
+            {nextTournament === undefined ? (
+              // Same size as the real button, so the nav doesn't move when it loads.
+              <span
+                aria-hidden="true"
+                className={buttonClasses("primary", "md", "invisible rounded-full!")}
+              >
                 Register Now
+              </span>
+            ) : (
+              <Link
+                href={cta.href}
+                className={buttonClasses(
+                  nextTournament ? "primary" : "outline",
+                  "md",
+                  "rounded-full!"
+                )}
+              >
+                {cta.label}
               </Link>
             )}
           </div>
@@ -299,14 +306,14 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
                 </Link>
               );
             })}
-            {registerHref && (
+            {nextTournament !== undefined && (
               <Link
-                href={registerHref}
+                href={cta.href}
                 className="site-menu-item mt-6 rounded-full bg-gold px-6 py-3 text-base font-semibold text-charcoal shadow-sm transition-colors hover:bg-gold/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal"
                 style={{ animationDelay: `${NAV.length * 40}ms` }}
                 onClick={() => setMenuOpen(false)}
               >
-                Register Now
+                {cta.label}
               </Link>
             )}
           </nav>

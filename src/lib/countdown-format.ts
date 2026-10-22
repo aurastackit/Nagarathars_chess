@@ -37,7 +37,3 @@ export function timeUntilEndOfDayIST(deadline: Date | string): TimeLeft {
   return getTimeLeft(endOfDayIST(deadline).getTime() - Date.now());
 }
 
-/** Same idea as {@link timeUntilEndOfDayIST}, for the announcement bar's compact label. */
-export function labelUntilEndOfDayIST(deadline: Date | string): string | null {
-  return formatCompact(endOfDayIST(deadline).getTime() - Date.now());
-}

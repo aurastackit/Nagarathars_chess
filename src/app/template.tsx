@@ -1,34 +1,17 @@
 import { SiteHeader } from "@/components/site-header";
 import { PublicOnly } from "@/components/public-only";
-import { getNextTournament } from "@/lib/next-tournament";
-import { labelUntilEndOfDayIST } from "@/lib/countdown-format";
 
 /**
- * Unlike layout.tsx, a template re-runs on every navigation (it doesn't
- * persist across client-side route changes) — see the comment on
- * getNextTournament() for why that matters here: it's what keeps the
- * announcement bar / nav "Register Now" link in sync with whatever the
- * current page fetched, instead of showing whatever was next-up when the
- * layout last rendered.
+ * Unlike layout.tsx, a template re-runs on every navigation. The header
+ * fetches the next open tournament in the browser (useNextTournament), so
+ * nothing here depends on data and cached pages never show a stale
+ * announcement bar or Register link.
  */
-export default async function Template({ children }: { children: React.ReactNode }) {
-  const nextTournament = await getNextTournament();
-
+export default function Template({ children }: { children: React.ReactNode }) {
   return (
     <>
       <PublicOnly>
-        <SiteHeader
-          nextTournament={
-            nextTournament
-              ? {
-                  title: nextTournament.title,
-                  slug: nextTournament.slug,
-                  registrationDeadline: nextTournament.registrationDeadline.toISOString(),
-                  initialLabel: labelUntilEndOfDayIST(nextTournament.registrationDeadline),
-                }
-              : null
-          }
-        />
+        <SiteHeader />
       </PublicOnly>
       {/* Preserves layout.tsx's original <SiteHeader/><div class="flex-1">{page}</div><SiteFooter/> structure.
           id = the skip link's target (layout.tsx); scroll margin clears the sticky header. */}

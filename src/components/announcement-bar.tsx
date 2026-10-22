@@ -6,51 +6,51 @@ import { ClockIcon } from "@/components/icons/misc";
 import { formatCompact } from "@/lib/countdown-format";
 import { endOfDayIST } from "@/lib/datetime";
 import { registerPath } from "@/lib/registration-flow";
+import type { NextTournamentState } from "@/lib/use-next-tournament";
 
-export function AnnouncementBar({
-  title,
-  slug,
-  registrationDeadline,
-  initialLabel,
-}: {
-  title: string;
-  slug: string;
-  registrationDeadline: string;
-  /**
-   * Computed server-side from the same `now` used to render this HTML, so
-   * hydration's first client render matches exactly — the live ticking
-   * value (which depends on the client's own `Date.now()`, necessarily
-   * different from the server's) only kicks in after mount, in the effect
-   * below. Without this, the server and client computed different label
-   * strings for the same instant and React logged a hydration mismatch.
-   */
-  initialLabel: string | null;
-}) {
-  const [label, setLabel] = useState<string | null>(initialLabel);
+// One fixed-height line in every state (loading, countdown, nothing open), so
+// the page never shifts when the data arrives.
+const BAR = "flex h-8 items-center justify-center gap-2 px-4 text-xs font-semibold sm:text-sm";
+
+/**
+ * The gold bar above the header. The tournament comes from the browser
+ * (useNextTournament), never from the cached HTML, so it's always current.
+ */
+export function AnnouncementBar({ tournament }: { tournament: NextTournamentState }) {
+  const [label, setLabel] = useState<string | null>(null);
+  const deadline = tournament?.registrationDeadline;
 
   useEffect(() => {
-    const target = endOfDayIST(registrationDeadline).getTime();
+    if (!deadline) return;
+    const target = endOfDayIST(deadline).getTime();
     function update() {
       setLabel(formatCompact(target - Date.now()));
     }
     update();
     const id = setInterval(update, 30000);
     return () => clearInterval(id);
-  }, [registrationDeadline]);
-
-  if (!label) return null;
+  }, [deadline]);
 
   return (
     <div className="bg-gold text-charcoal">
-      <Link
-        href={registerPath(slug)}
-        className="mx-auto flex max-w-6xl items-center justify-center gap-2 px-4 py-1.5 text-center text-xs font-semibold sm:text-sm"
-      >
-        <ClockIcon className="h-3.5 w-3.5 flex-none" aria-hidden="true" />
-        <span>
-          Registration for {title} closes in {label}
-        </span>
-      </Link>
+      {tournament === undefined || (tournament && !label) ? (
+        <div className={BAR} aria-hidden="true" />
+      ) : tournament ? (
+        <Link href={registerPath(tournament.slug)} className={`mx-auto max-w-6xl ${BAR}`}>
+          <ClockIcon className="h-3.5 w-3.5 flex-none" aria-hidden="true" />
+          <span className="truncate">
+            <span className="hidden sm:inline">Registration for {tournament.title} closes in </span>
+            <span className="sm:hidden">Registration closes in </span>
+            {label}
+          </span>
+        </Link>
+      ) : (
+        <Link href="/tournaments" className={`mx-auto max-w-6xl ${BAR}`}>
+          <span className="truncate">
+            Free chess tournaments for every age — see what&apos;s coming up
+          </span>
+        </Link>
+      )}
     </div>
   );
 }
