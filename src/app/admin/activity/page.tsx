@@ -26,6 +26,12 @@ const ACTION_LABEL: Record<string, string> = {
   "auth.login_success": "Signed in",
   "auth.logout": "Signed out",
   "registration.bulk": "Bulk action on registrations",
+  "registration.changes": "Requested changes",
+  "registration.reopen": "Re-opened registration",
+  "registration.withdraw": "Withdrew registration",
+  "registration.delete": "Deleted registration",
+  "registration.notes": "Updated internal notes",
+  "email.test": "Sent test emails",
 };
 
 export default async function AdminActivityPage() {
