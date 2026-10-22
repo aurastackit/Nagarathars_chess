@@ -1,5 +1,18 @@
 import { endOfDayIST } from "@/lib/datetime";
 
+/**
+ * Registrations that take a seat: pending and confirmed ("registered" is the
+ * legacy name for confirmed). Rejected registrations free their seat.
+ */
+export const SEAT_HOLDING_STATUSES = ["pending", "confirmed", "registered"];
+
+/** Prisma `_count` select for seats taken — use wherever "N / max seats" is shown or enforced. */
+export const SEATS_TAKEN_COUNT = {
+  _count: {
+    select: { registrations: { where: { status: { in: SEAT_HOLDING_STATUSES } } } },
+  },
+} as const;
+
 export type TournamentStatus = "open" | "closing-soon" | "closed" | "completed";
 
 const CLOSING_SOON_WINDOW_MS = 72 * 60 * 60 * 1000;

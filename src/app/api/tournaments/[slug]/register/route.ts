@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { SEAT_HOLDING_STATUSES } from "@/lib/tournament-status";
 import { ageByYear, naturalAgeCategory } from "@/lib/age-category";
 import { createRegistrationWizardSchema } from "@/lib/registration-schema";
 import { sendRegistrationConfirmationEmail } from "@/lib/notify";
@@ -68,7 +69,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   try {
     registrationId = await prisma.$transaction(async (tx) => {
       if (tournament.maxParticipants !== null) {
-        const count = await tx.registration.count({ where: { tournamentId: tournament.id } });
+        const count = await tx.registration.count({
+          where: { tournamentId: tournament.id, status: { in: SEAT_HOLDING_STATUSES } },
+        });
         if (count >= tournament.maxParticipants) {
           throw new Error("FULL");
         }

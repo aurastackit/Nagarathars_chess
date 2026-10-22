@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
+import { SEATS_TAKEN_COUNT } from "@/lib/tournament-status";
 import { EmptyState } from "@/components/ui";
 import { TournamentCard } from "@/components/tournament-card";
 import { EmptyTournaments } from "@/components/illustrations/empty-states";
@@ -22,7 +23,7 @@ export default async function TournamentsPage() {
   const rows = await prisma.tournament.findMany({
     where: { status: { in: ["published", "closed", "completed"] } },
     orderBy: { startDate: "asc" },
-    include: { _count: { select: { registrations: true } } },
+    include: SEATS_TAKEN_COUNT,
   });
 
   // Closest to today first, whether upcoming or just finished.

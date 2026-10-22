@@ -6,7 +6,7 @@ import { Reveal } from "@/components/reveal";
 import { CountUp } from "@/components/count-up";
 import { getNextTournament } from "@/lib/next-tournament";
 import { timeUntilEndOfDayIST } from "@/lib/countdown-format";
-import { getTournamentStatus } from "@/lib/tournament-status";
+import { SEATS_TAKEN_COUNT, getTournamentStatus } from "@/lib/tournament-status";
 import { TournamentCard } from "@/components/tournament-card";
 import { getHallOfChampions } from "@/lib/hall-of-champions";
 import { ClassWaitlistForm } from "@/components/class-waitlist-form";
@@ -194,7 +194,7 @@ export default async function HomePage() {
       where: { status: "published" },
       orderBy: { startDate: "asc" },
       take: 3,
-      include: { _count: { select: { registrations: true } } },
+      include: SEATS_TAKEN_COUNT,
     }),
     // No class data on public pages while classes are coming soon (lib/features).
     CLASSES_ENABLED

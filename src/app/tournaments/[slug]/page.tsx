@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { SEATS_TAKEN_COUNT } from "@/lib/tournament-status";
 import { isRazorpayConfigured } from "@/lib/razorpay";
 import { Badge, buttonClasses } from "@/components/ui";
 import { formatDate, formatDateRange } from "@/lib/format";
@@ -80,7 +81,7 @@ export default async function TournamentDetailPage({
   const { slug } = await params;
   const tournament = await prisma.tournament.findUnique({
     where: { slug },
-    include: { _count: { select: { registrations: true } } },
+    include: SEATS_TAKEN_COUNT,
   });
 
   if (!tournament || tournament.status === "draft") {
