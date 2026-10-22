@@ -16,7 +16,8 @@ const presignSchema = z.object({
   tournamentSlug: z.string().trim().min(1).max(120),
   kind: z.enum(["ageProof", "passportPhoto"]),
   contentType: z.enum(ALL_UPLOAD_TYPES),
-  size: z.number().int().positive().max(UPLOAD_MAX_BYTES.ageProof),
+  // The per-document limit is checked below so an oversized file gets a clear message.
+  size: z.number().int().positive(),
 });
 
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status });
@@ -38,10 +39,13 @@ export async function POST(req: Request) {
   const { tournamentSlug, kind, contentType, size } = parsed.data;
 
   if (!isAllowedUpload(kind, contentType, size)) {
+    const document = kind === "passportPhoto" ? "The photo" : "The age proof";
     return fail(
-      kind === "passportPhoto"
-        ? `The photo must be a JPG, PNG or WEBP image under ${formatUploadLimit(kind)}`
-        : `The file must be a JPG, PNG, WEBP or PDF under ${formatUploadLimit(kind)}`,
+      size > UPLOAD_MAX_BYTES[kind]
+        ? `${document} must be under ${formatUploadLimit(kind)}`
+        : kind === "passportPhoto"
+          ? "The photo must be a JPG, PNG or WEBP image"
+          : "The age proof must be a JPG, PNG, WEBP or PDF file",
       400
     );
   }
