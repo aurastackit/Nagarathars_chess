@@ -6,8 +6,8 @@ export function PatienceVignette() {
   return (
     <VignetteSvg>
       <BoardFragment x={0} y={130} cols={8} rows={1} size={30} />
-      <PieceStanding kind="P" side="w" cx={15} baseY={130} size={26} />
-      <PieceStanding kind="P" side="b" cx={225} baseY={130} size={26} />
+      <PieceStanding kind="P" side="w" cx={17} baseY={130} size={34} />
+      <PieceStanding kind="P" side="b" cx={223} baseY={130} size={34} />
       <ChessClock left={{ hand: -50 }} right={{ hand: 140, ring: true, running: true, animate: true }} />
     </VignetteSvg>
   );

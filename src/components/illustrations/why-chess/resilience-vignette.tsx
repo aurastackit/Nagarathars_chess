@@ -1,10 +1,17 @@
 import type { CSSProperties } from "react";
-import { BoardPiece } from "@/components/icons/chess-pieces";
+import { BoardPiece, PIECE_BASE_LEFT, PIECE_BASELINE } from "@/components/icons/staunton-pieces";
 import { BoardFragment, VignetteSvg } from "../vignettes/shared";
 
-const KING = { x: 100, y: 58, size: 64 };
+const STRIP_TOP = 118;
+const KING_SIZE = 62;
+const KING = { x: 101, y: STRIP_TOP - 0.3 - KING_SIZE * PIECE_BASELINE, size: KING_SIZE };
 // The king tips over its base's left corner — the same point it rises back up around.
-const PIVOT = { x: 117.6, y: 117.7 };
+const PIVOT = { x: KING.x + KING_SIZE * PIECE_BASE_LEFT, y: STRIP_TOP - 0.3 };
+// The arc the crown sweeps: from the toppled king's cross to the upright one's.
+const CROWN = { x: KING.x + KING_SIZE / 2, y: KING.y };
+const R = Math.hypot(CROWN.x - PIVOT.x, CROWN.y - PIVOT.y);
+const TOPPLED = { x: PIVOT.x + (CROWN.y - PIVOT.y), y: PIVOT.y - (CROWN.x - PIVOT.x) };
+const ARC = `M${TOPPLED.x.toFixed(1)} ${TOPPLED.y.toFixed(1)} A${R.toFixed(1)} ${R.toFixed(1)} 0 0 1 ${CROWN.x.toFixed(1)} ${(CROWN.y + 1.2).toFixed(1)}`;
 
 /** A toppled king (faint) and the same king standing back upright, with its rising arc. */
 export function ResilienceVignette() {
@@ -17,7 +24,7 @@ export function ResilienceVignette() {
       </g>
 
       <path
-        d="M60.5 103.3 A58.9 58.9 0 0 1 132 60.6"
+        d={ARC}
         fill="none"
         stroke="var(--gold)"
         strokeWidth={2.5}

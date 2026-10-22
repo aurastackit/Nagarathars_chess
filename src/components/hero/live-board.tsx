@@ -1,8 +1,7 @@
-import { BoardPiece } from "@/components/icons/chess-pieces";
+import { PIECES, PieceDefs, pieceVars } from "@/components/icons/staunton-pieces";
 import {
   BOARD,
   FILES,
-  GLYPH,
   PIECE_KINDS,
   RANKS,
   SQUARE,
@@ -39,7 +38,11 @@ export function LiveBoard({ className = "" }: { className?: string }) {
         className="h-auto w-full"
         role="img"
         aria-label="Animated chessboard playing the opening 1. e4 e5 2. Knight f3 Knight c6 3. Bishop c4 Bishop c5"
+        shapeRendering="geometricPrecision"
+        style={pieceVars("lb")}
       >
+        {/* Piece paint (gradients, highlight, contact-shadow blur), once for all 32 pieces. */}
+        <PieceDefs prefix="lb" />
         <defs>
           <marker
             id="live-board-arrowhead"
@@ -53,15 +56,19 @@ export function LiveBoard({ className = "" }: { className?: string }) {
             <path d="M0 0L10 5L0 10Z" fill="var(--gold)" />
           </marker>
           {PIECE_KINDS.flatMap((kind) =>
-            (["w", "b"] as const).map((side) => (
-              <symbol
-                key={pieceSymbolId(kind, side)}
-                id={pieceSymbolId(kind, side)}
-                overflow="visible"
-              >
-                <BoardPiece kind={kind} side={side} size={GLYPH} />
-              </symbol>
-            ))
+            (["w", "b"] as const).map((side) => {
+              const Piece = PIECES[kind];
+              return (
+                <symbol
+                  key={pieceSymbolId(kind, side)}
+                  id={pieceSymbolId(kind, side)}
+                  viewBox="0 0 100 100"
+                  overflow="visible"
+                >
+                  <Piece side={side} />
+                </symbol>
+              );
+            })
           )}
         </defs>
 

@@ -1,15 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  GLYPH_PAD,
-  MOVES,
-  PIECES,
-  SQUARE,
-  START_SQUARES,
-  pieceSymbolId,
-  squareXY,
-} from "./board-geometry";
+import { MOVES, PIECES, SQUARE, START_SQUARES, pieceSymbolId, squareXY } from "./board-geometry";
 
 const MOVE_STEP_MS = 1600;
 const HOLD_MS = 3000;
@@ -131,7 +123,8 @@ export function LiveBoardPieces() {
       if (pauseReasons.size === 0) timer = setTimeout(() => runStep(0), MOVE_STEP_MS);
     }
     function startWhenIdle() {
-      if ("requestIdleCallback" in window) idleHandle = requestIdleCallback(start, { timeout: 3000 });
+      if ("requestIdleCallback" in window)
+        idleHandle = requestIdleCallback(start, { timeout: 3000 });
       else timer = setTimeout(start, 500);
     }
     if (document.readyState === "complete") startWhenIdle();
@@ -160,9 +153,22 @@ export function LiveBoardPieces() {
         <>
           {[lastMove.from, lastMove.to].map((sq) => {
             const { x, y } = squareXY(sq);
-            return <rect key={sq} x={x} y={y} width={SQUARE} height={SQUARE} fill="var(--board-highlight)" />;
+            return (
+              <rect
+                key={sq}
+                x={x}
+                y={y}
+                width={SQUARE}
+                height={SQUARE}
+                fill="var(--board-highlight)"
+              />
+            );
           })}
-          <ArrowMark key={`${lastMove.from}-${lastMove.to}`} from={lastMove.from} to={lastMove.to} />
+          <ArrowMark
+            key={`${lastMove.from}-${lastMove.to}`}
+            from={lastMove.from}
+            to={lastMove.to}
+          />
         </>
       )}
       {PIECES.map((piece) => {
@@ -173,7 +179,11 @@ export function LiveBoardPieces() {
             style={{ transform: `translate(${x}px, ${y}px)` }}
             className="transition-transform duration-[450ms] ease-out motion-reduce:transition-none"
           >
-            <use href={`#${pieceSymbolId(piece.type, piece.side)}`} x={GLYPH_PAD} y={GLYPH_PAD} />
+            <use
+              href={`#${pieceSymbolId(piece.type, piece.side)}`}
+              width={SQUARE}
+              height={SQUARE}
+            />
           </g>
         );
       })}

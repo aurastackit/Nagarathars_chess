@@ -160,7 +160,8 @@ body {
  * the most expensive things to paint on mobile.
  */
 .hero-ivory {
-  background: radial-gradient(ellipse 120% 100% at 35% 30%, #f6f1e7 0%, #efe6d2 100%);
+  /* Brightest toward the top left, the light direction shared by the pieces and vignettes. */
+  background: radial-gradient(ellipse 120% 100% at 20% 15%, #f6f1e7 0%, #efe6d2 100%);
 }
 
 
@@ -270,11 +271,11 @@ body {
   }
 }
 
-/* Why Chess vignette panel: walnut-tinted ivory, lit from the upper right like the hero. */
+/* Vignette panel: walnut-tinted ivory, lit from the upper left — the same light as the pieces and the hero. */
 .vignette-panel {
   background:
     radial-gradient(
-      circle at 88% 6%,
+      circle at 12% 6%,
       color-mix(in srgb, var(--gold) 26%, transparent),
       transparent 58%
     ),

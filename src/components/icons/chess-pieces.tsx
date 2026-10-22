@@ -67,17 +67,6 @@ export function RookIcon(props: IconProps) {
   );
 }
 
-function BishopIcon(props: IconProps) {
-  return (
-    <svg {...base} {...props}>
-      <circle cx="12" cy="4.1" r="0.7" fill="currentColor" stroke="none" />
-      <ellipse cx="12" cy="7.6" rx="2.3" ry="3" />
-      <path d="M10.4 5.9 13.5 9.2" />
-      <PieceBody />
-    </svg>
-  );
-}
-
 export function KnightIcon(props: IconProps) {
   return (
     <svg {...base} {...props}>
@@ -86,60 +75,6 @@ export function KnightIcon(props: IconProps) {
       <circle cx="10.9" cy="7.6" r="0.45" fill="currentColor" stroke="none" />
       <PieceBody />
     </svg>
-  );
-}
-
-export type PieceKind = "K" | "Q" | "R" | "B" | "N" | "P";
-export type PieceSide = "w" | "b";
-
-const PIECE_ICONS = {
-  K: KingIcon,
-  Q: QueenIcon,
-  R: RookIcon,
-  B: BishopIcon,
-  N: KnightIcon,
-  P: PawnIcon,
-} satisfies Record<PieceKind, unknown>;
-
-// The pieces only draw inside roughly x 7.6–16.4, y 3.3–20.7 of their 24-unit
-// box; cropping to that lets a board piece fill its square.
-const PIECE_CROP = "3 2.5 18 19.5";
-
-/**
- * One piece in the shared board style — ivory with a charcoal outline for
- * white (visible on the light squares), charcoal with a light rim for black
- * (visible on the dark green ones) — used by the hero Live Board and the
- * home-page vignettes. x/y/size are in the parent SVG's units; the outline
- * stays 1.5px at any scale (see .chess-piece in globals.css).
- */
-export function BoardPiece({
-  kind,
-  side,
-  x = 0,
-  y = 0,
-  size,
-}: {
-  kind: PieceKind;
-  side: PieceSide;
-  x?: number;
-  y?: number;
-  size: number;
-}) {
-  const Icon = PIECE_ICONS[kind];
-  const stroke = side === "w" ? "var(--charcoal)" : "var(--piece-black-edge)";
-  return (
-    <Icon
-      x={x}
-      y={y}
-      width={size}
-      height={size}
-      viewBox={PIECE_CROP}
-      fill={side === "w" ? "var(--card)" : "var(--charcoal)"}
-      stroke={stroke}
-      strokeWidth={1.5}
-      className="chess-piece"
-      style={{ color: stroke }}
-    />
   );
 }
 

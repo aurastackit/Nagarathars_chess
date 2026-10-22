@@ -12,7 +12,7 @@ const CONTEXT_PIECES = [
   { kind: "P", side: "w", col: 2, row: 3 },
 ] as const;
 
-/** A 4x4 patch of board, dimmed, with one gold-spotlit square lit from the upper right. */
+/** A 4x4 patch of board, dimmed, with one gold-spotlit square lit from the upper left. */
 export function FocusVignette() {
   const sx = X + SPOT.col * S;
   const sy = Y + SPOT.row * S;
@@ -50,7 +50,7 @@ export function FocusVignette() {
       </g>
 
       <polygon
-        points={`206,0 230,0 ${sx + S},${sy + S} ${sx},${sy + S}`}
+        points={`10,0 34,0 ${sx + S},${sy + S} ${sx},${sy + S}`}
         fill="var(--gold)"
         opacity={0.16}
         className="vg-fade"

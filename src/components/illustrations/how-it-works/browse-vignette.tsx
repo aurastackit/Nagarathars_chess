@@ -54,7 +54,7 @@ export function BrowseVignette() {
         <rect x={ex - 1} y={ey - 1} width={CELL + 2} height={CELL + 2} rx={3} fill="var(--gold)" stroke="var(--charcoal)" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
       </g>
 
-      <PieceStanding kind="P" side="w" cx={202} baseY={130} size={46} />
+      <PieceStanding kind="P" side="w" cx={202} baseY={130} size={58} />
     </VignetteSvg>
   );
 }

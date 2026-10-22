@@ -1,12 +1,10 @@
-import type { PieceKind, PieceSide } from "@/components/icons/chess-pieces";
+import type { PieceKind, PieceSide } from "@/components/icons/staunton-pieces";
 
 export type PieceDef = { id: string; type: PieceKind; side: PieceSide; square: string };
 type Move = { pieceId: string; from: string; to: string };
 
 export const SQUARE = 60;
 export const BOARD = SQUARE * 8;
-export const GLYPH = 52;
-export const GLYPH_PAD = (SQUARE - GLYPH) / 2;
 
 export const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 export const RANKS = [1, 2, 3, 4, 5, 6, 7, 8];

@@ -13,7 +13,7 @@ export function RegisterVignette() {
   return (
     <VignetteSvg>
       <BoardFragment x={0} y={130} cols={8} rows={1} size={30} />
-      <PieceStanding kind="P" side="w" cx={32} baseY={130} size={40} />
+      <PieceStanding kind="P" side="w" cx={32} baseY={130} size={52} />
 
       <rect x={CARD.x} y={CARD.y} width={CARD.w} height={CARD.h} rx={8} fill="var(--card)" stroke="var(--walnut)" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
       <rect x={fx} y={CARD.y + 12} width={56} height={7} rx={3.5} fill="var(--charcoal)" />

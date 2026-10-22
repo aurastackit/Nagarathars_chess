@@ -1,20 +1,30 @@
-import type { ReactNode } from "react";
-import { BoardPiece, type PieceKind, type PieceSide } from "@/components/icons/chess-pieces";
-
-/** Same piece-to-square ratio as the hero Live Board (52 / 60). */
-const PIECE_RATIO = 52 / 60;
-/** Where a piece's foot line sits, as a fraction of its BoardPiece size (icon y 20.7 in the 2.5–22 crop). */
-const PIECE_BASE = (20.7 - 2.5) / 19.5;
+import { useId, type ReactNode } from "react";
+import {
+  BoardPiece,
+  PIECE_BASELINE,
+  PieceDefs,
+  pieceVars,
+  type PieceKind,
+  type PieceSide,
+} from "@/components/icons/staunton-pieces";
 
 /**
  * Every home-page vignette (How It Works, Tournament Formats, Why Chess)
- * shares this 240x160 (3:2) canvas. Light comes from the upper right,
- * matching the hero — that's painted by the card's .vignette-panel
- * background, so the scenes themselves stay flat.
+ * shares this 240x160 (3:2) canvas. The card's .vignette-panel background
+ * paints the ambient light; pieces carry their own shading, the same as the
+ * hero board's. Each vignette gets its own piece paint under a unique id prefix.
  */
 export function VignetteSvg({ children }: { children: ReactNode }) {
+  const prefix = `pc${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   return (
-    <svg viewBox="0 0 240 160" className="h-full w-full" aria-hidden="true">
+    <svg
+      viewBox="0 0 240 160"
+      className="h-full w-full"
+      aria-hidden="true"
+      shapeRendering="geometricPrecision"
+      style={pieceVars(prefix)}
+    >
+      <PieceDefs prefix={prefix} />
       {children}
     </svg>
   );
@@ -62,7 +72,7 @@ export function BoardFragment({
   );
 }
 
-/** A piece centred on the square whose top-left corner is (x, y). */
+/** A piece filling the square whose top-left corner is (x, y) — the same fit as on the hero board. */
 export function PieceOnSquare({
   kind,
   side,
@@ -76,12 +86,10 @@ export function PieceOnSquare({
   y: number;
   size: number;
 }) {
-  const glyph = size * PIECE_RATIO;
-  const pad = (size - glyph) / 2;
-  return <BoardPiece kind={kind} side={side} x={x + pad} y={y + pad} size={glyph} />;
+  return <BoardPiece kind={kind} side={side} x={x} y={y} size={size} />;
 }
 
-/** A piece standing with its foot line exactly on `baseY` (e.g. the top edge of a board strip), centred on `cx`. */
+/** A piece (drawn in a size x size square) standing on `baseY` — e.g. the top edge of a board strip — centred on `cx`. */
 export function PieceStanding({
   kind,
   side,
@@ -96,6 +104,12 @@ export function PieceStanding({
   size: number;
 }) {
   return (
-    <BoardPiece kind={kind} side={side} x={cx - size / 2} y={baseY - size * PIECE_BASE} size={size} />
+    <BoardPiece
+      kind={kind}
+      side={side}
+      x={cx - size / 2}
+      y={baseY - size * PIECE_BASELINE}
+      size={size}
+    />
   );
 }
