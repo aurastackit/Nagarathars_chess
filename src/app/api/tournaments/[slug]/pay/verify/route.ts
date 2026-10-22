@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { verifyRazorpaySignature } from "@/lib/razorpay";
 import { sendRegistrationConfirmationEmail } from "@/lib/notify";
+import { sendRegistrationEmail } from "@/lib/registration-events";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const verifySchema = z.object({
@@ -56,16 +57,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     },
   });
 
-  try {
-    await sendRegistrationConfirmationEmail({
+  await sendRegistrationEmail(registration.id, "Submission confirmation (after payment)", () =>
+    sendRegistrationConfirmationEmail({
       to: registration.email,
       fullName: registration.fullName,
       registrationId: registration.id,
       tournament,
-    });
-  } catch (err) {
-    console.error("[pay/verify] sendRegistrationConfirmationEmail failed:", err);
-  }
+    })
+  );
 
   return NextResponse.json({ ok: true });
 }

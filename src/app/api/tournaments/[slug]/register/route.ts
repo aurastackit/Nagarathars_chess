@@ -5,6 +5,8 @@ import { SEAT_HOLDING_STATUSES } from "@/lib/tournament-status";
 import { ageByYear, naturalAgeCategory } from "@/lib/age-category";
 import { createRegistrationWizardSchema } from "@/lib/registration-schema";
 import { sendRegistrationConfirmationEmail } from "@/lib/notify";
+import { TRANSACTION_TIMEOUTS, nextRegistrationNo } from "@/lib/registration-number";
+import { recordRegistrationEvent, sendRegistrationEmail } from "@/lib/registration-events";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { isHoneypotTriggered } from "@/lib/honeypot";
 import { EMAIL_VERIFICATION_VALIDITY_MS } from "@/lib/otp";
@@ -68,6 +70,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   let registrationId: string;
   try {
     registrationId = await prisma.$transaction(async (tx) => {
+      // Taking the number first locks the tournament row until this transaction
+      // ends, so simultaneous submissions queue up: no duplicate numbers, and the
+      // seat check below can't be raced. A rollback (e.g. FULL) returns the number.
+      const registrationNo = await nextRegistrationNo(tx, tournament.id, ageCategory);
       if (tournament.maxParticipants !== null) {
         const count = await tx.registration.count({
           where: { tournamentId: tournament.id, status: { in: SEAT_HOLDING_STATUSES } },
@@ -113,12 +119,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
           guardianName: data.guardianName || null,
           guardianConsent: data.guardianConsent,
           ageCategory,
+          registrationNo,
           status: "pending",
           paymentStatus: requiresPayment ? "pending" : "not_required",
         },
       });
+      await recordRegistrationEvent(tx, {
+        registrationId: registration.id,
+        type: "submitted",
+        actor: { type: "player", email: playerEmail },
+        note: registrationNo,
+      });
       return registration.id;
-    });
+    }, TRANSACTION_TIMEOUTS);
   } catch (err) {
     if (err instanceof Error && err.message === "FULL") {
       return NextResponse.json({ error: "This tournament is full" }, { status: 400 });
@@ -136,20 +149,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
 
   revalidateTournamentSeats(tournament.slug);
 
+  // Best effort: the registration has succeeded whatever happens to the email.
   if (!requiresPayment) {
-    try {
-      await sendRegistrationConfirmationEmail({
+    await sendRegistrationEmail(registrationId, "Submission confirmation", () =>
+      sendRegistrationConfirmationEmail({
         to: data.email,
         fullName: data.fullName,
         registrationId,
         tournament,
-      });
-    } catch (err) {
-      // The registration itself succeeded — don't fail the response over a
-      // best-effort confirmation email (e.g. SES sandbox rejecting an
-      // unverified recipient).
-      console.error("[register] sendRegistrationConfirmationEmail failed:", err);
-    }
+      })
+    );
   }
 
   return NextResponse.json(

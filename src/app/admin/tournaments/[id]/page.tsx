@@ -9,7 +9,10 @@ import { logAdminAction } from "@/lib/audit-log";
 import { sendRegistrationDecisionEmail } from "@/lib/notify";
 import { RegistrantsPanel } from "@/components/admin/registrants-panel";
 import Link from "next/link";
-import { revalidateTournamentPages } from "@/lib/revalidate-public";
+import { revalidateTournamentPages, revalidateTournamentSeats } from "@/lib/revalidate-public";
+import { StaleStatusError, changeRegistrationStatus } from "@/lib/registration-workflow";
+import { InvalidTransitionError } from "@/lib/registration-status";
+import { sendRegistrationEmail } from "@/lib/registration-events";
 
 export const dynamic = "force-dynamic";
 
@@ -85,31 +88,50 @@ export default async function ManageTournamentPage({
     if (!registrationId || (next !== "confirmed" && next !== "rejected")) return;
     const reason = next === "rejected" ? String(formData.get("reason") ?? "").trim() || null : null;
 
-    const registration = await prisma.registration.update({
-      where: { id: registrationId },
-      data: { status: next, rejectionReason: reason },
-      include: { tournament: true },
-    });
+    const admin = session.user!.email!;
+    let registration;
+    try {
+      registration = await changeRegistrationStatus({
+        registrationId,
+        to: next,
+        actor: { type: "admin", email: admin },
+        reason,
+      });
+    } catch (err) {
+      // Not allowed from its current status, or changed meanwhile: the reloaded page shows the real status.
+      if (err instanceof InvalidTransitionError || err instanceof StaleStatusError) {
+        revalidatePath(`/admin/tournaments/${id}`);
+        return;
+      }
+      throw err;
+    }
 
     await logAdminAction({
-      actorEmail: session.user!.email!,
+      actorEmail: admin,
       action: next === "confirmed" ? "registration.confirm" : "registration.reject",
       targetType: "Registration",
       targetId: registrationId,
       summary: `${next === "confirmed" ? "Confirmed" : "Rejected"} ${registration.fullName}'s registration for "${registration.tournament.title}"${reason ? ` — ${reason}` : ""}`,
     });
 
-    await sendRegistrationDecisionEmail({
-      to: registration.email,
-      fullName: registration.fullName,
-      registrationId: registration.id,
-      tournamentTitle: registration.tournament.title,
-      decision: next,
-      reason,
-    });
+    await sendRegistrationEmail(
+      registration.id,
+      next === "confirmed" ? "Confirmation" : "Rejection",
+      () =>
+        sendRegistrationDecisionEmail({
+          to: registration.email,
+          fullName: registration.fullName,
+          registrationId: registration.id,
+          tournamentTitle: registration.tournament.title,
+          decision: next,
+          reason,
+        })
+    );
 
     revalidatePath(`/admin/tournaments/${id}`);
     revalidatePath(`/registration/${registrationId}`);
+    // A rejection frees a seat.
+    revalidateTournamentSeats(registration.tournament.slug);
   }
 
   return (
