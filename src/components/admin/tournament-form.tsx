@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState, type ReactNode } from "react";
 import { Button, Input, Label, Textarea } from "@/components/ui";
 import type { TournamentFormState } from "@/lib/tournament-form";
+import { PosterField } from "@/components/admin/poster-field";
 
 const SELECT_CLASS =
   "w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-charcoal";
@@ -142,8 +143,12 @@ export function TournamentForm({
         <div className="grid gap-4 sm:grid-cols-2">
           {field(
             "posterImageUrl",
-            "Poster image URL",
-            <Input {...p("posterImageUrl")} placeholder="/brand/logo-primary.png" />
+            "Poster image",
+            <PosterField
+              defaultValue={v("posterImageUrl")}
+              invalid={Boolean(errors.posterImageUrl)}
+            />,
+            "Upload a JPG, PNG or WEBP (resized automatically), or paste an image URL."
           )}
           {field(
             "brochurePdfUrl",

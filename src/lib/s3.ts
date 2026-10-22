@@ -93,3 +93,52 @@ export async function getSignedVideoUrl(key: string) {
   const command = new GetObjectCommand({ Bucket: BUCKET, Key: key });
   return getSignedUrl(client, command, { expiresIn: 3600 });
 }
+
+/** Tournament posters: public images, uploaded by admins under `posters/`. */
+export const POSTER_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+export const POSTER_MAX_BYTES = 3 * 1024 * 1024;
+/** File names the poster route will serve: `<uuid>.<ext>`, nothing else in the bucket. */
+export const POSTER_FILE_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp)$/;
+
+/** Signed PUT for a new poster (type and exact size are signed). Returns the public path it will be served from. */
+export async function createPosterUploadUrl(params: { contentType: string; size: number }) {
+  if (!isS3Configured()) throw new Error("S3 is not configured");
+  if (
+    !(POSTER_TYPES as readonly string[]).includes(params.contentType) ||
+    !Number.isInteger(params.size) ||
+    params.size <= 0 ||
+    params.size > POSTER_MAX_BYTES
+  ) {
+    throw new Error("Unsupported poster type or size");
+  }
+  const file = `${randomUUID()}.${EXT_BY_TYPE[params.contentType]}`;
+  const command = new PutObjectCommand({
+    Bucket: BUCKET,
+    Key: `posters/${file}`,
+    ContentType: params.contentType,
+    ContentLength: params.size,
+  });
+  const uploadUrl = await getSignedUrl(getClient(), command, {
+    expiresIn: 300,
+    signableHeaders: new Set(["content-type", "content-length"]),
+  });
+  return { uploadUrl, path: `/media/posters/${file}` };
+}
+
+/** Reads a poster for the public /media/posters route; null if it doesn't exist. */
+export async function getPosterObject(file: string) {
+  if (!isS3Configured() || !POSTER_FILE_PATTERN.test(file)) return null;
+  try {
+    const res = await getClient().send(
+      new GetObjectCommand({ Bucket: BUCKET, Key: `posters/${file}` })
+    );
+    if (!res.Body) return null;
+    return { body: res.Body.transformToWebStream(), contentType: res.ContentType ?? "image/jpeg" };
+  } catch (err) {
+    // Without s3:ListBucket, S3 reports a missing key as AccessDenied rather than NoSuchKey.
+    const name = (err as { name?: string }).name;
+    if (name === "NoSuchKey" || name === "AccessDenied") return null;
+    throw err;
+  }
+}
