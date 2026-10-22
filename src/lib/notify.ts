@@ -1,5 +1,5 @@
 import { buildTournamentIcs } from "@/lib/ics";
-import { formatDateRange } from "@/lib/format";
+import { formatDateRange, formatDateTimeIST } from "@/lib/format";
 import { SITE_URL } from "@/lib/site";
 import { sendEmail, shouldStubEmail } from "@/lib/ses";
 
@@ -115,6 +115,46 @@ export async function sendRegistrationDecisionEmail(params: {
         ${params.reason ? `<p><strong>Reason:</strong> ${params.reason}</p>` : ""}
         <p>If you think this is a mistake, please get in touch with the organizers.</p>
       `;
+
+  return sendEmail({ to: params.to, subject, html });
+}
+
+// The older templates above get the same escaping (and branding) in the email redesign.
+const escapeHtml = (s: string) =>
+  s.replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!
+  );
+
+/** Sent when an admin asks the player to fix something, with the date the seat is held until. */
+export async function sendChangesRequestedEmail(params: {
+  to: string;
+  fullName: string;
+  registrationId: string;
+  tournamentTitle: string;
+  reason: string;
+  fixBy: Date;
+}) {
+  const statusUrl = `${SITE_URL}/registration/${params.registrationId}`;
+  const fixBy = `${formatDateTimeIST(params.fixBy)} IST`;
+  const subject = `Action needed by ${formatDateTimeIST(params.fixBy)}: ${params.tournamentTitle}`;
+
+  if (shouldStubEmail()) {
+    return notifyRegistration({
+      to: params.to,
+      fullName: params.fullName,
+      subject,
+      context: `Changes requested (${params.reason}) — fix by ${fixBy} — ${statusUrl}`,
+    });
+  }
+
+  const html = `
+    <p>Hi ${escapeHtml(params.fullName)},</p>
+    <p>Your application for <strong>${escapeHtml(params.tournamentTitle)}</strong> needs a change before it can be confirmed:</p>
+    <p><strong>${escapeHtml(params.reason)}</strong></p>
+    <p>Please update it by <strong>${fixBy}</strong>. Your seat is held until then; after that the application is rejected automatically.</p>
+    <p>See your application at <a href="${statusUrl}">${statusUrl}</a>.</p>
+  `;
 
   return sendEmail({ to: params.to, subject, html });
 }

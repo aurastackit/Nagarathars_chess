@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { formatDateRange } from "@/lib/format";
+import { formatDateRange, formatDateTimeIST } from "@/lib/format";
+import { fixByDate } from "@/lib/registration-status";
 import { Badge, LinkButton, buttonClasses } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +18,8 @@ const STATUS_META: Record<string, { label: string; tone: "warning" | "success" |
   pending: { label: "Pending review", tone: "warning" },
   confirmed: { label: "Confirmed", tone: "success" },
   rejected: { label: "Rejected", tone: "danger" },
+  changes_requested: { label: "Changes requested", tone: "warning" },
+  withdrawn: { label: "Withdrawn", tone: "danger" },
   // Legacy rows created before the review workflow existed.
   registered: { label: "Confirmed", tone: "success" },
 };
@@ -59,10 +62,27 @@ export default async function RegistrationStatusPage({
           &middot; {registration.tournament.venue}, {registration.tournament.city}
         </p>
 
+        {registration.status === "changes_requested" && (
+          <div className="mt-6 rounded-lg border border-warning/30 bg-warning/5 p-4 text-left text-sm">
+            <p className="font-semibold text-charcoal">Please update your application</p>
+            {registration.rejectionReason && (
+              <p className="mt-1 text-foreground/80">{registration.rejectionReason}</p>
+            )}
+            {registration.reviewedAt && (
+              <p className="mt-2 font-semibold text-warning">
+                Fix by {formatDateTimeIST(fixByDate(registration.reviewedAt))} IST — your seat is
+                held until then.
+              </p>
+            )}
+          </div>
+        )}
+
         <dl className="mt-6 grid grid-cols-2 gap-4 rounded-lg border border-border bg-background p-4 text-left text-sm">
           <div>
-            <dt className="text-foreground/50">Registration ID</dt>
-            <dd className="break-all font-mono text-xs font-medium">{registration.id}</dd>
+            <dt className="text-foreground/50">Registration no.</dt>
+            <dd className="break-all font-mono text-xs font-medium">
+              {registration.registrationNo ?? registration.id}
+            </dd>
           </div>
           <div>
             <dt className="text-foreground/50">Payment</dt>

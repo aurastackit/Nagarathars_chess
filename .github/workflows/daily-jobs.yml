@@ -1,0 +1,18 @@
+# Daily housekeeping on the live site (Amplify Hosting has no scheduler).
+# Needs the repository secret CRON_SECRET, matching CRON_SECRET in the Amplify environment.
+name: Daily jobs
+
+on:
+  schedule:
+    - cron: "30 3 * * *" # 09:00 IST
+  workflow_dispatch:
+
+jobs:
+  expire-changes-requests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reject applications with no update 7 days after changes were requested
+        run: |
+          curl --fail-with-body --silent --show-error --max-time 120 -X POST \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://nagaratharschesschampionship.org/api/cron/expire-changes-requests
