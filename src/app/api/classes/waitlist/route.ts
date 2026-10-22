@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { classWaitlistSchema } from "@/lib/validations";
-import { notifyRegistration } from "@/lib/notify";
+import { sendWaitlistConfirmationEmail } from "@/lib/notify";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { isHoneypotTriggered } from "@/lib/honeypot";
 
@@ -33,12 +33,12 @@ export async function POST(req: Request) {
     create: { email, phone: phone || null, interestLevel: interestLevel || null },
   });
 
-  await notifyRegistration({
-    to: email,
-    fullName: email,
-    subject: "Added to the classes waitlist",
-    context: `${email} joined the class waitlist${phone ? ` (phone: ${phone})` : ""}${interestLevel ? ` — interested in: ${interestLevel.replace("_", " ")}` : ""}`,
-  });
+  // The signup is saved either way; a failed email is logged, not shown to the visitor.
+  try {
+    await sendWaitlistConfirmationEmail({ to: email, interestLevel });
+  } catch (err) {
+    console.error("[waitlist] confirmation email failed:", err);
+  }
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }

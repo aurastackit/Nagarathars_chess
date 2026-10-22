@@ -118,3 +118,38 @@ export async function sendRegistrationDecisionEmail(params: {
 
   return sendEmail({ to: params.to, subject, html });
 }
+
+const WAITLIST_LEVEL_LABEL: Record<string, string> = {
+  beginner: "beginner",
+  intermediate: "intermediate",
+  advanced: "advanced",
+};
+
+/** Sent when someone joins the online classes waitlist. Falls back to the console.log stub, same as above. */
+export async function sendWaitlistConfirmationEmail(params: {
+  to: string;
+  interestLevel?: string | null;
+}) {
+  const subject = "You're on the waitlist for Nagarathar's Chess online classes";
+  const level = params.interestLevel ? WAITLIST_LEVEL_LABEL[params.interestLevel] : undefined;
+  const classesUrl = `${SITE_URL}/classes`;
+
+  if (shouldStubEmail()) {
+    return notifyRegistration({
+      to: params.to,
+      fullName: params.to,
+      subject,
+      context: `Waitlist confirmation${level ? ` (${level})` : ""} — ${classesUrl}`,
+    });
+  }
+
+  const html = `
+    <p>Hi,</p>
+    <p>Thanks for joining the waitlist for Nagarathar's Chess online classes.
+      We'll email you as soon as classes open${level ? ` — we've noted that you're interested in ${level} classes` : ""}.</p>
+    <p>See what's planned at <a href="${classesUrl}">${classesUrl}</a>.</p>
+    <p>If you didn't sign up, you can ignore this email and we won't contact you again.</p>
+  `;
+
+  return sendEmail({ to: params.to, subject, html });
+}
