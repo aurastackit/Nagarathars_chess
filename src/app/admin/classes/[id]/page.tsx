@@ -6,6 +6,7 @@ import { formatDate } from "@/lib/format";
 import { requireAdminPage } from "@/lib/require-admin";
 import { logAdminAction } from "@/lib/audit-log";
 import { isValidImageUrl } from "@/lib/image-url";
+import { revalidateClassPages } from "@/lib/revalidate-public";
 
 export const dynamic = "force-dynamic";
 
@@ -60,7 +61,7 @@ export default async function ManageClassPage({
     });
     revalidatePath(`/admin/classes/${id}`);
     revalidatePath("/admin/classes");
-    revalidatePath("/classes");
+    revalidateClassPages();
   }
 
   return (

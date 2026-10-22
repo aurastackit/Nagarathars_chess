@@ -8,7 +8,9 @@ import { ClassFilters } from "@/components/class-filters";
 import { CLASSES_HEADER_PHOTO } from "@/lib/featured-photos";
 import { SkillProgression } from "@/components/illustrations/skill-progression";
 
-export const dynamic = "force-dynamic";
+// Static, regenerated at most every 5 minutes or on demand after an admin
+// change (lib/revalidate-public).
+export const revalidate = 300;
 
 export const metadata: Metadata = pageMetadata({
   title: "Online Chess Classes",

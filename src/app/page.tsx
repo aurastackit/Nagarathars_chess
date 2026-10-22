@@ -36,7 +36,9 @@ import { JsonLd } from "@/components/json-ld";
 import { FAQS } from "@/data/faqs";
 import { EmptyTournaments } from "@/components/illustrations/empty-states";
 
-export const dynamic = "force-dynamic";
+// Static, regenerated at most every 5 minutes or on demand after an admin
+// change (lib/revalidate-public).
+export const revalidate = 300;
 
 export const metadata = pageMetadata({
   title: "Chess Tournaments & Classes in Chennai | Nagarathar's Chess",
@@ -317,10 +319,7 @@ export default async function HomePage() {
       >
         <div className="grid gap-6 sm:grid-cols-3">
           {levelGroups.map((g, i) => (
-            <div
-              key={g.level}
-              className="rounded-lg border border-border bg-card p-6 shadow-sm"
-            >
+            <div key={g.level} className="rounded-lg border border-border bg-card p-6 shadow-sm">
               <Badge tone={i === 1 ? "gold-ink" : "charcoal"}>{g.info.label}</Badge>
               <p className="text-small mt-3 text-muted">{g.info.body}</p>
               {g.count > 0 ? (
@@ -562,8 +561,11 @@ export default async function HomePage() {
             Registration is free to start, and every event is built to welcome new players.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <LinkButton href="/tournaments" surface="dark">View Tournaments</LinkButton>
-            <LinkButton surface="dark"
+            <LinkButton href="/tournaments" surface="dark">
+              View Tournaments
+            </LinkButton>
+            <LinkButton
+              surface="dark"
               href="/classes"
               variant="outline"
               className="border-white text-white hover:bg-white hover:text-charcoal"

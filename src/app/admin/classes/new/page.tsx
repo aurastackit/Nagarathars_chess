@@ -5,6 +5,7 @@ import { Card, Input, Label, Textarea, Button } from "@/components/ui";
 import { requireAdminPage } from "@/lib/require-admin";
 import { logAdminAction } from "@/lib/audit-log";
 import { isValidImageUrl } from "@/lib/image-url";
+import { revalidateClassPages } from "@/lib/revalidate-public";
 
 async function createClass(formData: FormData) {
   "use server";
@@ -39,6 +40,7 @@ async function createClass(formData: FormData) {
     targetId: classProgram.id,
     summary: `Created class "${classProgram.title}"`,
   });
+  revalidateClassPages();
   redirect(`/admin/classes/${classProgram.id}`);
 }
 

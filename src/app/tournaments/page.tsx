@@ -7,7 +7,9 @@ import { TournamentCard } from "@/components/tournament-card";
 import { EmptyTournaments } from "@/components/illustrations/empty-states";
 import { TOURNAMENTS_HEADER_PHOTO } from "@/lib/featured-photos";
 
-export const dynamic = "force-dynamic";
+// Static, regenerated at most every 5 minutes or on demand after an admin
+// change (lib/revalidate-public).
+export const revalidate = 300;
 
 export const metadata: Metadata = pageMetadata({
   title: "Chennai Chess Tournaments",

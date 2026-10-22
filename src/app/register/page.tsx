@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { CommunityRegisterWizard } from "@/components/community-register-wizard";
 
+// Registration (OTP sign-in and form) is always rendered per request, never cached.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Register",
   description: "Register for the Nagarathar's Chess Championship in three quick steps.",

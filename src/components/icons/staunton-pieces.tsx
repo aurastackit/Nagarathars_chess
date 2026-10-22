@@ -9,7 +9,7 @@ import type { CSSProperties, ReactNode } from "react";
  * king 94%), light from the top left. Symmetric pieces are generated from a
  * right-hand profile, mirrored, so both halves always match.
  *
- * Paint (gradients, highlight strips, contact-shadow blur) is defined once per
+ * Paint (gradients, highlight strips, the contact shadow) is defined once per
  * SVG by <PieceDefs prefix> and reached through CSS custom properties set by
  * pieceVars(prefix) on that SVG — pieces never carry their own defs, and two
  * SVGs on one page never share an id.
@@ -242,15 +242,7 @@ function Piece({ kind, side }: { kind: PieceKind; side: PieceSide }) {
   const fill: CSSProperties = { fill: `var(--pc-${side}-body, ${s.fallback})` };
   return (
     <g className="chess-piece">
-      <ellipse
-        cx={50}
-        cy={94.4}
-        rx={29}
-        ry={3.2}
-        fill="#000"
-        fillOpacity={0.22}
-        style={{ filter: "var(--pc-shadow)" }}
-      />
+      <ellipse cx={50} cy={94.4} rx={31} ry={4.6} style={{ fill: "var(--pc-shadow, none)" }} />
       <path d={BASE} style={fill} />
       <path d={art.body} style={fill} />
       <path d={BASE} style={{ fill: `var(--pc-${side}-hl, none)` }} {...s.outline} />
@@ -292,7 +284,7 @@ export const PIECES: Record<PieceKind, typeof King> = {
   P: Pawn,
 };
 
-/** Gradients, highlight strips and the contact-shadow blur — once per SVG. */
+/** Gradients, highlight strips and the contact shadow — once per SVG. */
 export function PieceDefs({ prefix }: { prefix: string }) {
   return (
     <defs>
@@ -314,9 +306,13 @@ export function PieceDefs({ prefix }: { prefix: string }) {
         <stop offset="0.22" stopColor="#A08C78" stopOpacity="0.3" />
         <stop offset="0.4" stopColor="#A08C78" stopOpacity="0" />
       </linearGradient>
-      <filter id={`${prefix}-shadow`} x="-20%" y="-150%" width="140%" height="400%">
-        <feGaussianBlur stdDeviation="1.2" />
-      </filter>
+      {/* Soft contact shadow: a radial fade rather than a blur filter, which cost
+          ~400ms of first paint for the board's 32 pieces at 4x CPU throttling. */}
+      <radialGradient id={`${prefix}-shadow`}>
+        <stop offset="0" stopColor="#000" stopOpacity="0.22" />
+        <stop offset="0.6" stopColor="#000" stopOpacity="0.16" />
+        <stop offset="1" stopColor="#000" stopOpacity="0" />
+      </radialGradient>
     </defs>
   );
 }

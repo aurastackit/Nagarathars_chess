@@ -9,6 +9,7 @@ import { isHoneypotTriggered } from "@/lib/honeypot";
 import { EMAIL_VERIFICATION_VALIDITY_MS } from "@/lib/otp";
 import { isRazorpayConfigured } from "@/lib/razorpay";
 import { endOfDayIST } from "@/lib/datetime";
+import { revalidateTournamentSeats } from "@/lib/revalidate-public";
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -129,6 +130,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     }
     throw err;
   }
+
+  revalidateTournamentSeats(tournament.slug);
 
   if (!requiresPayment) {
     try {

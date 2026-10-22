@@ -8,6 +8,7 @@ import { logAdminAction } from "@/lib/audit-log";
 import { sendRegistrationDecisionEmail } from "@/lib/notify";
 import { RegistrantsPanel } from "@/components/admin/registrants-panel";
 import Link from "next/link";
+import { revalidateTournamentPages } from "@/lib/revalidate-public";
 
 export const dynamic = "force-dynamic";
 
@@ -94,8 +95,7 @@ export default async function ManageTournamentPage({
     });
     revalidatePath(`/admin/tournaments/${id}`);
     revalidatePath("/admin/tournaments");
-    revalidatePath("/tournaments");
-    revalidatePath(`/tournaments/${tournament!.slug}`);
+    revalidateTournamentPages();
   }
 
   async function setRegistrationStatus(formData: FormData) {

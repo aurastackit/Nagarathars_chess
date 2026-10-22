@@ -5,6 +5,7 @@ import { formatDateRange } from "@/lib/format";
 import { revalidatePath } from "next/cache";
 import { requireAdminPage } from "@/lib/require-admin";
 import { logAdminAction } from "@/lib/audit-log";
+import { revalidateTournamentPages } from "@/lib/revalidate-public";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,7 @@ async function togglePublish(id: string, currentStatus: string, title: string) {
     summary: `${nextStatus === "published" ? "Published" : "Unpublished"} "${title}"`,
   });
   revalidatePath("/admin/tournaments");
-  revalidatePath("/tournaments");
+  revalidateTournamentPages();
 }
 
 async function deleteTournament(id: string, title: string) {
@@ -38,7 +39,7 @@ async function deleteTournament(id: string, title: string) {
     summary: `Deleted "${title}" (had no registrations)`,
   });
   revalidatePath("/admin/tournaments");
-  revalidatePath("/tournaments");
+  revalidateTournamentPages();
 }
 
 export default async function AdminTournamentsPage() {

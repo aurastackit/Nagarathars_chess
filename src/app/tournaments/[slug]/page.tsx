@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { isRazorpayConfigured } from "@/lib/razorpay";
@@ -14,7 +13,6 @@ import {
   TOURNAMENT_STATUS_LABEL,
   TOURNAMENT_FORMAT_LABEL,
 } from "@/lib/tournament-status";
-import { registrationAckCookie } from "@/lib/registration-flow";
 import { parseRules } from "@/lib/rules";
 import { SITE_URL } from "@/lib/site";
 import { fitDescription, pageMetadata } from "@/lib/seo";
@@ -27,11 +25,22 @@ import { RulesAccordion } from "@/components/rules-accordion";
 import { VenueMap } from "@/components/venue-map";
 import { CalendarIcon, WhatsAppIcon } from "@/components/icons/misc";
 import { RegistrationWizard } from "@/components/registration-wizard/registration-wizard-lazy";
-import { RegistrationGate } from "@/components/registration-wizard/registration-gate";
+import { RegisterSlot, RegistrationFlow } from "@/components/registration-wizard/registration-flow";
 import { RegistrationNotice } from "@/components/registration-wizard/registration-notice";
 import { TournamentPlaceholder } from "@/components/illustrations/tournament-placeholder";
 
-export const dynamic = "force-dynamic";
+// Static, regenerated at most every 5 minutes or on demand when an admin
+// changes the tournament (lib/revalidate-public). Who sees the registration
+// notice is decided in the browser (RegistrationFlow), so the HTML can be cached.
+export const revalidate = 300;
+
+export async function generateStaticParams() {
+  const tournaments = await prisma.tournament.findMany({
+    where: { status: "published" },
+    select: { slug: true },
+  });
+  return tournaments.map(({ slug }) => ({ slug }));
+}
 
 export async function generateMetadata({
   params,
@@ -65,13 +74,10 @@ export async function generateMetadata({
 
 export default async function TournamentDetailPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { slug } = await params;
-  const { notice } = await searchParams;
   const tournament = await prisma.tournament.findUnique({
     where: { slug },
     include: { _count: { select: { registrations: true } } },
@@ -83,13 +89,6 @@ export default async function TournamentDetailPage({
 
   const status = getTournamentStatus(tournament);
   const canRegister = canRegisterFor(tournament);
-  // Registering starts with the notice pop-up: anyone who hasn't accepted it yet
-  // sees it as a modal over the (inert) page, and Register buttons open it with
-  // ?notice. Accepting sets this cookie and closes it. It's rendered in place
-  // rather than via a redirect so the page keeps one URL — crawlers get the full
-  // event details, and visitors get no second page load or layout shift.
-  const acknowledged = (await cookies()).get(registrationAckCookie(tournament.slug))?.value === "1";
-  const showNotice = canRegister && (notice !== undefined || !acknowledged);
   const rules = parseRules(tournament.rulesText);
   const seatsUsed = tournament._count.registrations;
   const seatsPct = tournament.maxParticipants
@@ -117,13 +116,13 @@ export default async function TournamentDetailPage({
           { name: tournament.title, path: `/tournaments/${tournament.slug}` },
         ])}
       />
-      {showNotice && (
-        <RegistrationGate
-          slug={tournament.slug}
-          notice={<RegistrationNotice tournament={tournament} />}
-        />
-      )}
-      <div inert={showNotice}>
+      {/* Registering starts with the notice pop-up, shown in place over the page (one
+          URL: crawlers get the full event details, visitors no second page load). */}
+      <RegistrationFlow
+        slug={tournament.slug}
+        canRegister={canRegister}
+        notice={<RegistrationNotice tournament={tournament} />}
+      >
         <section className="bg-charcoal text-white">
           <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-8 sm:py-10 lg:grid-cols-2 lg:gap-12">
             {/* Posters are flyers: shown whole (object-contain) in a 16:9 ivory frame,
@@ -324,24 +323,19 @@ export default async function TournamentDetailPage({
               </div>
             ) : (
               <div className="mt-4">
-                {/* The form can't be used until the notice is accepted, so don't load
-                      its code (react-hook-form, zod, six steps) behind the notice — same
-                      placeholder as the lazy loader, so accepting doesn't shift the page. */}
-                {showNotice ? (
-                  <div className="h-64 rounded-lg bg-charcoal/5" aria-hidden="true" />
-                ) : (
+                <RegisterSlot>
                   <RegistrationWizard
                     tournamentSlug={tournament.slug}
                     tournamentTitle={tournament.title}
                     tournamentStartDate={tournament.startDate}
                     entryFee={isRazorpayConfigured() ? tournament.entryFee : 0}
                   />
-                )}
+                </RegisterSlot>
               </div>
             )}
           </section>
         </div>
-      </div>
+      </RegistrationFlow>
     </main>
   );
 }

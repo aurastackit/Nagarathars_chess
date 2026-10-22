@@ -9,6 +9,7 @@ import { parseResultsCsv } from "@/lib/results-csv";
 import { computeStandings } from "@/lib/standings";
 import { getOrCreatePlayer } from "@/lib/player";
 import { ageCategoryLabel } from "@/lib/age-category";
+import { revalidateTournamentPages } from "@/lib/revalidate-public";
 
 export const dynamic = "force-dynamic";
 
@@ -93,6 +94,7 @@ export default async function TournamentResultsPage({
       summary: `Added round ${number} for "${tournament!.title}"`,
     });
     revalidatePath(`/admin/tournaments/${id}/results`);
+    revalidateTournamentPages();
   }
 
   async function addPairing(formData: FormData) {
@@ -133,6 +135,7 @@ export default async function TournamentResultsPage({
       summary: `Recorded a pairing result for "${tournament!.title}"`,
     });
     revalidatePath(`/admin/tournaments/${id}/results`);
+    revalidateTournamentPages();
   }
 
   async function deletePairing(pairingId: string) {
@@ -147,6 +150,7 @@ export default async function TournamentResultsPage({
       summary: `Deleted a pairing for "${tournament!.title}"`,
     });
     revalidatePath(`/admin/tournaments/${id}/results`);
+    revalidateTournamentPages();
   }
 
   async function togglePublish() {
@@ -169,7 +173,7 @@ export default async function TournamentResultsPage({
       summary: `${current.resultsPublished ? "Unpublished" : "Published"} results for "${current.title}"`,
     });
     revalidatePath(`/admin/tournaments/${id}/results`);
-    revalidatePath(`/tournaments/${tournament!.slug}/results`);
+    revalidateTournamentPages();
   }
 
   async function importCsv(formData: FormData) {
@@ -243,6 +247,7 @@ export default async function TournamentResultsPage({
       summary: `Imported ${created} pairing(s) from CSV for "${tournament!.title}"`,
     });
     revalidatePath(`/admin/tournaments/${id}/results`);
+    revalidateTournamentPages();
     redirect(`/admin/tournaments/${id}/results?imported=${created}`);
   }
 

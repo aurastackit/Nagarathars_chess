@@ -10,8 +10,9 @@ export function registerPath(slug: string) {
 
 /**
  * Name of the session cookie that records the notice was accepted for one
- * tournament, so refreshing the page or coming back doesn't repeat it. A
- * convenience flag, not a security control.
+ * tournament, so refreshing the page or coming back doesn't repeat it. Read in
+ * the browser (the page itself is static). A convenience flag, not a security
+ * control.
  */
 export function registrationAckCookie(slug: string) {
   return `regack_${slug}`;

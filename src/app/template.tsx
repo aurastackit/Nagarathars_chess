@@ -2,8 +2,6 @@ import { SiteHeader } from "@/components/site-header";
 import { getNextTournament } from "@/lib/next-tournament";
 import { labelUntilEndOfDayIST } from "@/lib/countdown-format";
 
-export const dynamic = "force-dynamic";
-
 /**
  * Unlike layout.tsx, a template re-runs on every navigation (it doesn't
  * persist across client-side route changes) — see the comment on

@@ -7,7 +7,11 @@ import { organizationJsonLd, websiteJsonLd } from "@/lib/seo/structured-data";
 import { JsonLd } from "@/components/json-ld";
 import "./globals.css";
 
-export const dynamic = "force-dynamic";
+// Default for every page: static, regenerated at most every 5 minutes (the
+// header and announcement bar read the next tournament). Admin, registration
+// status, player and results pages opt out with force-dynamic; API routes are
+// dynamic anyway.
+export const revalidate = 300;
 
 const inter = Inter({
   variable: "--font-inter",
@@ -43,7 +47,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en-IN" className={`${inter.variable} ${playfairDisplay.variable} h-full antialiased`}>
+    <html
+      lang="en-IN"
+      className={`${inter.variable} ${playfairDisplay.variable} h-full antialiased`}
+    >
       <body className="min-h-full flex flex-col">
         {/* First tab stop on every page; hidden above the viewport until focused.
             Targets the page wrapper in template.tsx. */}

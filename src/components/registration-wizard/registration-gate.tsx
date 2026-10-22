@@ -14,9 +14,18 @@ const FOCUSABLE = "a[href], button:not([disabled]), input:not([disabled])";
  * declaration is accepted. `notice` is the server-rendered body (notes, event
  * details, divisions, safety advice); the declaration, its tick box and the
  * Continue button live here because they need state. Accepting sets a session
- * cookie for this tournament and opens the full page at its registration form.
+ * cookie for this tournament (so it isn't asked again) and hands back to
+ * RegistrationFlow, which opens the registration form.
  */
-export function RegistrationGate({ slug, notice }: { slug: string; notice: ReactNode }) {
+export function RegistrationGate({
+  slug,
+  notice,
+  onAccepted,
+}: {
+  slug: string;
+  notice: ReactNode;
+  onAccepted: () => void;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [checked, setChecked] = useState(false);
@@ -65,18 +74,15 @@ export function RegistrationGate({ slug, notice }: { slug: string; notice: React
     const name = registrationAckCookie(slug);
     const secure = window.location.protocol === "https:" ? "; Secure" : "";
     document.cookie = `${name}=1; Path=/tournaments/${slug}; SameSite=Lax${secure}`;
-    // The tournament page reads this cookie to open the full page, so say so if
-    // the browser refused it rather than bouncing the player straight back here.
+    // RegistrationFlow reads this cookie to skip the notice next time, so say so
+    // if the browser refused it rather than bouncing the player straight back here.
     if (!document.cookie.includes(`${name}=1`)) {
       setCookiesBlocked(true);
       return;
     }
-    startTransition(() => {
-      router.replace(`/tournaments/${slug}#register`);
-      // On the clean URL that's only a hash change, which doesn't re-render the
-      // server page — refresh so it reads the new cookie and drops the notice.
-      router.refresh();
-    });
+    onAccepted();
+    // Drop ?notice from the URL and land on the form.
+    startTransition(() => router.replace(`/tournaments/${slug}#register`));
   }
 
   return (

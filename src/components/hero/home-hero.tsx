@@ -37,18 +37,17 @@ export function HomeHero({
         </defs>
         <rect width="100%" height="100%" fill="url(#athangudi-tile)" opacity="0.05" />
       </svg>
-      {/* Fine grain over the gradients so their gentle steps never show as bands. */}
-      <div className="hero-grain pointer-events-none absolute inset-0" aria-hidden="true" />
 
       <div className="relative mx-auto max-w-6xl px-4 pb-[clamp(3.5rem,9svh,5.5rem)] pt-[clamp(2.5rem,7svh,4.5rem)]">
         <div className="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-8">
           <div className="flex flex-col items-start gap-5 lg:col-span-6">
+            {/* Not animated: it's the page's LCP element, and an element that starts at
+                opacity 0 isn't counted until much later. The rest still fades up. */}
             <h1
-              className="animate-fade-up max-w-[34rem] font-display font-bold tracking-tight"
+              className="max-w-[34rem] font-display font-bold tracking-tight"
               style={{
                 fontSize: "clamp(2.25rem, 1.5rem + 2.4vw, 3.5rem)",
                 lineHeight: 1.08,
-                animationDelay: "80ms",
               }}
             >
               Chess tournaments and coaching, built for your community.
