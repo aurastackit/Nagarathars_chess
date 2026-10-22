@@ -25,19 +25,19 @@ export async function POST(req: Request) {
       { status: 400 }
     );
   }
-  const { email, phone } = parsed.data;
+  const { email, phone, interestLevel } = parsed.data;
 
   await prisma.classWaitlist.upsert({
     where: { email },
-    update: { phone: phone || null },
-    create: { email, phone: phone || null },
+    update: { phone: phone || null, interestLevel: interestLevel || null },
+    create: { email, phone: phone || null, interestLevel: interestLevel || null },
   });
 
   await notifyRegistration({
     to: email,
     fullName: email,
     subject: "Added to the classes waitlist",
-    context: `${email} joined the class waitlist${phone ? ` (phone: ${phone})` : ""}`,
+    context: `${email} joined the class waitlist${phone ? ` (phone: ${phone})` : ""}${interestLevel ? ` — interested in: ${interestLevel.replace("_", " ")}` : ""}`,
   });
 
   return NextResponse.json({ ok: true }, { status: 201 });

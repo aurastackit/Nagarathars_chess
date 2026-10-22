@@ -24,9 +24,17 @@ export function createEnrollmentSchema(fideRequired: boolean) {
   });
 }
 
+export const WAITLIST_INTEREST_LEVELS = [
+  "beginner",
+  "intermediate",
+  "advanced",
+  "not_sure",
+] as const;
+
 export const classWaitlistSchema = z.object({
   email: z.string().trim().email("Enter a valid email"),
   phone: z.string().trim().optional().or(z.literal("")),
+  interestLevel: z.enum(WAITLIST_INTEREST_LEVELS).optional().or(z.literal("")),
 });
 
 export type ClassWaitlistInput = z.infer<typeof classWaitlistSchema>;

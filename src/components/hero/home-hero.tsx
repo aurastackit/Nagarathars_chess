@@ -1,5 +1,6 @@
 import type { ComponentProps } from "react";
 import { LinkButton } from "@/components/ui";
+import { CLASSES_ENABLED } from "@/lib/features";
 import { LiveBoard } from "./live-board";
 import { TournamentChip } from "./tournament-chip";
 
@@ -50,14 +51,17 @@ export function HomeHero({
                 lineHeight: 1.08,
               }}
             >
-              Chess tournaments and coaching, built for your community.
+              {CLASSES_ENABLED
+                ? "Chess tournaments and coaching, built for your community."
+                : "Chess tournaments built for your community."}
             </h1>
             <p
               className={"animate-fade-up max-w-[52ch] text-lg text-charcoal/75"}
               style={{ animationDelay: "160ms" }}
             >
-              Register for upcoming local tournaments, join online chess classes, and represent your
-              community — no rating required to get started.
+              {CLASSES_ENABLED
+                ? "Register for upcoming local tournaments, join online chess classes, and represent your community — no rating required to get started."
+                : "Register for upcoming local tournaments and represent your community — no rating required to get started. Online classes are coming soon."}
             </p>
             <div
               className="animate-fade-up flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4"
@@ -66,8 +70,12 @@ export function HomeHero({
               <LinkButton href="/tournaments" className="w-full py-3 sm:w-auto">
                 View Tournaments
               </LinkButton>
-              <LinkButton href="/classes" variant="outline" className="w-full py-3 sm:w-auto">
-                Explore Classes
+              <LinkButton
+                href={CLASSES_ENABLED ? "/classes" : "/gallery"}
+                variant="outline"
+                className="w-full py-3 sm:w-auto"
+              >
+                {CLASSES_ENABLED ? "Explore Classes" : "See our gallery"}
               </LinkButton>
             </div>
             <div

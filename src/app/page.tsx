@@ -31,6 +31,7 @@ import {
 import { DrawUnderline } from "@/components/draw-underline";
 import { ScrollMotion } from "@/components/scroll-motion";
 import { pageMetadata } from "@/lib/seo";
+import { CLASSES_ENABLED } from "@/lib/features";
 import { faqJsonLd } from "@/lib/seo/structured-data";
 import { JsonLd } from "@/components/json-ld";
 import { FAQS } from "@/data/faqs";
@@ -40,12 +41,19 @@ import { EmptyTournaments } from "@/components/illustrations/empty-states";
 // change (lib/revalidate-public).
 export const revalidate = 60;
 
-export const metadata = pageMetadata({
-  title: "Chess Tournaments & Classes in Chennai | Nagarathar's Chess",
-  description:
-    "Free chess tournaments in Chennai for kids and adults – no FIDE rating needed. Register online for Nagarathar's Chess Championship and join online classes.",
-  path: "/",
-});
+export const metadata = CLASSES_ENABLED
+  ? pageMetadata({
+      title: "Chess Tournaments & Classes in Chennai | Nagarathar's Chess",
+      description:
+        "Free chess tournaments in Chennai for kids and adults – no FIDE rating needed. Register online for Nagarathar's Chess Championship and join online classes.",
+      path: "/",
+    })
+  : pageMetadata({
+      title: "Free Chess Tournaments in Chennai | Nagarathar's Chess",
+      description:
+        "Free chess tournaments in Chennai for kids and adults – no FIDE rating needed. Register online for Nagarathar's Chess Championship. Online classes coming soon.",
+      path: "/",
+    });
 
 function ViewAll({ href }: { href: string }) {
   return (
@@ -64,10 +72,15 @@ const PROMISES = [
     title: "Fair, transparent play",
     body: "Clear age categories and entry rules, with every registration reviewed before it's confirmed.",
   },
-  {
-    title: "Coaching at every level",
-    body: "Online classes run from beginner fundamentals to advanced tactics, group or one-on-one.",
-  },
+  CLASSES_ENABLED
+    ? {
+        title: "Coaching at every level",
+        body: "Online classes run from beginner fundamentals to advanced tactics, group or one-on-one.",
+      }
+    : {
+        title: "Coaching coming soon",
+        body: "Online classes from beginner to advanced are on the way.",
+      },
   {
     title: "Free to get started",
     body: "Most tournaments are free to enter — there's no cost barrier to playing your first event.",
@@ -86,7 +99,9 @@ const STEPS = [
   {
     Vignette: BrowseVignette,
     title: "Browse what's open",
-    body: "Check upcoming tournaments and class programs — dates, venues, formats, and entry fees are all listed up front.",
+    body: CLASSES_ENABLED
+      ? "Check upcoming tournaments and class programs — dates, venues, formats, and entry fees are all listed up front."
+      : "Check upcoming tournaments — dates, venues, formats, and entry fees are all listed up front.",
   },
   {
     Vignette: RegisterVignette,
@@ -96,7 +111,9 @@ const STEPS = [
   {
     Vignette: PlayVignette,
     title: "Play & keep improving",
-    body: "Show up and compete, then carry the momentum into an online class to sharpen your game for the next event.",
+    body: CLASSES_ENABLED
+      ? "Show up and compete, then carry the momentum into an online class to sharpen your game for the next event."
+      : "Show up and compete, then bring what you learned to the next event and keep sharpening your game.",
   },
 ];
 
@@ -179,7 +196,10 @@ export default async function HomePage() {
       take: 3,
       include: { _count: { select: { registrations: true } } },
     }),
-    prisma.classProgram.findMany({ orderBy: { createdAt: "asc" } }),
+    // No class data on public pages while classes are coming soon (lib/features).
+    CLASSES_ENABLED
+      ? prisma.classProgram.findMany({ orderBy: { createdAt: "asc" } })
+      : Promise.resolve([]),
     prisma.tournament.findMany({ where: { status: "published" } }),
     getGallery({ take: 6 }),
     getGallery({ section: "HIGHLIGHTS", take: 10 }),
@@ -200,7 +220,9 @@ export default async function HomePage() {
       label: "Cities reached",
       value: new Set(allPublished.map((t) => t.city)).size,
     },
-    { Icon: PawnIcon, label: "Class programs offered", value: allClasses.length },
+    ...(CLASSES_ENABLED
+      ? [{ Icon: PawnIcon, label: "Class programs offered", value: allClasses.length }]
+      : []),
     { Icon: TrophyIcon, label: "Tournaments completed", value: completedTournaments.length },
   ];
 
@@ -250,7 +272,9 @@ export default async function HomePage() {
           figures count up when they scroll into view. */}
       <section className="relative z-10 -mt-8 lg:-mt-12">
         <div className="mx-auto max-w-6xl px-4">
-          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg bg-border shadow-md ring-1 ring-border lg:grid-cols-4">
+          <div
+            className={`grid gap-px overflow-hidden rounded-lg bg-border shadow-md ring-1 ring-border ${stats.length === 4 ? "grid-cols-2 lg:grid-cols-4" : "grid-cols-3"}`}
+          >
             {stats.map((s, i) => (
               <div key={s.label} className="bg-card px-4 py-6 sm:py-8">
                 <div
@@ -311,57 +335,82 @@ export default async function HomePage() {
         )}
       </Section>
 
-      <Section
-        title="Programs by level"
-        subtitle="A structured path from your first game to tournament-ready play."
-        align="left"
-        className={nextBand()}
-      >
-        <div className="grid gap-6 sm:grid-cols-3">
-          {levelGroups.map((g, i) => (
-            <div key={g.level} className="rounded-lg border border-border bg-card p-6 shadow-sm">
-              <Badge tone={i === 1 ? "gold-ink" : "charcoal"}>{g.info.label}</Badge>
-              <p className="text-small mt-3 text-muted">{g.info.body}</p>
-              {g.count > 0 ? (
-                <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-muted">
-                  {g.count} program{g.count === 1 ? "" : "s"} available
-                </p>
-              ) : (
-                <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-muted">
+      {CLASSES_ENABLED ? (
+        <>
+          <Section
+            title="Programs by level"
+            subtitle="A structured path from your first game to tournament-ready play."
+            align="left"
+            className={nextBand()}
+          >
+            <div className="grid gap-6 sm:grid-cols-3">
+              {levelGroups.map((g, i) => (
+                <div
+                  key={g.level}
+                  className="rounded-lg border border-border bg-card p-6 shadow-sm"
+                >
+                  <Badge tone={i === 1 ? "gold-ink" : "charcoal"}>{g.info.label}</Badge>
+                  <p className="text-small mt-3 text-muted">{g.info.body}</p>
+                  {g.count > 0 ? (
+                    <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-muted">
+                      {g.count} program{g.count === 1 ? "" : "s"} available
+                    </p>
+                  ) : (
+                    <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-muted">
+                      Coming soon
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </Section>
+
+          <Section
+            title="Online tutoring & classes"
+            align="left"
+            action={<ViewAll href="/classes" />}
+            className={nextBand()}
+          >
+            {classes.length === 0 ? (
+              <ClassWaitlistForm />
+            ) : (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {classes.map((c) => (
+                  <Card key={c.id} className="h-full p-5">
+                    <Badge tone="gold-ink">{c.level}</Badge>
+                    <h3 className="h3 mt-2 text-foreground">{c.title}</h3>
+                    <p className="text-small mt-2 text-muted">{c.scheduleText}</p>
+                    <Link
+                      href="/classes"
+                      className="mt-3 inline-block text-sm font-semibold text-charcoal hover:underline"
+                    >
+                      Learn more &rarr;
+                    </Link>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </Section>
+        </>
+      ) : (
+        <section className={`py-10 ${nextBand()}`}>
+          <div className="mx-auto max-w-6xl px-4">
+            <div className="flex flex-col items-start gap-4 rounded-lg border border-gold/30 bg-gold/5 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-gold-ink">
                   Coming soon
                 </p>
-              )}
+                <h2 className="mt-1 text-lg font-semibold text-charcoal">
+                  Online classes are coming soon – join the list to hear first
+                </h2>
+              </div>
+              <LinkButton href="/classes#notify" className="flex-none">
+                Get notified
+              </LinkButton>
             </div>
-          ))}
-        </div>
-      </Section>
-
-      <Section
-        title="Online tutoring & classes"
-        align="left"
-        action={<ViewAll href="/classes" />}
-        className={nextBand()}
-      >
-        {classes.length === 0 ? (
-          <ClassWaitlistForm />
-        ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {classes.map((c) => (
-              <Card key={c.id} className="h-full p-5">
-                <Badge tone="gold-ink">{c.level}</Badge>
-                <h3 className="h3 mt-2 text-foreground">{c.title}</h3>
-                <p className="text-small mt-2 text-muted">{c.scheduleText}</p>
-                <Link
-                  href="/classes"
-                  className="mt-3 inline-block text-sm font-semibold text-charcoal hover:underline"
-                >
-                  Learn more &rarr;
-                </Link>
-              </Card>
-            ))}
           </div>
-        )}
-      </Section>
+        </section>
+      )}
 
       <Section
         eyebrow="Time controls"
@@ -526,9 +575,9 @@ export default async function HomePage() {
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="h2 text-charcoal">Our goal</h2>
           <p className="text-body mt-4 text-muted">
-            We want every local player who wants a first tournament experience to have one nearby,
-            free of cost, and welcoming to beginners — with the coaching to keep growing long after
-            the last move is played.
+            {CLASSES_ENABLED
+              ? "We want every local player who wants a first tournament experience to have one nearby, free of cost, and welcoming to beginners — with the coaching to keep growing long after the last move is played."
+              : "We want every local player who wants a first tournament experience to have one nearby, free of cost, and welcoming to beginners — and, soon, online coaching to keep growing long after the last move is played."}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <LinkButton href="/about">Read Our Story</LinkButton>
@@ -566,11 +615,11 @@ export default async function HomePage() {
             </LinkButton>
             <LinkButton
               surface="dark"
-              href="/classes"
+              href={CLASSES_ENABLED ? "/classes" : "/gallery"}
               variant="outline"
               className="border-white text-white hover:bg-white hover:text-charcoal"
             >
-              Explore Classes
+              {CLASSES_ENABLED ? "Explore Classes" : "See our gallery"}
             </LinkButton>
           </div>
         </div>

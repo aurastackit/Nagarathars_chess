@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { CLASSES_ENABLED } from "@/lib/features";
 
 const QUICK_LINKS = [
   { href: "/", label: "Home" },
@@ -25,8 +26,9 @@ export function SiteFooter() {
           />
           <p className="mt-3 text-white/60">Think Ahead, Win Ahead.</p>
           <p className="mt-4 max-w-xs text-white/60">
-            A community-driven initiative bringing chess tournaments and online coaching to local,
-            non-rated players — open to every age group, at no cost to get started.
+            {CLASSES_ENABLED
+              ? "A community-driven initiative bringing chess tournaments and online coaching to local, non-rated players — open to every age group, at no cost to get started."
+              : "A community-driven initiative bringing chess tournaments (and, soon, online coaching) to local, non-rated players — open to every age group, at no cost to get started."}
           </p>
         </div>
         <div>
@@ -47,7 +49,9 @@ export function SiteFooter() {
         <div>
           <p className="font-semibold text-white">Get in touch</p>
           <p className="mt-3 text-white/60">
-            Have a question about a tournament, class, or how to get involved?
+            {CLASSES_ENABLED
+              ? "Have a question about a tournament, class, or how to get involved?"
+              : "Have a question about a tournament or how to get involved?"}
           </p>
           <Link
             href="/contact"

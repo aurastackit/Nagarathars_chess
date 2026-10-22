@@ -9,6 +9,7 @@ import { getGallery } from "@/lib/gallery";
 import { resolveVideoPlayback, type ShortsItem } from "@/lib/video";
 import { EmptyState } from "@/components/ui";
 import { EmptyGallery } from "@/components/illustrations/empty-states";
+import { CLASSES_ENABLED } from "@/lib/features";
 
 // Static, regenerated at most every minute or on demand after an admin
 // change (lib/revalidate-public).
@@ -16,8 +17,9 @@ export const revalidate = 60;
 
 export const metadata: Metadata = pageMetadata({
   title: "Photos & Video Highlights",
-  description:
-    "Photos and video highlights from Nagarathar's Chess Championship tournaments and classes in Chennai – young players, families and memorable games.",
+  description: CLASSES_ENABLED
+    ? "Photos and video highlights from Nagarathar's Chess Championship tournaments and classes in Chennai – young players, families and memorable games."
+    : "Photos and video highlights from Nagarathar's Chess Championship tournaments in Chennai – young players, families, posters and memorable games on the board.",
   path: "/gallery",
 });
 
@@ -28,10 +30,13 @@ export default async function GalleryPage() {
       where: { posterImageUrl: { not: null } },
       orderBy: { startDate: "desc" },
     }),
-    prisma.classProgram.findMany({
-      where: { bannerImageUrl: { not: null } },
-      orderBy: { createdAt: "desc" },
-    }),
+    // No class data on public pages while classes are coming soon (lib/features).
+    CLASSES_ENABLED
+      ? prisma.classProgram.findMany({
+          where: { bannerImageUrl: { not: null } },
+          orderBy: { createdAt: "desc" },
+        })
+      : Promise.resolve([]),
   ]);
 
   const photoRows = curatedGallery.items.filter((p) => p.mediaType !== "VIDEO");
@@ -87,8 +92,9 @@ export default async function GalleryPage() {
       <div className="text-center">
         <h1 className="h1 text-charcoal">Gallery</h1>
         <p className="text-body mx-auto mt-2 max-w-xl text-muted">
-          Moments from our tournaments and classes — posters, banners, and highlights as our
-          community grows.
+          {CLASSES_ENABLED
+            ? "Moments from our tournaments and classes — posters, banners, and highlights as our community grows."
+            : "Moments from our tournaments — posters, banners, and highlights as our community grows."}
         </p>
       </div>
 

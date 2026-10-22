@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
 import { PRIVACY_LAST_UPDATED } from "@/lib/legal";
+import { CLASSES_ENABLED } from "@/lib/features";
 import Link from "next/link";
 
 export const metadata: Metadata = pageMetadata({
@@ -56,11 +57,18 @@ export default function PrivacyPage() {
               <strong className="text-charcoal">Email verification:</strong> your email address and
               a one-time code, which we store only in scrambled (hashed) form.
             </li>
-            <li>
-              <strong className="text-charcoal">Classes:</strong> name, email and phone number, plus
-              a FIDE ID and message if you add them. The class waitlist takes just an email address
-              and, optionally, a phone number.
-            </li>
+            {CLASSES_ENABLED ? (
+              <li>
+                <strong className="text-charcoal">Classes:</strong> name, email and phone number,
+                plus a FIDE ID and message if you add them. The class waitlist takes just an email
+                address and, optionally, a phone number and the level you&apos;re interested in.
+              </li>
+            ) : (
+              <li>
+                <strong className="text-charcoal">Online classes waitlist:</strong> your email
+                address and, optionally, a phone number and the level you&apos;re interested in.
+              </li>
+            )}
             <li>
               <strong className="text-charcoal">Contact form:</strong> your name, email and message.
             </li>
@@ -74,12 +82,21 @@ export default function PrivacyPage() {
 
         <section>
           <h2 className="h3 text-charcoal">Why we use it</h2>
-          <p className="mt-3">
-            To run tournaments and classes: checking which age category a player belongs in,
-            confirming entries, taking payment for paid events, contacting you about an event or
-            class, publishing results, and answering your messages. We don&apos;t sell your
-            information or use it for advertising.
-          </p>
+          {CLASSES_ENABLED ? (
+            <p className="mt-3">
+              To run tournaments and classes: checking which age category a player belongs in,
+              confirming entries, taking payment for paid events, contacting you about an event or
+              class, publishing results, and answering your messages. We don&apos;t sell your
+              information or use it for advertising.
+            </p>
+          ) : (
+            <p className="mt-3">
+              To run tournaments: checking which age category a player belongs in, confirming
+              entries, taking payment for paid events, contacting you about an event, publishing
+              results, and answering your messages — and to tell waitlist members when online
+              classes open. We don&apos;t sell your information or use it for advertising.
+            </p>
+          )}
         </section>
 
         <section>
@@ -143,7 +160,9 @@ export default function PrivacyPage() {
             Under India&apos;s Digital Personal Data Protection Act, 2023, you can ask us to:
           </p>
           <ul className={LIST}>
-            <li>tell you what personal information we hold about you and who we&apos;ve shared it with</li>
+            <li>
+              tell you what personal information we hold about you and who we&apos;ve shared it with
+            </li>
             <li>correct, complete or update it</li>
             <li>delete it</li>
             <li>

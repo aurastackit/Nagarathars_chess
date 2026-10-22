@@ -5,8 +5,13 @@ import { enrollmentSchema } from "@/lib/validations";
 import { notifyRegistration } from "@/lib/notify";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { isHoneypotTriggered } from "@/lib/honeypot";
+import { CLASSES_ENABLED } from "@/lib/features";
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+  // Classes aren't offered yet (lib/features); the waitlist API stays live.
+  if (!CLASSES_ENABLED) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   const { slug } = await params;
   if (!checkRateLimit(`enroll:${getClientIp(req)}`, 5, 60_000)) {
     return NextResponse.json(

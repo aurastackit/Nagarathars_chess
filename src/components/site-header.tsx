@@ -7,15 +7,33 @@ import { usePathname } from "next/navigation";
 import { AnnouncementBar } from "@/components/announcement-bar";
 import { buttonClasses } from "@/components/ui";
 import { registerPath } from "@/lib/registration-flow";
+import { CLASSES_ENABLED } from "@/lib/features";
 
 const NAV = [
   { href: "/", label: "Home" },
-  { href: "/classes", label: "Online Classes" },
+  { href: "/classes", label: "Online Classes", soon: !CLASSES_ENABLED },
   { href: "/tournaments", label: "Tournaments" },
   { href: "/gallery", label: "Gallery" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
+
+/** "Soon" tag on a nav item that isn't live yet (Online Classes — lib/features). */
+function SoonPill({ active = false, onDark = false }: { active?: boolean; onDark?: boolean }) {
+  return (
+    <>
+      <span
+        aria-hidden="true"
+        className={`ml-1.5 inline-block rounded-full px-1.5 py-0.5 align-middle text-[10px] font-semibold uppercase leading-none tracking-wide ${
+          active || onDark ? "bg-gold text-charcoal" : "bg-gold/20 text-gold-ink"
+        }`}
+      >
+        Soon
+      </span>
+      <span className="sr-only"> (coming soon)</span>
+    </>
+  );
+}
 
 type NextTournament = {
   title: string;
@@ -175,6 +193,7 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
                   }`}
                 >
                   {item.label}
+                  {item.soon && <SoonPill active={active} />}
                 </Link>
               );
             })}
@@ -276,6 +295,7 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
                   onClick={() => setMenuOpen(false)}
                 >
                   {item.label}
+                  {item.soon && <SoonPill active onDark />}
                 </Link>
               );
             })}

@@ -181,10 +181,12 @@ model AdminActivityLog {
 
 /** Collected when the homepage/classes page has nothing published, so we can follow up once classes go live. */
 model ClassWaitlist {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  phone     String?
-  createdAt DateTime @default(now())
+  id            String   @id @default(cuid())
+  email         String   @unique
+  phone         String?
+  /// Optional "Interested in" answer: beginner | intermediate | advanced | not_sure
+  interestLevel String?
+  createdAt     DateTime @default(now())
 }
 
 enum MediaType {

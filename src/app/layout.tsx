@@ -5,6 +5,7 @@ import { SITE_URL, absoluteUrl } from "@/lib/site";
 import { DEFAULT_OG_IMAGE, SITE_NAME } from "@/lib/seo";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo/structured-data";
 import { JsonLd } from "@/components/json-ld";
+import { CLASSES_ENABLED } from "@/lib/features";
 import "./globals.css";
 
 // Default for every page: static, regenerated at most every minute (the
@@ -34,8 +35,9 @@ export const metadata: Metadata = {
     default: SITE_NAME,
     template: `%s | ${SITE_NAME}`,
   },
-  description:
-    "Free chess tournaments in Chennai for kids and adults – no FIDE rating needed. Register online for Nagarathar's Chess Championship and join online classes.",
+  description: CLASSES_ENABLED
+    ? "Free chess tournaments in Chennai for kids and adults – no FIDE rating needed. Register online for Nagarathar's Chess Championship and join online classes."
+    : "Free chess tournaments in Chennai for kids and adults – no FIDE rating needed. Register online for Nagarathar's Chess Championship. Online classes coming soon.",
   openGraph: {
     siteName: SITE_NAME,
     type: "website",

@@ -84,3 +84,62 @@ export function WhatsAppIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+/** A screen with a play mark — live online sessions. */
+export function ScreenIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <rect x="3" y="4.5" width="18" height="12" rx="1.5" />
+      <path d="M8.5 20h7M12 16.5V20" />
+      <path d="M10.5 8.3v4.4l3.6-2.2z" />
+    </svg>
+  );
+}
+
+/** Two people — group or one-on-one sessions. */
+export function PeopleIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <circle cx="9" cy="8" r="3" />
+      <path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5" />
+      <circle cx="16.5" cy="9" r="2.4" />
+      <path d="M16 14.1c2.4.1 4 1.7 4.5 4.4" />
+    </svg>
+  );
+}
+
+/** An adult and a child — programmes for every age. */
+export function AgesIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <circle cx="8.5" cy="6.5" r="2.6" />
+      <path d="M4.5 20v-5.2c0-2.2 1.8-4 4-4s4 1.8 4 4V20" />
+      <circle cx="17" cy="11" r="2" />
+      <path d="M14.2 20v-3.2c0-1.6 1.2-2.9 2.8-2.9s2.8 1.3 2.8 2.9V20" />
+    </svg>
+  );
+}
