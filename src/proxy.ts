@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { isReadOnly, readOnlyResponse } from "@/lib/read-only";
 
 /**
  * Edge-level gate for the admin area. This is defense-in-depth alongside the
@@ -11,6 +12,12 @@ export default auth((req) => {
   const isLoginPage = pathname === "/admin/login";
   const isAdminPage = pathname.startsWith("/admin") && !isLoginPage;
   const isAdminApi = pathname.startsWith("/api/admin");
+
+  // Read-only mode: refuse every admin write (server actions are POSTs to the
+  // page URL; admin APIs). Signing in and out still work.
+  if (isReadOnly() && req.method === "POST" && (isAdminApi || isAdminPage)) {
+    return readOnlyResponse();
+  }
 
   if ((isAdminPage || isAdminApi) && !req.auth) {
     if (isAdminApi) {

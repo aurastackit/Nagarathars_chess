@@ -4,8 +4,10 @@ import { classWaitlistSchema } from "@/lib/validations";
 import { sendWaitlistConfirmationEmail } from "@/lib/notify";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { isHoneypotTriggered } from "@/lib/honeypot";
+import { isReadOnly, readOnlyResponse } from "@/lib/read-only";
 
 export async function POST(req: Request) {
+  if (isReadOnly()) return readOnlyResponse();
   if (!checkRateLimit(`waitlist:${getClientIp(req)}`, 5, 60_000)) {
     return NextResponse.json(
       { error: "Too many requests — please try again shortly." },

@@ -5,12 +5,14 @@ import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { isHoneypotTriggered } from "@/lib/honeypot";
 import { generateOtp, hashOtp, OTP_TTL_MS } from "@/lib/otp";
 import { sendOtpEmail } from "@/lib/otp-email";
+import { isReadOnly, readOnlyResponse } from "@/lib/read-only";
 
 const requestOtpSchema = z.object({
   email: z.string().trim().email("Enter a valid email"),
 });
 
 export async function POST(req: Request) {
+  if (isReadOnly()) return readOnlyResponse();
   if (!checkRateLimit(`otp-request:ip:${getClientIp(req)}`, 5, 60_000)) {
     return NextResponse.json(
       { error: "Too many requests — please try again shortly." },

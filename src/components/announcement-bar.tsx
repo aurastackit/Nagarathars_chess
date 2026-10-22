@@ -16,7 +16,14 @@ const BAR = "flex h-8 items-center justify-center gap-2 px-4 text-xs font-semibo
  * The gold bar above the header. The tournament comes from the browser
  * (useNextTournament), never from the cached HTML, so it's always current.
  */
-export function AnnouncementBar({ tournament }: { tournament: NextTournamentState }) {
+export function AnnouncementBar({
+  tournament,
+  readOnly = false,
+}: {
+  tournament: NextTournamentState;
+  /** Read-only mode (lib/read-only): forms are paused, so say so instead of counting down. */
+  readOnly?: boolean;
+}) {
   const [label, setLabel] = useState<string | null>(null);
   const deadline = tournament?.registrationDeadline;
 
@@ -33,7 +40,13 @@ export function AnnouncementBar({ tournament }: { tournament: NextTournamentStat
 
   return (
     <div className="bg-gold text-charcoal">
-      {tournament === undefined || (tournament && !label) ? (
+      {readOnly ? (
+        <p role="status" className={`mx-auto max-w-6xl ${BAR}`}>
+          <span className="truncate">
+            Site upgrade in progress — registration and forms are paused for about 15 minutes
+          </span>
+        </p>
+      ) : tournament === undefined || (tournament && !label) ? (
         <div className={BAR} aria-hidden="true" />
       ) : tournament ? (
         <Link href={registerPath(tournament.slug)} className={`mx-auto max-w-6xl ${BAR}`}>

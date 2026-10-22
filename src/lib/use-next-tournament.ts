@@ -7,21 +7,24 @@ export type NextTournamentInfo = { title: string; slug: string; registrationDead
 /** undefined = still loading; null = no tournament open for registration. */
 export type NextTournamentState = NextTournamentInfo | null | undefined;
 
+type Payload = { tournament: NextTournamentInfo | null; readOnly: boolean };
+
 const MAX_AGE_MS = 60_000;
 
 // Kept for the life of the tab: the header remounts on every navigation
 // (it lives in template.tsx), and this stops the bar flashing its placeholder.
-let cached: { value: NextTournamentInfo | null; at: number } | null = null;
-let inflight: Promise<NextTournamentInfo | null> | null = null;
+let cached: { value: Payload; at: number } | null = null;
+let inflight: Promise<Payload> | null = null;
 
 function load() {
   inflight ??= fetch("/api/next-tournament")
     .then((r) => (r.ok ? r.json() : { nextTournament: null }))
-    .then((body: { nextTournament: NextTournamentInfo | null }) => {
-      cached = { value: body.nextTournament, at: Date.now() };
-      return body.nextTournament;
+    .then((body: { nextTournament: NextTournamentInfo | null; readOnly?: boolean }) => {
+      const value = { tournament: body.nextTournament, readOnly: Boolean(body.readOnly) };
+      cached = { value, at: Date.now() };
+      return value;
     })
-    .catch(() => cached?.value ?? null)
+    .catch(() => cached?.value ?? { tournament: null, readOnly: false })
     .finally(() => {
       inflight = null;
     });
@@ -33,9 +36,10 @@ function load() {
  * CDN-cached for 60 s) so cached pages never show a stale announcement bar or
  * Register link. Starts as undefined (placeholder) on a full page load; after
  * that, navigations reuse the tab's copy and refresh it when older than a minute.
+ * `readOnly` is true while the site is in read-only mode (lib/read-only).
  */
-export function useNextTournament(): NextTournamentState {
-  const [state, setState] = useState<NextTournamentState>(() => cached?.value);
+export function useNextTournament(): { tournament: NextTournamentState; readOnly: boolean } {
+  const [state, setState] = useState<Payload | undefined>(() => cached?.value);
 
   useEffect(() => {
     let active = true;
@@ -48,5 +52,5 @@ export function useNextTournament(): NextTournamentState {
     };
   }, []);
 
-  return state;
+  return { tournament: state?.tournament, readOnly: state?.readOnly ?? false };
 }

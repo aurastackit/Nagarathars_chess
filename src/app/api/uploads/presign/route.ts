@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { createUploadUrl } from "@/lib/s3";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { canRegisterFor } from "@/lib/tournament-status";
+import { isReadOnly, readOnlyResponse } from "@/lib/read-only";
 import {
   ALL_UPLOAD_TYPES,
   UPLOAD_MAX_BYTES,
@@ -26,6 +27,7 @@ const fail = (error: string, status: number) => NextResponse.json({ error }, { s
  * into the URL — S3 rejects a body of any other length.
  */
 export async function POST(req: Request) {
+  if (isReadOnly()) return readOnlyResponse();
   // Each registration needs two uploads, plus a few retries.
   if (!checkRateLimit(`presign:${getClientIp(req)}`, 20, 10 * 60_000)) {
     return fail("Too many uploads. Please wait a few minutes and try again.", 429);

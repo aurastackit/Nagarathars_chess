@@ -13,8 +13,10 @@ import { EMAIL_VERIFICATION_VALIDITY_MS } from "@/lib/otp";
 import { isRazorpayConfigured } from "@/lib/razorpay";
 import { endOfDayIST } from "@/lib/datetime";
 import { revalidateTournamentSeats } from "@/lib/revalidate-public";
+import { isReadOnly, readOnlyResponse } from "@/lib/read-only";
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+  if (isReadOnly()) return readOnlyResponse();
   const { slug } = await params;
   if (!checkRateLimit(`register:${getClientIp(req)}`, 8, 60_000)) {
     return NextResponse.json(

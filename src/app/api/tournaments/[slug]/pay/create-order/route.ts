@@ -3,10 +3,12 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { createRazorpayOrder, isRazorpayConfigured } from "@/lib/razorpay";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { isReadOnly, readOnlyResponse } from "@/lib/read-only";
 
 const createOrderSchema = z.object({ registrationId: z.string().min(1) });
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+  if (isReadOnly()) return readOnlyResponse();
   const { slug } = await params;
   if (!checkRateLimit(`pay-order:${getClientIp(req)}`, 10, 60_000)) {
     return NextResponse.json(

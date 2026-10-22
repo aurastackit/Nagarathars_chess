@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { OTP_MAX_ATTEMPTS, verifyOtpHash } from "@/lib/otp";
+import { isReadOnly, readOnlyResponse } from "@/lib/read-only";
 
 const verifyOtpSchema = z.object({
   email: z.string().trim().email("Enter a valid email"),
@@ -10,6 +11,7 @@ const verifyOtpSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  if (isReadOnly()) return readOnlyResponse();
   if (!checkRateLimit(`otp-verify:ip:${getClientIp(req)}`, 10, 60_000)) {
     return NextResponse.json(
       { error: "Too many requests — please try again shortly." },

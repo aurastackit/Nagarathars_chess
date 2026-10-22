@@ -6,8 +6,10 @@ import { notifyRegistration } from "@/lib/notify";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { isHoneypotTriggered } from "@/lib/honeypot";
 import { CLASSES_ENABLED } from "@/lib/features";
+import { isReadOnly, readOnlyResponse } from "@/lib/read-only";
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+  if (isReadOnly()) return readOnlyResponse();
   // Classes aren't offered yet (lib/features); the waitlist API stays live.
   if (!CLASSES_ENABLED) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });

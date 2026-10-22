@@ -3,8 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { contactSchema } from "@/lib/validations";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { isHoneypotTriggered } from "@/lib/honeypot";
+import { isReadOnly, readOnlyResponse } from "@/lib/read-only";
 
 export async function POST(req: Request) {
+  if (isReadOnly()) return readOnlyResponse();
   if (!checkRateLimit(`contact:${getClientIp(req)}`, 5, 60_000)) {
     return NextResponse.json(
       { error: "Too many requests — please try again shortly." },

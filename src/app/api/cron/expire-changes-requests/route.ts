@@ -1,12 +1,14 @@
 import { createHash, timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 import { expireChangesRequests } from "@/lib/registration-expiry";
+import { isReadOnly, readOnlyResponse } from "@/lib/read-only";
 
 /**
  * Called once a day by .github/workflows/daily-jobs.yml with
  * `Authorization: Bearer $CRON_SECRET`. Amplify Hosting has no scheduler of its own.
  */
 export async function POST(req: Request) {
+  if (isReadOnly()) return readOnlyResponse();
   const secret = process.env.CRON_SECRET;
   if (!secret) {
     return NextResponse.json({ error: "CRON_SECRET is not set" }, { status: 503 });

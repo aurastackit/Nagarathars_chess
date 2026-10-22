@@ -4,6 +4,7 @@ import Link from "next/link";
 import { signOut } from "@/lib/auth";
 import { getAdminSession } from "@/lib/require-admin";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { isReadOnly } from "@/lib/read-only";
 
 // Admin pages are per-request (session, live data), never cached.
 export const dynamic = "force-dynamic";
@@ -76,6 +77,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <AdminNav />
         </div>
       </AdminHeader>
+      {isReadOnly() && (
+        <div
+          role="status"
+          className="bg-warning px-4 py-2 text-center text-sm font-semibold text-white"
+        >
+          Read-only mode: the database is being moved. You can look around, but changes are disabled
+          until it&apos;s switched off.
+        </div>
+      )}
       <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</div>
     </>
   );

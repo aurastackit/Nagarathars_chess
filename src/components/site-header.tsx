@@ -69,7 +69,7 @@ function isActivePath(pathname: string, href: string) {
 export function SiteHeader() {
   const pathname = usePathname();
   // Fetched in the browser so cached pages never show a stale bar or Register link.
-  const nextTournament = useNextTournament();
+  const { tournament: nextTournament, readOnly } = useNextTournament();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -140,7 +140,7 @@ export function SiteHeader() {
 
   return (
     <>
-      <AnnouncementBar tournament={nextTournament} />
+      <AnnouncementBar tournament={nextTournament} readOnly={readOnly} />
       <header
         className={`sticky top-0 z-50 border-b transition-colors duration-300 ${
           scrolled
