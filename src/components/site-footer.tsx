@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const QUICK_LINKS = [
@@ -14,8 +15,15 @@ export function SiteFooter() {
     <footer className="mt-auto border-t border-border bg-charcoal text-sm text-white/70">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:grid-cols-3">
         <div>
-          <p className="text-lg font-semibold text-white">Nagarathar&apos;s Chess Championship</p>
-          <p className="mt-1 text-white/60">Think Ahead, Win Ahead.</p>
+          <Image
+            src="/brand/lockup-horizontal-dark.svg"
+            alt="Nagarathar's Chess Championship"
+            width={176}
+            height={52}
+            unoptimized
+            className="h-[52px] w-[176px]"
+          />
+          <p className="mt-3 text-white/60">Think Ahead, Win Ahead.</p>
           <p className="mt-4 max-w-xs text-white/60">
             A community-driven initiative bringing chess tournaments and online coaching to local,
             non-rated players — open to every age group, at no cost to get started.

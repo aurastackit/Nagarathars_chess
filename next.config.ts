@@ -46,6 +46,8 @@ const nextConfig: NextConfig = {
         destination: "https://nagaratharschesschampionship.org/:path*",
         statusCode: 301,
       },
+      // The old raster logo moved with the brand kit; tournaments may still use it as their poster.
+      { source: "/images/logo.png", destination: "/brand/legacy/logo.png", statusCode: 301 },
     ];
   },
   async headers() {

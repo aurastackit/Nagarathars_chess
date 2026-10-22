@@ -36,7 +36,7 @@ export function organizationJsonLd(): WithContext<SportsOrganizationLeaf> {
   return {
     "@context": "https://schema.org",
     ...ORGANIZATION_REF,
-    logo: absoluteUrl("/images/logo.png"),
+    logo: absoluteUrl("/icon-512.png"),
     sport: "Chess",
     areaServed: "Chennai, Tamil Nadu, India",
     sameAs: SOCIAL_PROFILES,

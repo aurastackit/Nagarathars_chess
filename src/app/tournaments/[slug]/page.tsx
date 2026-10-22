@@ -124,30 +124,30 @@ export default async function TournamentDetailPage({
         />
       )}
       <div inert={showNotice}>
-          <section className="relative overflow-hidden bg-charcoal text-white">
-            {isValidImageUrl(tournament.posterImageUrl) ? (
-              <div className="relative h-64 w-full sm:h-80">
+        <section className="bg-charcoal text-white">
+          <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-8 sm:py-10 lg:grid-cols-2 lg:gap-12">
+            {/* Posters are flyers: shown whole (object-contain) in a 16:9 ivory frame,
+                never cropped. Above the title on phones, beside it from lg. */}
+            <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-background shadow-md lg:order-2">
+              {isValidImageUrl(tournament.posterImageUrl) ? (
                 <Image
                   src={tournament.posterImageUrl}
                   alt={tournament.title}
                   fill
-                  sizes="100vw"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
                   priority
-                  className="object-cover opacity-40"
+                  className="object-contain"
                 />
-                <div className="absolute inset-0 bg-charcoal/60" />
-              </div>
-            ) : (
-              <div className="h-56 w-full sm:h-64">
+              ) : (
                 <TournamentPlaceholder />
-              </div>
-            )}
-            <div className="mx-auto max-w-4xl px-4 pb-8 pt-6 sm:absolute sm:inset-x-0 sm:bottom-0">
+              )}
+            </div>
+            <div>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge tone="gold">
                   {TOURNAMENT_FORMAT_LABEL[tournament.format] ?? tournament.format}
                 </Badge>
-                <Badge tone="charcoal">{tournament.category}</Badge>
+                <Badge tone="white">{tournament.category}</Badge>
                 <Badge tone="white">{TOURNAMENT_STATUS_LABEL[status]}</Badge>
               </div>
               <h1 className="h1 mt-3 max-w-2xl">{tournament.title}</h1>
@@ -164,182 +164,183 @@ export default async function TournamentDetailPage({
                 </Link>
               )}
             </div>
-          </section>
+          </div>
+        </section>
 
-          <div className="mx-auto max-w-4xl px-4 py-10">
-            <dl className="grid grid-cols-2 gap-4 rounded-lg border border-border bg-card p-4 text-sm sm:grid-cols-4">
+        <div className="mx-auto max-w-4xl px-4 py-10">
+          <dl className="grid grid-cols-2 gap-4 rounded-lg border border-border bg-card p-4 text-sm sm:grid-cols-4">
+            <div>
+              <dt className="text-foreground/50">Dates</dt>
+              <dd className="font-medium">
+                {formatDateRange(tournament.startDate, tournament.endDate)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-foreground/50">Venue</dt>
+              <dd className="font-medium">
+                {capitalizeWords(tournament.venue)}, {capitalizeWords(tournament.city)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-foreground/50">Entry fee</dt>
+              <dd className="font-medium">
+                {tournament.entryFee === 0 ? "Free" : `₹${tournament.entryFee}`}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-foreground/50">Registration closes</dt>
+              <dd className="font-medium">{formatDate(tournament.registrationDeadline)}</dd>
+            </div>
+            {tournament.timeControl && (
               <div>
-                <dt className="text-foreground/50">Dates</dt>
-                <dd className="font-medium">
-                  {formatDateRange(tournament.startDate, tournament.endDate)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-foreground/50">Venue</dt>
-                <dd className="font-medium">
-                  {capitalizeWords(tournament.venue)}, {capitalizeWords(tournament.city)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-foreground/50">Entry fee</dt>
-                <dd className="font-medium">
-                  {tournament.entryFee === 0 ? "Free" : `₹${tournament.entryFee}`}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-foreground/50">Registration closes</dt>
-                <dd className="font-medium">{formatDate(tournament.registrationDeadline)}</dd>
-              </div>
-              {tournament.timeControl && (
-                <div>
-                  <dt className="text-foreground/50">Time control</dt>
-                  <dd className="font-medium">{tournament.timeControl}</dd>
-                </div>
-              )}
-              {tournament.rounds && (
-                <div>
-                  <dt className="text-foreground/50">Rounds</dt>
-                  <dd className="font-medium">{tournament.rounds}</dd>
-                </div>
-              )}
-            </dl>
-
-            {tournament.maxParticipants && seatsPct !== null && (
-              <div className="mt-4 rounded-lg border border-border bg-card p-4">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-foreground">Seats filled</span>
-                  <span className="text-muted">
-                    {seatsUsed} / {tournament.maxParticipants}
-                  </span>
-                </div>
-                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-charcoal/10">
-                  <div
-                    className={`h-full rounded-full ${seatsPct >= 90 ? "bg-gold" : "bg-charcoal/40"}`}
-                    style={{ width: `${seatsPct}%` }}
-                  />
-                </div>
+                <dt className="text-foreground/50">Time control</dt>
+                <dd className="font-medium">{tournament.timeControl}</dd>
               </div>
             )}
+            {tournament.rounds && (
+              <div>
+                <dt className="text-foreground/50">Rounds</dt>
+                <dd className="font-medium">{tournament.rounds}</dd>
+              </div>
+            )}
+          </dl>
 
-            <div className="mt-4 flex flex-wrap gap-3">
+          {tournament.maxParticipants && seatsPct !== null && (
+            <div className="mt-4 rounded-lg border border-border bg-card p-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium text-foreground">Seats filled</span>
+                <span className="text-muted">
+                  {seatsUsed} / {tournament.maxParticipants}
+                </span>
+              </div>
+              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-charcoal/10">
+                <div
+                  className={`h-full rounded-full ${seatsPct >= 90 ? "bg-gold" : "bg-charcoal/40"}`}
+                  style={{ width: `${seatsPct}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="mt-4 flex flex-wrap gap-3">
+            <a
+              href={`/api/tournaments/${tournament.slug}/ics`}
+              className={buttonClasses("outline", "md", "gap-2")}
+            >
+              <CalendarIcon className="h-4 w-4" />
+              Add to Calendar
+            </a>
+            <a
+              href={`https://wa.me/?text=${whatsappText}`}
+              target="_blank"
+              rel="noreferrer"
+              className={buttonClasses("outline", "md", "gap-2")}
+            >
+              <WhatsAppIcon className="h-4 w-4" />
+              Share on WhatsApp
+            </a>
+            {tournament.brochurePdfUrl && (
               <a
-                href={`/api/tournaments/${tournament.slug}/ics`}
-                className={buttonClasses("outline", "md", "gap-2")}
-              >
-                <CalendarIcon className="h-4 w-4" />
-                Add to Calendar
-              </a>
-              <a
-                href={`https://wa.me/?text=${whatsappText}`}
+                href={tournament.brochurePdfUrl}
                 target="_blank"
                 rel="noreferrer"
-                className={buttonClasses("outline", "md", "gap-2")}
+                className={buttonClasses("outline")}
               >
-                <WhatsAppIcon className="h-4 w-4" />
-                Share on WhatsApp
+                Download brochure
               </a>
-              {tournament.brochurePdfUrl && (
-                <a
-                  href={tournament.brochurePdfUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={buttonClasses("outline")}
-                >
-                  Download brochure
-                </a>
-              )}
-            </div>
-
-            <div className="mt-10 whitespace-pre-line text-foreground/80">
-              {tournament.description}
-            </div>
-
-            <section className="mt-10">
-              <h2 className="h3 text-charcoal">Schedule</h2>
-              <ol className="mt-4 space-y-4 border-l border-border pl-4">
-                {timeline.map((step) => {
-                  const passed = step.date < now;
-                  return (
-                    <li key={step.label} className="relative">
-                      <span
-                        className={`absolute -left-[21px] mt-1.5 h-2.5 w-2.5 rounded-full ${
-                          passed ? "bg-charcoal/30" : "bg-gold"
-                        }`}
-                      />
-                      <p
-                        className={`text-sm font-semibold ${passed ? "text-foreground/50" : "text-foreground"}`}
-                      >
-                        {step.label}
-                      </p>
-                      <p className="text-small text-muted">{formatDate(step.date)}</p>
-                    </li>
-                  );
-                })}
-              </ol>
-            </section>
-
-            {tournament.prizeStructure && (
-              <section className="mt-10">
-                <h2 className="h3 text-charcoal">Prizes</h2>
-                <div className="mt-4 whitespace-pre-line rounded-lg border border-border bg-card p-4 text-sm text-foreground/80">
-                  {tournament.prizeStructure}
-                </div>
-              </section>
             )}
+          </div>
 
-            {rules.length > 0 && (
-              <section className="mt-10">
-                <h2 className="h3 text-charcoal">Rules</h2>
-                <div className="mt-4">
-                  <RulesAccordion sections={rules} />
-                </div>
-              </section>
-            )}
+          <div className="mt-10 whitespace-pre-line text-foreground/80">
+            {tournament.description}
+          </div>
 
+          <section className="mt-10">
+            <h2 className="h3 text-charcoal">Schedule</h2>
+            <ol className="mt-4 space-y-4 border-l border-border pl-4">
+              {timeline.map((step) => {
+                const passed = step.date < now;
+                return (
+                  <li key={step.label} className="relative">
+                    <span
+                      className={`absolute -left-[21px] mt-1.5 h-2.5 w-2.5 rounded-full ${
+                        passed ? "bg-charcoal/30" : "bg-gold"
+                      }`}
+                    />
+                    <p
+                      className={`text-sm font-semibold ${passed ? "text-foreground/50" : "text-foreground"}`}
+                    >
+                      {step.label}
+                    </p>
+                    <p className="text-small text-muted">{formatDate(step.date)}</p>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+
+          {tournament.prizeStructure && (
             <section className="mt-10">
-              <h2 className="h3 text-charcoal">Venue</h2>
-              <div className="mt-4">
-                <VenueMap venue={tournament.venue} city={tournament.city} />
+              <h2 className="h3 text-charcoal">Prizes</h2>
+              <div className="mt-4 whitespace-pre-line rounded-lg border border-border bg-card p-4 text-sm text-foreground/80">
+                {tournament.prizeStructure}
               </div>
             </section>
+          )}
 
-            <section
-              id="register"
-              className="mt-10 scroll-mt-28 rounded-lg border border-border bg-card p-6"
-            >
-              <h2 className="h3 text-charcoal">Register</h2>
-              {!canRegister ? (
-                <div className="mt-3 rounded-lg border border-dashed border-border bg-background p-6 text-center">
-                  <p className="font-semibold text-charcoal">
-                    {status === "completed"
-                      ? "This tournament has concluded"
-                      : "Registration is closed"}
-                  </p>
-                  <p className="mt-1 text-small text-muted">
-                    {status === "completed"
-                      ? "Check our other tournaments to find your next event."
-                      : `Registration closed on ${formatDate(tournament.registrationDeadline)}.`}
-                  </p>
-                </div>
-              ) : (
-                <div className="mt-4">
-                  {/* The form can't be used until the notice is accepted, so don't load
+          {rules.length > 0 && (
+            <section className="mt-10">
+              <h2 className="h3 text-charcoal">Rules</h2>
+              <div className="mt-4">
+                <RulesAccordion sections={rules} />
+              </div>
+            </section>
+          )}
+
+          <section className="mt-10">
+            <h2 className="h3 text-charcoal">Venue</h2>
+            <div className="mt-4">
+              <VenueMap venue={tournament.venue} city={tournament.city} />
+            </div>
+          </section>
+
+          <section
+            id="register"
+            className="mt-10 scroll-mt-28 rounded-lg border border-border bg-card p-6"
+          >
+            <h2 className="h3 text-charcoal">Register</h2>
+            {!canRegister ? (
+              <div className="mt-3 rounded-lg border border-dashed border-border bg-background p-6 text-center">
+                <p className="font-semibold text-charcoal">
+                  {status === "completed"
+                    ? "This tournament has concluded"
+                    : "Registration is closed"}
+                </p>
+                <p className="mt-1 text-small text-muted">
+                  {status === "completed"
+                    ? "Check our other tournaments to find your next event."
+                    : `Registration closed on ${formatDate(tournament.registrationDeadline)}.`}
+                </p>
+              </div>
+            ) : (
+              <div className="mt-4">
+                {/* The form can't be used until the notice is accepted, so don't load
                       its code (react-hook-form, zod, six steps) behind the notice — same
                       placeholder as the lazy loader, so accepting doesn't shift the page. */}
-                  {showNotice ? (
-                    <div className="h-64 rounded-lg bg-charcoal/5" aria-hidden="true" />
-                  ) : (
-                    <RegistrationWizard
-                      tournamentSlug={tournament.slug}
-                      tournamentTitle={tournament.title}
-                      tournamentStartDate={tournament.startDate}
-                      entryFee={isRazorpayConfigured() ? tournament.entryFee : 0}
-                    />
-                  )}
-                </div>
-              )}
-            </section>
-          </div>
+                {showNotice ? (
+                  <div className="h-64 rounded-lg bg-charcoal/5" aria-hidden="true" />
+                ) : (
+                  <RegistrationWizard
+                    tournamentSlug={tournament.slug}
+                    tournamentTitle={tournament.title}
+                    tournamentStartDate={tournament.startDate}
+                    entryFee={isRazorpayConfigured() ? tournament.entryFee : 0}
+                  />
+                )}
+              </div>
+            )}
+          </section>
+        </div>
       </div>
     </main>
   );

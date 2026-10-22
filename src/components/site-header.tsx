@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnnouncementBar } from "@/components/announcement-bar";
@@ -23,6 +23,31 @@ type NextTournament = {
   registrationDeadline: string;
   initialLabel: string | null;
 } | null;
+
+const HOME_LABEL = "Nagarathar's Chess Championship – home";
+
+// Header lockup: compact (CHESS large) on phones, horizontal from 768px. One
+// <picture>, so only the matching SVG downloads; fixed per-breakpoint sizes
+// (from each SVG's viewBox) so nothing shifts when it loads. Eager but low
+// priority — it's never the page's LCP element. Decorative: the link is labelled.
+const LOCKUP_COMMON = {
+  alt: "",
+  unoptimized: true,
+  loading: "eager",
+  fetchPriority: "low",
+} as const;
+const LOCKUP_DESKTOP = getImageProps({
+  ...LOCKUP_COMMON,
+  src: "/brand/lockup-horizontal.svg",
+  width: 149,
+  height: 44,
+}).props;
+const LOCKUP_MOBILE = getImageProps({
+  ...LOCKUP_COMMON,
+  src: "/brand/lockup-compact.svg",
+  width: 153,
+  height: 40,
+}).props;
 
 function isActivePath(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -114,23 +139,25 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
         }`}
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Link href="/" className="flex items-center gap-3" onClick={() => setMenuOpen(false)}>
-            {/* Decorative: the link's text already names the site. Eager (it's always
-                above the fold) but low priority — it's never the page's LCP element,
-                so it shouldn't be preloaded ahead of the real LCP image. */}
-            <Image
-              src="/images/logo.png"
-              alt=""
-              width={40}
-              height={40}
-              loading="eager"
-              fetchPriority="low"
-              className="h-10 w-10 object-contain"
-            />
-            <span className="font-semibold text-charcoal leading-tight">
-              Nagarathar&apos;s Chess
-              <span className="block text-xs font-normal text-muted">Championship</span>
-            </span>
+          <Link
+            href="/"
+            aria-label={HOME_LABEL}
+            className="flex items-center"
+            onClick={() => setMenuOpen(false)}
+          >
+            <picture>
+              <source
+                media="(min-width: 768px)"
+                srcSet={LOCKUP_DESKTOP.src}
+                width={LOCKUP_DESKTOP.width}
+                height={LOCKUP_DESKTOP.height}
+              />
+              <img
+                {...LOCKUP_MOBILE}
+                alt=""
+                className="h-10 w-[153px] object-contain md:h-11 md:w-[149px]"
+              />
+            </picture>
           </Link>
 
           <nav className="hidden items-center gap-1 text-sm font-medium sm:flex">
@@ -197,22 +224,20 @@ export function SiteHeader({ nextTournament }: { nextTournament: NextTournament 
           className="site-menu-overlay fixed inset-0 z-[60] flex flex-col bg-charcoal text-white sm:hidden"
         >
           <div className="flex items-center justify-between px-4 py-3">
-            <Link href="/" className="flex items-center gap-3" onClick={() => setMenuOpen(false)}>
+            <Link
+              href="/"
+              aria-label={HOME_LABEL}
+              className="flex items-center"
+              onClick={() => setMenuOpen(false)}
+            >
               <Image
-                src="/images/logo.png"
+                src="/brand/lockup-compact-dark.svg"
                 alt=""
-                width={36}
+                width={138}
                 height={36}
-                // Same optimised URL as the header logo; if this copy were lazy, Next's
-                // dev LCP check would flag the header logo as lazy too.
-                loading="eager"
-                fetchPriority="low"
-                className="h-9 w-9 object-contain"
+                unoptimized
+                className="h-9 w-[138px] object-contain"
               />
-              <span className="font-semibold leading-tight">
-                Nagarathar&apos;s Chess
-                <span className="block text-xs font-normal text-white/60">Championship</span>
-              </span>
             </Link>
             <button
               type="button"

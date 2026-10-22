@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 export const SITE_NAME = "Nagarathar's Chess Championship";
 /** Must match the root layout's title.template. */
 export const TITLE_SUFFIX = ` | ${SITE_NAME}`;
+/** Link-preview card for every page without its own (tournament pages generate theirs). */
+export const DEFAULT_OG_IMAGE = "/brand/og-default.png";
 const MAX_TITLE = 60;
 
 /**
@@ -51,7 +53,7 @@ export function pageMetadata({
   title,
   description,
   path,
-  image = "/opengraph-image",
+  image = DEFAULT_OG_IMAGE,
   type = "website",
   noindex = false,
 }: {

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { pageMetadata } from "@/lib/seo";
 import { breadcrumbJsonLd } from "@/lib/seo/structured-data";
 import { JsonLd } from "@/components/json-ld";
@@ -82,18 +83,29 @@ export default async function AboutPage() {
       </section>
 
       <section className="bg-card py-14">
-        <div className="mx-auto max-w-4xl px-4">
-          <h2 className="h2 text-charcoal">Our story</h2>
-          <p className="mt-4 text-foreground/80">
-            Nagarathar&apos;s Chess Championship started as a simple idea: chess shouldn&apos;t be
-            gated behind ratings, entry fees, or travel to far-off venues. We organize tournaments
-            for local, non-rated players of every age, and pair that with affordable online coaching
-            so players can keep improving between events.
-          </p>
-          <p className="mt-4 text-foreground/80">
-            Every event is run by volunteers from the community, for the community — from picking
-            venues close to home to reviewing every registration by hand before it&apos;s confirmed.
-          </p>
+        <div className="mx-auto grid max-w-5xl items-center gap-8 px-4 md:grid-cols-[minmax(0,360px)_1fr] md:gap-12">
+          <Image
+            src="/brand/logo-primary.svg"
+            alt="Nagarathar's Chess Championship logo"
+            width={600}
+            height={600}
+            unoptimized
+            className="mx-auto w-full max-w-[360px] rounded-2xl shadow-md"
+          />
+          <div>
+            <h2 className="h2 text-charcoal">Our story</h2>
+            <p className="mt-4 text-foreground/80">
+              Nagarathar&apos;s Chess Championship started as a simple idea: chess shouldn&apos;t be
+              gated behind ratings, entry fees, or travel to far-off venues. We organize tournaments
+              for local, non-rated players of every age, and pair that with affordable online
+              coaching so players can keep improving between events.
+            </p>
+            <p className="mt-4 text-foreground/80">
+              Every event is run by volunteers from the community, for the community — from picking
+              venues close to home to reviewing every registration by hand before it&apos;s
+              confirmed.
+            </p>
+          </div>
         </div>
       </section>
 

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
-import { SITE_URL } from "@/lib/site";
-import { SITE_NAME } from "@/lib/seo";
+import { SITE_URL, absoluteUrl } from "@/lib/site";
+import { DEFAULT_OG_IMAGE, SITE_NAME } from "@/lib/seo";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo/structured-data";
 import { JsonLd } from "@/components/json-ld";
 import "./globals.css";
@@ -36,8 +36,9 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     type: "website",
     locale: "en_IN",
+    images: [{ url: absoluteUrl(DEFAULT_OG_IMAGE), width: 1200, height: 630, alt: SITE_NAME }],
   },
-  twitter: { card: "summary_large_image" },
+  twitter: { card: "summary_large_image", images: [absoluteUrl(DEFAULT_OG_IMAGE)] },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

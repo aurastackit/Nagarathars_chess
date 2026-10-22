@@ -13,6 +13,7 @@
     "postinstall": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "photos:committee": "node scripts/process-committee-photos.mjs",
+    "icons": "node scripts/generate-icons.mjs",
     "test": "node --import tsx --test \"src/**/*.test.{ts,tsx}\""
   },
   "prisma": {
@@ -49,6 +50,7 @@
     "eslint-config-next": "16.3.2",
     "eslint-config-prettier": "^10.1.8",
     "onnxruntime-node": "^1.17.3",
+    "png-to-ico": "^3.0.2",
     "prettier": "^3.9.8",
     "schema-dts": "^2.1.0",
     "sharp": "^0.35.5",
