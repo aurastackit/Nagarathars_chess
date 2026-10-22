@@ -1,189 +1,349 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
-import { Card } from "@/components/ui";
-import { formatDate } from "@/lib/format";
+import { Badge, Card } from "@/components/ui";
 import { requireAdminPage } from "@/lib/require-admin";
-import { AGE_CATEGORIES } from "@/lib/age-category";
-import { TournamentsBarList } from "@/components/admin/charts";
-import { CategoryBreakdownChart, RegistrationsOverTimeChart } from "@/components/admin/charts-lazy";
+import { formatDateRange, formatDateTimeIST } from "@/lib/format";
+import { endOfDayIST } from "@/lib/datetime";
+import {
+  CHART_DAYS,
+  getDashboard,
+  getDashboardTournaments,
+  type AttentionItem,
+} from "@/lib/admin-dashboard";
+import { RegistrationsVsEditsChart } from "@/components/admin/charts-lazy";
+import { TournamentSwitcher } from "@/components/admin/tournament-switcher";
 
 export const dynamic = "force-dynamic";
 
-const DAYS_WINDOW = 30;
-const chartDateFormatter = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short" });
+const KIND_LABEL: Record<AttentionItem["kind"], string> = {
+  pending: "Review",
+  changes: "Changes",
+  date: "New date",
+  email: "Email",
+};
 
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ t?: string }>;
+}) {
   await requireAdminPage();
-
-  const windowStart = new Date();
-  windowStart.setDate(windowStart.getDate() - (DAYS_WINDOW - 1));
-  windowStart.setHours(0, 0, 0, 0);
-
-  const [
-    tournamentCount,
-    registrationCount,
-    classCount,
-    enrollmentCount,
-    recentRegistrations,
-    topTournaments,
-    categoryGroups,
-    paidRegistrations,
-    recentRegistrationDates,
-  ] = await Promise.all([
-    prisma.tournament.count(),
-    prisma.registration.count(),
-    prisma.classProgram.count(),
-    prisma.classEnrollment.count(),
-    prisma.registration.findMany({
-      orderBy: { registeredAt: "desc" },
-      take: 8,
-      include: { tournament: { select: { title: true } } },
-    }),
-    prisma.tournament.findMany({
-      orderBy: { registrations: { _count: "desc" } },
-      take: 8,
-      select: { title: true, _count: { select: { registrations: true } } },
-    }),
-    prisma.registration.groupBy({ by: ["ageCategory"], _count: true }),
-    prisma.registration.findMany({
-      where: { paymentStatus: "paid", tournament: { entryFee: { gt: 0 } } },
-      select: { amountPaid: true, tournament: { select: { entryFee: true } } },
-    }),
-    prisma.registration.findMany({
-      where: { registeredAt: { gte: windowStart } },
-      select: { registeredAt: true },
-    }),
+  const { t } = await searchParams;
+  // An explicit ?t= can load in parallel with the switcher's list; otherwise
+  // the list decides the default tournament first.
+  const explicit = t && t !== "all" ? t : null;
+  const [{ list, defaultId }, early] = await Promise.all([
+    getDashboardTournaments(),
+    t === "all" ? getDashboard(null) : explicit ? getDashboard(explicit) : null,
   ]);
-
-  const tournamentsWithRegistrants = topTournaments.filter((t) => t._count.registrations > 0);
-
-  const categoryCounts = new Map(categoryGroups.map((g) => [g.ageCategory, g._count]));
-  const categoryData = AGE_CATEGORIES.map((c) => ({
-    label: c.label,
-    count: categoryCounts.get(c.value) ?? 0,
-  }));
-
-  // Guard is redundant with the query's `tournament.entryFee > 0` filter — kept explicit here
-  // so this only ever reflects real payments for fee-bearing tournaments, never free entries.
-  const paymentsCollected = paidRegistrations
-    .filter((r) => r.tournament.entryFee > 0)
-    .reduce((sum, r) => sum + (r.amountPaid ?? r.tournament.entryFee), 0);
-
-  const dayBuckets = new Map<string, number>();
-  for (let i = 0; i < DAYS_WINDOW; i++) {
-    const d = new Date(windowStart);
-    d.setDate(d.getDate() + i);
-    dayBuckets.set(d.toDateString(), 0);
-  }
-  for (const r of recentRegistrationDates) {
-    const key = r.registeredAt.toDateString();
-    dayBuckets.set(key, (dayBuckets.get(key) ?? 0) + 1);
-  }
-  const overTimeData = [...dayBuckets.entries()].map(([key, count]) => ({
-    date: chartDateFormatter.format(new Date(key)),
-    count,
-  }));
+  const selected = t === "all" ? null : (list.find((x) => x.id === t)?.id ?? defaultId);
+  const d =
+    early && (t === "all" || early.tournament?.id === selected)
+      ? early
+      : await getDashboard(selected);
+  const tour = d.tournament;
+  const s = d.statuses;
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-charcoal">Dashboard</h1>
-
-      <div className="mt-6 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        <Stat label="Tournaments" value={tournamentCount} />
-        <Stat label="Total registrants" value={registrationCount} />
-        <Stat label="Payments collected" value={`₹${paymentsCollected.toLocaleString("en-IN")}`} />
-        <Stat label="Classes" value={classCount} />
-        <Stat label="Class enrollments" value={enrollmentCount} />
-      </div>
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-3">
-        <Card className="p-5 lg:col-span-2">
-          <h2 className="text-sm font-semibold text-charcoal">
-            Registrations over the last {DAYS_WINDOW} days
-          </h2>
-          <div className="mt-2">
-            <RegistrationsOverTimeChart data={overTimeData} />
-          </div>
-        </Card>
-        <Card className="p-5">
-          <h2 className="text-sm font-semibold text-charcoal">Category breakdown</h2>
-          <div className="mt-2">
-            <CategoryBreakdownChart data={categoryData} />
-          </div>
-        </Card>
-      </div>
-
-      <Card className="mt-6 p-5">
-        <h2 className="text-sm font-semibold text-charcoal">Registrations per tournament</h2>
-        <div className="mt-4">
-          <TournamentsBarList
-            data={tournamentsWithRegistrants.map((t) => ({
-              title: t.title,
-              count: t._count.registrations,
-            }))}
-          />
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-charcoal">Dashboard</h1>
+          {tour ? (
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-foreground/60">
+              <span>{formatDateRange(tour.startDate, tour.endDate)}</span>
+              <span aria-hidden="true">·</span>
+              <span>
+                Registration closes {formatDateTimeIST(endOfDayIST(tour.registrationDeadline))} IST
+              </span>
+              <Badge tone={tour.status === "published" ? "success" : "gray"}>{tour.status}</Badge>
+              <Link
+                href={`/admin/tournaments/${tour.id}`}
+                className="font-semibold text-charcoal hover:underline"
+              >
+                Manage →
+              </Link>
+            </p>
+          ) : (
+            <p className="mt-1 text-sm text-foreground/60">Totals across every tournament.</p>
+          )}
         </div>
-      </Card>
+        <TournamentSwitcher
+          value={selected ?? "all"}
+          tournaments={list.map((x) => ({
+            id: x.id,
+            title: x.title,
+            year: x.startDate.getUTCFullYear(),
+            draft: x.status === "draft",
+          }))}
+        />
+      </div>
 
-      <section className="mt-10">
-        <h2 className="mb-3 text-lg font-semibold text-foreground">Recent registrations</h2>
-        <Card className="overflow-hidden">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-charcoal/5 text-foreground/60">
-              <tr>
-                <th className="px-4 py-2 font-medium">Name</th>
-                <th className="px-4 py-2 font-medium">Tournament</th>
-                <th className="px-4 py-2 font-medium">Email</th>
-                <th className="px-4 py-2 font-medium">Phone</th>
-                <th className="px-4 py-2 font-medium">Registered</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentRegistrations.map((r) => (
-                <tr key={r.id} className="border-t border-border">
-                  <td className="px-4 py-2">{r.fullName}</td>
-                  <td className="px-4 py-2">{r.tournament.title}</td>
-                  <td className="px-4 py-2">{r.email}</td>
-                  <td className="px-4 py-2">{r.phone}</td>
-                  <td className="px-4 py-2">{formatDate(r.registeredAt)}</td>
-                </tr>
-              ))}
-              {recentRegistrations.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-4 py-6 text-center text-foreground/50">
-                    No registrations yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </Card>
+      <section
+        aria-label="Key figures"
+        className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
+      >
+        <Kpi label="Applications" value={s.total} hint="All statuses" />
+        <Kpi label="Waiting for review" value={s.pending} attention={s.pending > 0} />
+        <Kpi label="Confirmed" value={s.confirmed} />
+        <Kpi
+          label="Changes requested"
+          value={s.changesRequested}
+          attention={s.changesRequested > 0}
+          hint="Seat held 7 days"
+        />
+        <Kpi label="Rejected" value={s.rejected} />
+        <Kpi label="Withdrawn" value={s.withdrawn} />
+        <Kpi
+          label="Seats left"
+          value={d.seats.left ?? "—"}
+          hint={
+            !tour
+              ? "Pick a tournament"
+              : d.seats.max === null
+                ? "No seat limit"
+                : `${d.seats.taken} of ${d.seats.max} taken`
+          }
+        />
+        <Kpi
+          label="Approval rate"
+          value={d.approvalRate === null ? "—" : `${d.approvalRate}%`}
+          hint={d.approvalRate === null ? "Nothing decided yet" : "Confirmed of decided"}
+        />
+        <Kpi
+          label="New date accepted"
+          value={d.dateChange.accepted}
+          hint={
+            tour && !tour.dateChangedAt ? "Date not changed" : `${d.dateChange.declined} declined`
+          }
+        />
+        <Kpi
+          label="New date: no reply"
+          value={d.dateChange.pending}
+          attention={d.dateChange.pending > 0}
+          hint={tour && !tour.dateChangedAt ? "Date not changed" : "Waiting for players"}
+        />
       </section>
 
-      <p className="mt-6 text-sm text-foreground/60">
-        Manage listings under{" "}
-        <Link href="/admin/tournaments" className="font-medium text-charcoal hover:underline">
-          Tournaments
-        </Link>{" "}
-        and{" "}
-        <Link href="/admin/classes" className="font-medium text-charcoal hover:underline">
-          Classes
-        </Link>
-        . See who did what in the{" "}
-        <Link href="/admin/activity" className="font-medium text-charcoal hover:underline">
-          Activity log
-        </Link>
-        .
-      </p>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="min-w-0 p-5 lg:col-span-2">
+          <h2 className="text-sm font-semibold text-charcoal">
+            Registrations vs edits — last {CHART_DAYS} days
+          </h2>
+          <p className="mt-0.5 text-xs text-foreground/50">
+            New applications and players&apos; resubmissions per day (IST).
+          </p>
+          <div className="mt-3">
+            <RegistrationsVsEditsChart data={d.chart} />
+          </div>
+        </Card>
+
+        <Card className="min-w-0 p-5">
+          <h2 className="text-sm font-semibold text-charcoal">Category × gender</h2>
+          <p className="mt-0.5 text-xs text-foreground/50">
+            Pending, confirmed and changes requested.
+          </p>
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full text-sm tabular-nums">
+              <thead className="text-xs text-foreground/50">
+                <tr>
+                  <th className="py-1.5 text-left font-medium">Category</th>
+                  <th className="py-1.5 text-right font-medium">Male</th>
+                  <th className="py-1.5 text-right font-medium">Female</th>
+                  <th className="py-1.5 text-right font-medium">Other</th>
+                  {d.showUnknownGender && (
+                    <th className="py-1.5 text-right font-medium">Not given</th>
+                  )}
+                  <th className="py-1.5 text-right font-medium text-charcoal">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {d.categoryRows.map((r) => (
+                  <tr key={r.label} className="border-t border-border">
+                    <td className="py-2">{r.label}</td>
+                    <td className="py-2 text-right">{r.male}</td>
+                    <td className="py-2 text-right">{r.female}</td>
+                    <td className="py-2 text-right">{r.other}</td>
+                    {d.showUnknownGender && <td className="py-2 text-right">{r.unknown}</td>}
+                    <td className="py-2 text-right font-semibold text-charcoal">{r.total}</td>
+                  </tr>
+                ))}
+                <tr className="border-t-2 border-border font-semibold text-charcoal">
+                  <td className="py-2">Total</td>
+                  {(["male", "female", "other"] as const).map((g) => (
+                    <td key={g} className="py-2 text-right">
+                      {d.categoryRows.reduce((a, r) => a + r[g], 0)}
+                    </td>
+                  ))}
+                  {d.showUnknownGender && (
+                    <td className="py-2 text-right">
+                      {d.categoryRows.reduce((a, r) => a + r.unknown, 0)}
+                    </td>
+                  )}
+                  <td className="py-2 text-right">
+                    {d.categoryRows.reduce((a, r) => a + r.total, 0)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="min-w-0 p-5 lg:col-span-2">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="text-sm font-semibold text-charcoal">Needs attention</h2>
+            <span className="text-xs text-foreground/50">
+              {d.attention.length} item{d.attention.length === 1 ? "" : "s"}
+            </span>
+          </div>
+          {d.attention.length === 0 ? (
+            <p className="mt-6 pb-4 text-center text-sm text-foreground/50">
+              All caught up — nothing is waiting on you.
+            </p>
+          ) : (
+            <ul className="mt-3 divide-y divide-border">
+              {d.attention.slice(0, 8).map((a) => (
+                <li key={a.id}>
+                  <Link
+                    href={a.href}
+                    className="flex items-start gap-3 py-2.5 hover:bg-charcoal/[0.03]"
+                  >
+                    <span
+                      className={`mt-0.5 min-w-[4.75rem] flex-none whitespace-nowrap rounded px-1.5 py-0.5 text-center text-[11px] font-semibold uppercase tracking-wide ${
+                        a.urgent ? "bg-warning/15 text-warning" : "bg-charcoal/5 text-foreground/60"
+                      }`}
+                    >
+                      {KIND_LABEL[a.kind]}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium text-charcoal">
+                        {a.who}
+                      </span>
+                      <span className="block text-xs text-foreground/60">
+                        {a.title} — {a.detail}
+                        {a.urgent && (
+                          <span className="font-semibold text-warning"> · overdue or due soon</span>
+                        )}
+                      </span>
+                    </span>
+                    <span className="flex-none text-xs font-semibold text-gold-ink">Open →</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+          {d.attention.length > 8 && (
+            <p className="mt-2 text-xs text-foreground/50">…and {d.attention.length - 8} more.</p>
+          )}
+        </Card>
+
+        <Card className="min-w-0 p-5">
+          <h2 className="text-sm font-semibold text-charcoal">Email health</h2>
+          <p className="mt-0.5 text-xs text-foreground/50">Last {d.email.windowDays} days</p>
+          <dl className="mt-4 grid grid-cols-2 gap-3">
+            <div>
+              <dt className="text-xs text-foreground/60">Sent</dt>
+              <dd className="text-2xl font-bold tabular-nums text-charcoal">{d.email.sent}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-foreground/60">Failed</dt>
+              <dd
+                className={`text-2xl font-bold tabular-nums ${d.email.failed ? "text-red-700" : "text-charcoal"}`}
+              >
+                {d.email.failed}
+              </dd>
+            </div>
+          </dl>
+          <p className="mt-4 flex items-start gap-2 text-sm">
+            {d.email.failed === 0 ? (
+              <>
+                <Badge tone="success">OK</Badge>
+                <span className="text-foreground/70">
+                  {d.email.sent
+                    ? "Every email was handed to the mail service."
+                    : "No emails in this period."}
+                </span>
+              </>
+            ) : (
+              <>
+                <Badge tone="danger">Failing</Badge>
+                <span className="text-foreground/70">
+                  Last failure {d.email.lastFailure?.when} ({d.email.lastFailure?.who}):{" "}
+                  {d.email.lastFailure?.note}
+                </span>
+              </>
+            )}
+          </p>
+        </Card>
+      </div>
+
+      <Card className="p-5">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="text-sm font-semibold text-charcoal">Recent activity</h2>
+          <Link
+            href="/admin/activity"
+            className="text-xs font-semibold text-gold-ink hover:underline"
+          >
+            Admin activity log →
+          </Link>
+        </div>
+        {d.recent.length === 0 ? (
+          <p className="mt-6 pb-4 text-center text-sm text-foreground/50">
+            No registration activity yet.
+          </p>
+        ) : (
+          <ul className="mt-3 divide-y divide-border">
+            {d.recent.map((r) => (
+              <li key={r.id} className="py-2 text-sm sm:flex sm:items-baseline sm:gap-3">
+                {/* Phones: time and who-did-it on one line above the text; wider: one row. */}
+                <div className="flex justify-between gap-3 text-xs text-foreground/50 sm:contents">
+                  <time dateTime={r.at.toISOString()} className="sm:w-24 sm:flex-none">
+                    {r.when}
+                  </time>
+                  <span className="truncate sm:order-last sm:flex-none">{r.actor}</span>
+                </div>
+                <Link
+                  href={r.href}
+                  className="mt-0.5 block min-w-0 hover:underline sm:mt-0 sm:flex-1"
+                >
+                  <span className="font-medium text-charcoal">{r.who}</span>
+                  {r.registrationNo && (
+                    <span className="text-foreground/50"> · {r.registrationNo}</span>
+                  )}
+                  <span className="text-foreground/70"> — {r.what}</span>
+                  {!tour && <span className="text-foreground/50"> · {r.tournament}</span>}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
     </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: number | string }) {
+function Kpi({
+  label,
+  value,
+  hint,
+  attention = false,
+}: {
+  label: string;
+  value: number | string;
+  hint?: string;
+  /** Something is waiting on the organisers: tint the value. */
+  attention?: boolean;
+}) {
   return (
     <Card className="p-4">
-      <p className="text-sm text-foreground/60">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-charcoal">{value}</p>
+      <p className="text-xs font-medium text-foreground/60">{label}</p>
+      <p
+        className={`mt-1 text-2xl font-bold tabular-nums ${attention ? "text-warning" : "text-charcoal"}`}
+      >
+        {value}
+      </p>
+      {hint && <p className="mt-0.5 truncate text-xs text-foreground/50">{hint}</p>}
     </Card>
   );
 }

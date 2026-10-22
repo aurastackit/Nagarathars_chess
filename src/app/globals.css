@@ -60,6 +60,10 @@
   --piece-black-edge: #e9e3cc;
   --success: #166534;
   --warning: #b45309;
+  /* Chart series, in this fixed order (logo navy, logo orange) — validated with the
+     dataviz palette checks against --card. Never cycle or reuse for status. */
+  --chart-1: #2b4c9b;
+  --chart-2: #f05a28;
 }
 
 @theme inline {
@@ -75,6 +79,8 @@
   --color-walnut: var(--walnut);
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
   --font-sans: var(--font-inter);
   --font-display: var(--font-display);
 

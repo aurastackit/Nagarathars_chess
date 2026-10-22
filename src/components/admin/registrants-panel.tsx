@@ -168,7 +168,11 @@ export function RegistrantsPanel({
               </thead>
               <tbody>
                 {filtered.map((r) => (
-                  <tr key={r.id} className="border-t border-border align-top">
+                  <tr
+                    key={r.id}
+                    id={`reg-${r.id}`}
+                    className="scroll-mt-24 border-t border-border align-top target:bg-gold/10"
+                  >
                     <td className="px-4 py-2">{r.fullName}</td>
                     <td className="px-4 py-2">{r.email}</td>
                     <td className="px-4 py-2">{r.phone}</td>
