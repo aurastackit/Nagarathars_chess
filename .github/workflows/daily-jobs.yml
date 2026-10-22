@@ -16,3 +16,12 @@ jobs:
           curl --fail-with-body --silent --show-error --max-time 120 -X POST \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             https://nagaratharschesschampionship.org/api/cron/expire-changes-requests
+
+  event-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remind confirmed players 3 days before their tournament
+        run: |
+          curl --fail-with-body --silent --show-error --max-time 300 -X POST \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://nagaratharschesschampionship.org/api/cron/event-reminders
