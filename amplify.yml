@@ -5,8 +5,11 @@ frontend:
       commands:
         - npm ci
         - npx prisma generate
-        # Diagnostic: confirms this file (not a build spec saved in the Amplify console) is in use, and whether CRON_SECRET reached the build. Never prints values.
-        - 'if [ -n "$CRON_SECRET" ]; then C=yes; else C=NO; fi; echo "amplify.yml from repo v3 - CRON_SECRET present - $C - READ_ONLY_MODE - ${READ_ONLY_MODE:-unset}"'
+        # Stop the deploy (the live site keeps running, the database untouched) if a unit test fails —
+        # e.g. the wizard ↔ register API contract in src/lib/registration-payload.test.ts.
+        - npm test
+        # Diagnostic: confirms this file (not a build spec saved in the Amplify console) is in use, and whether CRON_SECRET and ORGANISERS_EMAIL reached the build. Never prints values.
+        - 'if [ -n "$CRON_SECRET" ]; then C=yes; else C=NO; fi; if [ -n "$ORGANISERS_EMAIL" ]; then O=yes; else O=NO; fi; echo "amplify.yml from repo v4 - CRON_SECRET present - $C - ORGANISERS_EMAIL present - $O - READ_ONLY_MODE - ${READ_ONLY_MODE:-unset}"'
         # Stop the deploy (the live site keeps running) if email can't be sent. Must match SES_ENV_VARS in src/lib/ses.ts.
         - node -e "const need=['SES_REGION','SES_ACCESS_KEY_ID','SES_SECRET_ACCESS_KEY','SES_FROM_EMAIL'];const missing=need.filter(k=>!process.env[k]);if(missing.length){console.error('Build stopped - set these Amplify environment variables - '+missing.join(', '));process.exit(1)}"
         - npx prisma migrate deploy

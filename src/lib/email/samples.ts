@@ -7,6 +7,7 @@ import {
   changesRequestedEmail,
   contactNotificationEmail,
   dateChangedEmail,
+  registrationErrorAlertEmail,
   rejectedEmail,
   reminderEmail,
   reopenedEmail,
@@ -29,7 +30,8 @@ export type SampleKey =
   | "reminder"
   | "contact"
   | "sign_in"
-  | "waitlist";
+  | "waitlist"
+  | "registration_alert";
 
 export type Sample = {
   key: SampleKey;
@@ -156,6 +158,19 @@ export function emailSamples(now = new Date()): Sample[] {
       trigger: "When someone joins the online classes waitlist.",
       attachments: [],
       content: waitlistEmail({ interestLevel: "beginner" }),
+    },
+    {
+      key: "registration_alert",
+      title: "Registration error alert (to the organisers)",
+      trigger:
+        "When the register API fails in a way players can't fix (at most one an hour). Goes to ORGANISERS_EMAIL.",
+      attachments: [],
+      content: registrationErrorAlertEmail({
+        status: 400,
+        error: "Invalid input: expected string, received number",
+        tournament: r.tournament.title,
+        at: now,
+      }),
     },
   ];
 }

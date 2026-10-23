@@ -32,6 +32,8 @@ const ACTION_LABEL: Record<string, string> = {
   "registration.delete": "Deleted registration",
   "registration.notes": "Updated internal notes",
   "email.test": "Sent test emails",
+  "alert.registration": "Registration error alert",
+  "storage.cleanup": "Removed unused stored files",
 };
 
 export default async function AdminActivityPage() {

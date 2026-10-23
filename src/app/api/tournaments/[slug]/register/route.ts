@@ -14,6 +14,7 @@ import { isRazorpayConfigured } from "@/lib/razorpay";
 import { endOfDayIST } from "@/lib/datetime";
 import { revalidateTournamentSeats } from "@/lib/revalidate-public";
 import { isReadOnly, readOnlyResponse } from "@/lib/read-only";
+import { alertRegistrationFailure } from "@/lib/registration-alert";
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (isReadOnly()) return readOnlyResponse();
@@ -30,9 +31,47 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     return NextResponse.json({ id: "ok", requiresPayment: false, amount: 0 }, { status: 201 });
   }
 
+  // Dry run (the daily check in .github/workflows/daily-jobs.yml): validate the
+  // body exactly as a real submission would be, then stop — nothing is written.
+  if (new URL(req.url).searchParams.get("dryRun") === "1") {
+    const check = createRegistrationWizardSchema().safeParse(body);
+    return check.success
+      ? NextResponse.json({ ok: true, dryRun: true })
+      : NextResponse.json(
+          {
+            dryRun: true,
+            error: check.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "),
+          },
+          { status: 400 }
+        );
+  }
+
+  try {
+    return await register(slug, body);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    await alertRegistrationFailure({ status: 500, error: message, slug });
+    return NextResponse.json(
+      { error: "Something went wrong on our side. Please try again in a few minutes." },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * Failures a player can't fix — the server rejecting the form's own data, a
+ * missing tournament — also alert the organisers (see registration-alert.ts).
+ * Expected ones (closed, full, already registered, email not verified) don't.
+ */
+async function unexpected(status: number, error: string, slug: string) {
+  await alertRegistrationFailure({ status, error, slug });
+  return NextResponse.json({ error }, { status });
+}
+
+async function register(slug: string, body: unknown) {
   const tournament = await prisma.tournament.findUnique({ where: { slug } });
   if (!tournament || tournament.status !== "published") {
-    return NextResponse.json({ error: "Tournament not found" }, { status: 404 });
+    return unexpected(404, "Tournament not found", slug);
   }
   if (new Date() > endOfDayIST(tournament.registrationDeadline)) {
     return NextResponse.json(
@@ -43,9 +82,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
 
   const parsed = createRegistrationWizardSchema().safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? "Invalid input" },
-      { status: 400 }
+    // The wizard checks every field before it submits, so the server rejecting
+    // the data means the two disagree (as on 14 Oct) — nobody can register.
+    const issue = parsed.error.issues[0];
+    return unexpected(
+      400,
+      issue
+        ? `${issue.message}${issue.path.length ? ` (${issue.path.join(".")})` : ""}`
+        : "Invalid input",
+      slug
     );
   }
   const data = parsed.data;

@@ -127,6 +127,7 @@ test("the preview samples cover every template", () => {
     "contact",
     "sign_in",
     "waitlist",
+    "registration_alert",
   ]);
 });
 

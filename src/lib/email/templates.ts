@@ -436,3 +436,45 @@ export function waitlistEmail(p: { interestLevel?: string | null }): EmailConten
     footerNote: "You're receiving this because this address joined our classes waitlist.",
   });
 }
+
+/** To the organisers when the register API fails in a way players can't fix (at most one an hour). */
+export function registrationErrorAlertEmail(p: {
+  status: number;
+  error: string;
+  tournament: string;
+  at: Date;
+}): EmailContent {
+  return renderEmail({
+    subject: `Registration error on the website (${p.status}) — players may not be able to register`,
+    preheader: `${p.error} — ${formatDateTimeIST(p.at)} IST`,
+    heading: "A registration just failed",
+    blocks: [
+      {
+        kind: "callout",
+        tone: "danger",
+        title: "Players may not be able to register",
+        parts: [
+          "The website refused a registration for a reason the player can't fix. If it keeps happening, nobody can register until it's fixed.",
+        ],
+      },
+      {
+        kind: "details",
+        rows: [
+          ["When", `${formatDateTimeIST(p.at)} IST`],
+          ["Tournament", p.tournament],
+          ["Response", String(p.status)],
+          ["Error", p.error],
+        ],
+      },
+      {
+        kind: "p",
+        parts: [
+          "Further failures in the next hour aren't emailed (they're in the server log). Pass this to whoever maintains the website. ",
+          { link: "Open the admin", href: `${SITE_URL}/admin` },
+          ".",
+        ],
+      },
+    ],
+    footerNote: "Sent to the organisers by the website's registration error alert.",
+  });
+}

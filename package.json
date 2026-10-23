@@ -9,12 +9,12 @@
     "lint": "eslint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run lint && tsc --noEmit && npm run build",
+    "check": "npm run lint && tsc --noEmit && npm test && npm run build",
     "postinstall": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "photos:committee": "node scripts/process-committee-photos.mjs",
     "icons": "node scripts/generate-icons.mjs",
-    "test": "node --import tsx --test \"src/**/*.test.{ts,tsx}\""
+    "test": "node scripts/run-tests.mjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

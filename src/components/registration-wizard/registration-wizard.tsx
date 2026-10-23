@@ -21,6 +21,7 @@ import { CommunityStep } from "@/components/registration-wizard/steps/community-
 import { DocumentsStep } from "@/components/registration-wizard/steps/documents-step";
 import { ReviewStep } from "@/components/registration-wizard/steps/review-step";
 import { HONEYPOT_FIELD } from "@/lib/honeypot";
+import { buildRegisterPayload } from "@/lib/registration-payload";
 import { Button } from "@/components/ui";
 
 const DEFAULT_VALUES: Partial<RegistrationWizardValues> = {
@@ -193,7 +194,7 @@ export function RegistrationWizard({
         const res = await fetch(`/api/tournaments/${tournamentSlug}/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...values, [HONEYPOT_FIELD]: honeypot }),
+          body: JSON.stringify(buildRegisterPayload(values, honeypot)),
         });
         if (!res.ok) {
           const body = await res.json().catch(() => null);

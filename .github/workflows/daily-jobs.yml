@@ -25,3 +25,18 @@ jobs:
           curl --fail-with-body --silent --show-error --max-time 300 -X POST \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             https://nagaratharschesschampionship.org/api/cron/event-reminders
+
+  registration-dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: The register API still accepts what the wizard sends (validates only, writes nothing)
+        run: |
+          status=$(curl --silent --show-error --max-time 60 -o response.json -w "%{http_code}" -X POST \
+            -H "Content-Type: application/json" --data @scripts/fixtures/register-dry-run.json \
+            "https://nagaratharschesschampionship.org/api/tournaments/dry-run/register?dryRun=1")
+          cat response.json; echo
+          if [ "$status" != "200" ] || ! grep -q '"dryRun":true' response.json; then
+            echo "::error::Registration dry-run failed (HTTP $status) — players may not be able to register. See src/lib/registration-payload.test.ts."
+            exit 1
+          fi
