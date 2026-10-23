@@ -31,11 +31,6 @@ export async function getOrCreatePlayer(
   }
   await db.player.createMany({ data: [{ ...key, fullName, dob }], skipDuplicates: true });
   const created = await db.player.findFirst({ where: key });
-  if (created) return created;
-  // Until step 2 of the player-identity migration drops the old one-player-per-
-  // email rule, a second child can't have a row of their own: share the email's
-  // profile as before, but without renaming it.
-  const shared = await db.player.findFirst({ where: { email: key.email } });
-  if (shared) return shared;
-  throw new Error("Could not create the player profile");
+  if (!created) throw new Error("Could not create the player profile");
+  return created;
 }

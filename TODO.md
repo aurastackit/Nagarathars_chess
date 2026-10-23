@@ -11,12 +11,9 @@ them off here as they're done.
       s3:DeleteObject. Step 9 added: replaced documents are deleted, and age proofs
       are deleted 90 days after the tournament (daily job, /admin/privacy). The
       sweep of older leftovers is under Follow-ups.
-- [ ] **Children under one email share one player profile** (found in Step 10, 23 Oct).
-      Registering upserts the Player by email alone, so a second child overwrites the
-      first's name and year of birth, and the public player page lists both children
-      under one name. Pairings and results point at the Player, so two siblings in one
-      tournament would be the same player. Fix: key the Player by email + name + year
-      of birth (a migration — show the SQL first) before pairings/results are used.
+- [x] **Children under one email share one player profile** (found in Step 10, 23 Oct).
+      Fixed in two migration steps (24 Oct): a player is now email + name + year of
+      birth, so each child has their own profile, public page and place in pairings.
 - [ ] **Unknown pages must return HTTP 404.** Not-found pages answer 200 (they show
       "Page not found" with noindex) because the root `loading.tsx` starts
       streaming before `notFound()` runs — public pages like

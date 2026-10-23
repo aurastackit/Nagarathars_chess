@@ -117,10 +117,9 @@ model Registration {
 model Player {
   id            String         @id @default(cuid())
   fullName      String
-  /// Step 1 of 2 keeps the old one-player-per-email rule; step 2 drops it.
-  email         String         @unique
+  email         String
   /// fullName lower-cased with single spaces: compared, not shown.
-  nameKey       String?
+  nameKey       String
   dob           DateTime?
   birthYear     Int?
   createdAt     DateTime       @default(now())
@@ -129,6 +128,7 @@ model Player {
   blackGames    Pairing[]      @relation("BlackPairings")
 
   @@unique([email, nameKey, birthYear])
+  @@index([email])
 }
 
 model Round {
