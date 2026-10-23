@@ -24,6 +24,8 @@ export type EmailRegistration = {
 };
 
 export const statusUrl = (id: string) => `${SITE_URL}/registration/${id}`;
+/** Self-service: sign in with an emailed code, then update or withdraw. */
+export const myRegistrationUrl = (id: string) => `${SITE_URL}/my-registration?r=${id}`;
 export const idCardUrl = (id: string) => `${SITE_URL}/api/registration/${id}/id-card`;
 export const contactUrl = () => `${SITE_URL}/contact`;
 export const mapUrl = (t: EmailTournament) =>
@@ -66,7 +68,14 @@ export function applicationReceivedEmail(r: EmailRegistration): EmailContent {
       },
       { kind: "details", rows: eventRows(r) },
       { kind: "buttons", buttons: [{ label: "Check your status", href: statusUrl(r.id) }] },
-      { kind: "p", parts: ["Keep your registration number handy — you'll need it on the day."] },
+      {
+        kind: "p",
+        parts: [
+          "Keep your registration number handy — you'll need it on the day. You can check, update or withdraw your application at ",
+          { link: "My registration", href: myRegistrationUrl(r.id) },
+          " (sign in with this email).",
+        ],
+      },
     ],
     footerNote: playerFooter,
   });
@@ -151,7 +160,10 @@ export function changesRequestedEmail(
           "Your seat is held until then. After that, the application is rejected automatically.",
         ],
       },
-      { kind: "buttons", buttons: [{ label: "Update your application", href: statusUrl(r.id) }] },
+      {
+        kind: "buttons",
+        buttons: [{ label: "Update your application", href: myRegistrationUrl(r.id) }],
+      },
       { kind: "details", rows: eventRows(r) },
     ],
     footerNote: playerFooter,
@@ -177,7 +189,9 @@ export function rejectedEmail(r: EmailRegistration, p: { reason: string | null }
       {
         kind: "p",
         parts: [
-          "If you think this is a mistake, or you'd like to talk it through, reply to this email or ",
+          "If you can fix the reason, update your application at ",
+          { link: "My registration", href: myRegistrationUrl(r.id) },
+          " and it goes back for review. If you think this is a mistake, reply to this email or ",
           { link: "contact the organisers", href: contactUrl() },
           ".",
         ],

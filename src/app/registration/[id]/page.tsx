@@ -129,7 +129,14 @@ export default async function RegistrationStatusPage({
       </div>
 
       <p className="mt-6 text-center text-sm text-foreground/50">
-        Questions about your registration?{" "}
+        Need to update or withdraw?{" "}
+        <Link
+          href={`/my-registration?r=${registration.id}`}
+          className="font-semibold text-gold-ink hover:underline"
+        >
+          Manage your registration
+        </Link>{" "}
+        (sign in with your email). Questions about your registration?{" "}
         <Link href="/contact" className="font-semibold text-gold-ink hover:underline">
           Contact us
         </Link>

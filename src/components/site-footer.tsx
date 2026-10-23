@@ -9,6 +9,7 @@ const QUICK_LINKS = [
   { href: "/gallery", label: "Gallery" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
+  { href: "/my-registration", label: "My registration" },
 ];
 
 export function SiteFooter() {
