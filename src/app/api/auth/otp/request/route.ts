@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { isHoneypotTriggered } from "@/lib/honeypot";
-import { generateOtp, hashOtp, OTP_TTL_MS } from "@/lib/otp";
+import { OTP_SEND_LIMITS, OTP_TTL_MS, generateOtp, hashOtp, otpSendLimitMessage } from "@/lib/otp";
 import { sendOtpEmail } from "@/lib/otp-email";
 import { isReadOnly, readOnlyResponse } from "@/lib/read-only";
 
@@ -13,7 +13,11 @@ const requestOtpSchema = z.object({
 
 export async function POST(req: Request) {
   if (isReadOnly()) return readOnlyResponse();
-  if (!checkRateLimit(`otp-request:ip:${getClientIp(req)}`, 5, 60_000)) {
+  const ip = getClientIp(req);
+  if (
+    !checkRateLimit(`otp-request:ip:${ip}`, 5, 60_000) ||
+    !checkRateLimit(`otp-request:ip-hour:${ip}`, 20, 60 * 60_000)
+  ) {
     return NextResponse.json(
       { error: "Too many requests — please try again shortly." },
       { status: 429 }
@@ -34,18 +38,20 @@ export async function POST(req: Request) {
   }
 
   const email = parsed.data.email.toLowerCase();
-  if (!checkRateLimit(`otp-request:email:${email}`, 3, 5 * 60_000)) {
-    return NextResponse.json(
-      { error: "Too many requests for this email — please try again shortly." },
-      { status: 429 }
-    );
-  }
-
   const user = await prisma.user.upsert({
     where: { email },
     update: {},
     create: { email },
   });
+  const recent = await prisma.otpCode.findMany({
+    where: {
+      userId: user.id,
+      createdAt: { gt: new Date(Date.now() - Math.max(...OTP_SEND_LIMITS.map((l) => l.windowMs))) },
+    },
+    select: { createdAt: true },
+  });
+  const limited = otpSendLimitMessage(recent.map((c) => c.createdAt));
+  if (limited) return NextResponse.json({ error: limited }, { status: 429 });
 
   const code = generateOtp();
   await prisma.otpCode.create({
