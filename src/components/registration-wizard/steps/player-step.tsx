@@ -2,6 +2,7 @@ import { useFormContext } from "react-hook-form";
 import { digitsOnly, sanitizePhone } from "@/lib/input-filters";
 import type { RegistrationWizardValues } from "@/lib/registration-schema";
 import {
+  ReadOnlyField,
   SelectField,
   StepSection,
   TextAreaField,
@@ -12,9 +13,12 @@ import { EmailVerifyButton } from "@/components/registration-wizard/email-verify
 export function PlayerStep({
   verifiedEmail,
   onEmailVerified,
+  lockedEmail,
 }: {
-  verifiedEmail: string | null;
-  onEmailVerified: (email: string | null) => void;
+  verifiedEmail?: string | null;
+  onEmailVerified?: (email: string | null) => void;
+  /** Updating an application: the email is how the player signed in, so it's shown, not edited. */
+  lockedEmail?: string;
 }) {
   const {
     register,
@@ -32,17 +36,31 @@ export function PlayerStep({
         autoComplete="name"
         className="sm:col-span-2"
       />
-      <TextField
-        label="Email"
-        type="email"
-        registration={register("email")}
-        error={errors.email}
-        required
-        maxLength={120}
-        autoComplete="email"
-        helper="We'll email a code here to verify it's yours."
-        suffix={<EmailVerifyButton verifiedEmail={verifiedEmail} onVerified={onEmailVerified} />}
-      />
+      {lockedEmail ? (
+        <ReadOnlyField
+          id="email"
+          label="Email"
+          value={lockedEmail}
+          helper="The email you signed in with. To change it, contact the organisers."
+        />
+      ) : (
+        <TextField
+          label="Email"
+          type="email"
+          registration={register("email")}
+          error={errors.email}
+          required
+          maxLength={120}
+          autoComplete="email"
+          helper="We'll email a code here to verify it's yours."
+          suffix={
+            <EmailVerifyButton
+              verifiedEmail={verifiedEmail ?? null}
+              onVerified={onEmailVerified ?? (() => {})}
+            />
+          }
+        />
+      )}
       <TextField
         label="Phone"
         type="tel"
