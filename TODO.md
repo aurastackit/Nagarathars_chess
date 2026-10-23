@@ -11,6 +11,12 @@ them off here as they're done.
       s3:DeleteObject. Step 9 added: replaced documents are deleted, and age proofs
       are deleted 90 days after the tournament (daily job, /admin/privacy). The
       sweep of older leftovers is under Follow-ups.
+- [ ] **Children under one email share one player profile** (found in Step 10, 23 Oct).
+      Registering upserts the Player by email alone, so a second child overwrites the
+      first's name and year of birth, and the public player page lists both children
+      under one name. Pairings and results point at the Player, so two siblings in one
+      tournament would be the same player. Fix: key the Player by email + name + year
+      of birth (a migration — show the SQL first) before pairings/results are used.
 - [ ] **Unknown pages must return HTTP 404.** Not-found pages answer 200 (they show
       "Page not found" with noindex) because the root `loading.tsx` starts
       streaming before `notFound()` runs — public pages like
@@ -95,4 +101,6 @@ them off here as they're done.
       an inline IAM policy giving the app's user s3:ListBucket on `registrations/`
       and `id-cards/` only (safer than a lifecycle rule, which can't tell used
       files from unused). Then: a dry-run list on /admin/privacy, deletion only
-      after the owner's OK, and the daily job keeps it tidy.
+      after the owner's OK, and the daily job keeps it tidy. Without listing, deleting
+      a registration can't find its cached ID cards (`id-cards/<id>/`), so the three
+      from the 23 Oct Step 10 run are still there and will be on that list.
