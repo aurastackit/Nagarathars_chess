@@ -5,11 +5,12 @@ them off here as they're done.
 
 ## Must fix before go-live
 
-- [ ] **Delete must remove the documents.** The admin Delete now removes the
-      photo, age proof and cached ID cards with the record (if S3 refuses, it says
-      so and /api/admin/storage/cleanup removes them later). Still to do in Step 9:
-      sweep files left by registrations deleted before this, a retention rule for
-      old documents, and confirm the app's IAM user may s3:DeleteObject.
+- [x] **Delete must remove the documents.** The admin Delete removes the photo,
+      age proof and cached ID cards with the record (if S3 refuses, it says so and
+      /api/admin/storage/cleanup removes them later); the app's IAM user may
+      s3:DeleteObject. Step 9 added: replaced documents are deleted, and age proofs
+      are deleted 90 days after the tournament (daily job, /admin/privacy). The
+      sweep of older leftovers is under Follow-ups.
 - [ ] **Unknown pages must return HTTP 404.** Not-found pages answer 200 (they show
       "Page not found" with noindex) because the root `loading.tsx` starts
       streaming before `notFound()` runs — public pages like
@@ -31,7 +32,9 @@ them off here as they're done.
         (This would also mean the SES build check has never run.)
       - `NO` → the variable isn't in the build environment for `master`.
       Then redeploy, confirm the route answers 401 without auth, and run
-      **Daily jobs** in GitHub Actions — expect `{"checked":0,"expired":[]}`.
+      **Daily jobs** in GitHub Actions — expect `{"checked":0,"expired":[]}`, and
+      from the age-proof clean-up `{"days":90,"deleted":[],"failed":[]}` (it then
+      shows under "Recent clean-ups" on /admin/privacy).
 - [ ] **Local `.env` keys.** Save working `S3_*` and `SES_*` values in
       `Nagarathars_chess/.env` (its LastWriteTime must change), then:
   - [ ] SES v2 `GetAccount`: report `ProductionAccessEnabled` and the daily quota.
@@ -58,6 +61,8 @@ them off here as they're done.
 
 - [ ] Daily expiry job on live (needs CRON_SECRET).
 - [ ] 3-day event reminder on live (same daily workflow, needs CRON_SECRET).
+- [ ] Age-proof clean-up on live (same daily workflow, needs CRON_SECRET). Nothing
+      is due before 27 Mar 2027 (90 days after the 27 Dec 2026 tournament).
 - [ ] Real email delivery of the changes-requested and "Fix by" emails.
 - [ ] Bulk approve / request-changes emails on live (a local production build has
       no SES keys, so sending fails by design and is logged as `email_failed`).
@@ -82,6 +87,10 @@ them off here as they're done.
       when classes open.
 - [ ] Date-change emails go out one by one while the admin waits on Save; fine for
       tens of players, move to a background job before it's hundreds.
-- [ ] Step 9: the register API accepts any submission for an email verified in
+- [x] Step 9: the register API accepts any submission for an email verified in
       the last 30 minutes, from any browser — tie it to the player session cookie
-      that Step 8 adds.
+      that Step 8 adds. Done: registering and uploading need that cookie.
+- [ ] Unused files in the bucket: uploads from forms never submitted, and files of
+      registrations deleted before 22 Oct, stay (private) in S3. Either add an S3
+      lifecycle rule, or give the app's IAM user s3:ListBucket on `registrations/`
+      so the daily job can delete files no registration uses after 2 days.
