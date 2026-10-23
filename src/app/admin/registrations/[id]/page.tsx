@@ -34,6 +34,7 @@ const EVENT_LABEL: Record<string, string> = {
   email_sent: "Email sent",
   email_failed: "Email failed",
   document_viewed: "Document viewed",
+  document_deleted: "Document deleted",
   date_change_confirmed: "Replied to the new date",
 };
 
@@ -88,6 +89,7 @@ export default async function RegistrationPage({ params }: { params: Promise<{ i
     `/api/admin/uploads?registration=${r.id}&doc=${doc}${download ? "&download=1" : ""}`;
   const fixBy = r.status === "changes_requested" && r.reviewedAt ? fixByDate(r.reviewedAt) : null;
   const warnings = Boolean(age?.message) || duplicates.length > 0 || needsGuardian;
+  const ageProofDeleted = r.events.find((e) => e.type === "document_deleted");
 
   return (
     <div className="space-y-5">
@@ -397,6 +399,11 @@ export default async function RegistrationPage({ params }: { params: Promise<{ i
                     {documents.ageProofLegacy && " From the old form (stored inline)."}
                   </p>
                 </div>
+              ) : ageProofDeleted ? (
+                <p className="mt-1 text-sm text-foreground/60" data-testid="age-proof-deleted">
+                  Deleted on {formatDateTimeIST(ageProofDeleted.createdAt)} IST —{" "}
+                  {ageProofDeleted.note}.
+                </p>
               ) : (
                 <p className="mt-1 text-sm text-foreground/60">Not uploaded.</p>
               )}

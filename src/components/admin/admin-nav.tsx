@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/admin/messages", label: "Messages" },
   { href: "/admin/waitlist", label: "Waitlist" },
   { href: "/admin/emails/preview", label: "Emails" },
+  { href: "/admin/privacy", label: "Privacy" },
   { href: "/admin/activity", label: "Activity" },
 ];
 

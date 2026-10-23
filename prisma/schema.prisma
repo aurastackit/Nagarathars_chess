@@ -286,7 +286,7 @@ model RegistrationEvent {
   registration   Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
   registrationId String
   /// submitted | edited | confirmed | rejected | changes_requested | reopened | withdrawn |
-  /// email_sent | email_failed | document_viewed | date_change_confirmed
+  /// email_sent | email_failed | document_viewed | document_deleted | date_change_confirmed
   type           String
   /// player | admin | system
   actorType      String

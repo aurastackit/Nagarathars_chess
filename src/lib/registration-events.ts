@@ -12,6 +12,7 @@ export type RegistrationEventType =
   | "email_sent"
   | "email_failed"
   | "document_viewed"
+  | "document_deleted"
   | "date_change_confirmed";
 
 export type EventActor = { type: "player" | "admin" | "system"; email?: string | null };

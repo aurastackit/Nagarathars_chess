@@ -34,6 +34,7 @@ const ACTION_LABEL: Record<string, string> = {
   "email.test": "Sent test emails",
   "alert.registration": "Registration error alert",
   "storage.cleanup": "Removed unused stored files",
+  "retention.age_proofs": "Age-proof clean-up",
 };
 
 export default async function AdminActivityPage() {

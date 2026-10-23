@@ -21,7 +21,8 @@ export type AdminAction =
   | "registration.bulk"
   | "email.test"
   | "alert.registration"
-  | "storage.cleanup";
+  | "storage.cleanup"
+  | "retention.age_proofs";
 
 /** Records an admin action. Never throws — a logging failure shouldn't block the action itself. */
 export async function logAdminAction(params: {

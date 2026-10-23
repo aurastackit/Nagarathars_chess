@@ -37,6 +37,7 @@ const EVENT_LABEL: Record<string, string> = {
   withdrawn: "Withdrawn",
   email_failed: "Email failed",
   document_viewed: "Viewed a document",
+  document_deleted: "Document deleted",
   date_change_confirmed: "Confirmed the new date",
 };
 

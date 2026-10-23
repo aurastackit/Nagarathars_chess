@@ -26,6 +26,15 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             https://nagaratharschesschampionship.org/api/cron/event-reminders
 
+  document-retention:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete age proofs kept the retention period after their tournament (see /admin/privacy)
+        run: |
+          curl --fail-with-body --silent --show-error --max-time 300 -X POST \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://nagaratharschesschampionship.org/api/cron/document-retention
+
   registration-dry-run:
     runs-on: ubuntu-latest
     steps:

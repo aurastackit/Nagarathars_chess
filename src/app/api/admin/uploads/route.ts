@@ -4,25 +4,12 @@ import { getDownloadUrl } from "@/lib/s3";
 import { prisma } from "@/lib/prisma";
 import { recordRegistrationEvent } from "@/lib/registration-events";
 
-/** Repeated views by the same admin within this window go on the timeline once. */
-const VIEW_DEDUPE_MS = 10 * 60 * 1000;
-
 const DOC_LABEL = { ageProof: "Age proof", photo: "Passport photo" } as const;
 type Doc = keyof typeof DOC_LABEL;
 
-async function recordView(registrationId: string, doc: Doc, admin: string | null | undefined) {
-  const recent = await prisma.registrationEvent.findFirst({
-    where: {
-      registrationId,
-      type: "document_viewed",
-      actor: admin?.toLowerCase() ?? null,
-      note: DOC_LABEL[doc],
-      createdAt: { gte: new Date(Date.now() - VIEW_DEDUPE_MS) },
-    },
-    select: { id: true },
-  });
-  if (recent) return;
-  await recordRegistrationEvent(prisma, {
+/** Every view goes on the timeline: who, which document, when. */
+function recordView(registrationId: string, doc: Doc, admin: string | null | undefined) {
+  return recordRegistrationEvent(prisma, {
     registrationId,
     type: "document_viewed",
     actor: { type: "admin", email: admin },
@@ -40,8 +27,8 @@ function decodeDataUrl(dataUrl: string | null) {
  * Admin-only document access.
  *  - ?registration=<id>&doc=photo|ageProof[&download=1]: the registration's file,
  *    from S3 (redirect to a short-lived signed URL) or, for old rows, the inline copy.
- *    Age-proof views go on the timeline; the photo is printed on the ID card and the
- *    public verify page, so viewing it isn't recorded.
+ *    Every age-proof view goes on the timeline; the photo is printed on the ID card
+ *    and the public verify page, so viewing it isn't recorded.
  *  - ?key=<s3 key>: the older form, still used by the tournament page; every view is recorded.
  */
 export async function GET(req: Request) {
