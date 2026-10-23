@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { newVerifyToken } from "@/lib/id-card/verify-token";
 import { TRANSACTION_TIMEOUTS } from "@/lib/registration-number";
@@ -34,6 +35,8 @@ export async function changeRegistrationStatus(params: {
   note?: string | null;
   /** The status the admin was looking at; if it has changed since, nothing happens (StaleStatusError). */
   expectFrom?: RegistrationStatus;
+  /** Other fields written in the same update (e.g. a player's edited details). */
+  data?: Prisma.RegistrationUpdateManyMutationInput;
 }) {
   const { registrationId, to, actor } = params;
   const reason = params.reason?.trim() || null;
@@ -65,7 +68,7 @@ export async function changeRegistrationStatus(params: {
 
     const { count } = await tx.registration.updateMany({
       where: { id: registrationId, status: current.status },
-      data: { status: to, ...fields },
+      data: { ...params.data, status: to, ...fields },
     });
     if (count !== 1) throw new StaleStatusError();
 

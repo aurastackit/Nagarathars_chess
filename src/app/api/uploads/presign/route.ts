@@ -5,6 +5,8 @@ import { createUploadUrl } from "@/lib/s3";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { canRegisterFor } from "@/lib/tournament-status";
 import { isReadOnly, readOnlyResponse } from "@/lib/read-only";
+import { getOwnedRegistration, getPlayerEmail } from "@/lib/player-session";
+import { canPlayerEdit } from "@/lib/self-service";
 import {
   ALL_UPLOAD_TYPES,
   UPLOAD_MAX_BYTES,
@@ -18,6 +20,8 @@ const presignSchema = z.object({
   contentType: z.enum(ALL_UPLOAD_TYPES),
   // The per-document limit is checked below so an oversized file gets a clear message.
   size: z.number().int().positive(),
+  /** A signed-in player replacing a document on their own registration (/my-registration). */
+  registrationId: z.string().trim().min(1).max(40).optional(),
 });
 
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status });
@@ -54,7 +58,21 @@ export async function POST(req: Request) {
     where: { slug: tournamentSlug },
     select: { slug: true, status: true, endDate: true, registrationDeadline: true },
   });
-  if (!tournament || !canRegisterFor(tournament)) {
+  if (!tournament) return fail("Registration is not open for this tournament", 400);
+  if (parsed.data.registrationId) {
+    // Updating an existing application: allowed after registration closes, but
+    // only by its signed-in owner, while it can still be edited.
+    const email = await getPlayerEmail();
+    if (!email) return fail("Your sign-in has expired. Please sign in again.", 401);
+    const r = await getOwnedRegistration(parsed.data.registrationId, email);
+    if (
+      !r ||
+      r.tournament.slug !== tournament.slug ||
+      !canPlayerEdit(r.status, r.tournament.startDate)
+    ) {
+      return fail("This registration can't be changed any more", 400);
+    }
+  } else if (!canRegisterFor(tournament)) {
     return fail("Registration is not open for this tournament", 400);
   }
 

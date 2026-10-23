@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { OTP_MAX_ATTEMPTS, verifyOtpHash } from "@/lib/otp";
 import { isReadOnly, readOnlyResponse } from "@/lib/read-only";
+import { setPlayerSession } from "@/lib/player-session";
 
 const verifyOtpSchema = z.object({
   email: z.string().trim().email("Enter a valid email"),
@@ -59,5 +60,9 @@ export async function POST(req: Request) {
     prisma.user.update({ where: { id: user.id }, data: { emailVerifiedAt: new Date() } }),
   ]);
 
-  return NextResponse.json({ ok: true });
+  // The browser has proved it owns this address: it may manage its registrations
+  // at /my-registration for a while (see player-token.ts).
+  const res = NextResponse.json({ ok: true });
+  setPlayerSession(res, email);
+  return res;
 }
