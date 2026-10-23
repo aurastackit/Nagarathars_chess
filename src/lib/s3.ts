@@ -8,7 +8,12 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { isAllowedUpload, type UploadKind } from "@/lib/upload-limits";
+import {
+  DOCUMENT_URL_TTL_SECONDS,
+  UPLOAD_URL_TTL_SECONDS,
+  isAllowedUpload,
+  type UploadKind,
+} from "@/lib/upload-limits";
 
 const REGION = process.env.S3_REGION;
 const BUCKET = process.env.S3_BUCKET_NAME;
@@ -69,7 +74,7 @@ export async function createUploadUrl(params: {
     ContentLength: params.size,
   });
   const uploadUrl = await getSignedUrl(client, command, {
-    expiresIn: 300,
+    expiresIn: UPLOAD_URL_TTL_SECONDS,
     signableHeaders: new Set(["content-type", "content-length"]),
   });
   return { uploadUrl, key };
@@ -89,7 +94,7 @@ export async function getDownloadUrl(key: string, downloadAs?: string) {
     Key: key,
     ...(downloadAs && { ResponseContentDisposition: `attachment; filename="${downloadAs}"` }),
   });
-  return getSignedUrl(client, command, { expiresIn: 120 });
+  return getSignedUrl(client, command, { expiresIn: DOCUMENT_URL_TTL_SECONDS });
 }
 
 /**
@@ -133,7 +138,7 @@ export async function createPosterUploadUrl(params: { contentType: string; size:
     ContentLength: params.size,
   });
   const uploadUrl = await getSignedUrl(getClient(), command, {
-    expiresIn: 300,
+    expiresIn: UPLOAD_URL_TTL_SECONDS,
     signableHeaders: new Set(["content-type", "content-length"]),
   });
   return { uploadUrl, path: `/media/posters/${file}` };
@@ -163,6 +168,25 @@ export async function getObjectBytes(key: string) {
     const res = await getClient().send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
     if (!res.Body) return null;
     return Buffer.from(await res.Body.transformToByteArray());
+  } catch (err) {
+    const name = (err as { name?: string }).name;
+    if (name === "NoSuchKey" || name === "AccessDenied") return null;
+    throw err;
+  }
+}
+
+/**
+ * The first `bytes` bytes of a private object (to check what an upload really
+ * is); null if it doesn't exist. Other S3 errors are thrown.
+ */
+export async function getObjectHead(key: string, bytes: number) {
+  if (!isS3Configured()) throw new Error("S3 is not configured");
+  try {
+    const res = await getClient().send(
+      new GetObjectCommand({ Bucket: BUCKET, Key: key, Range: `bytes=0-${bytes - 1}` })
+    );
+    if (!res.Body) return null;
+    return new Uint8Array(await res.Body.transformToByteArray());
   } catch (err) {
     const name = (err as { name?: string }).name;
     if (name === "NoSuchKey" || name === "AccessDenied") return null;

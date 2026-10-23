@@ -15,6 +15,13 @@ export const UPLOAD_MAX_BYTES = {
 
 export type UploadKind = keyof typeof UPLOAD_MAX_BYTES;
 
+/**
+ * Documents are only ever reached through short-lived signed S3 URLs: an
+ * upload must start within 5 minutes, a viewing link works for 2.
+ */
+export const UPLOAD_URL_TTL_SECONDS = 300;
+export const DOCUMENT_URL_TTL_SECONDS = 120;
+
 export const ALL_UPLOAD_TYPES = UPLOAD_TYPES.ageProof;
 
 /** "1 MB", "512 KB". */

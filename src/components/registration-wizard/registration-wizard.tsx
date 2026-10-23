@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FormProvider, useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -71,6 +71,16 @@ export function RegistrationWizard({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [registrationId, setRegistrationId] = useState<string | null>(null);
   const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
+  // Set when the server asks for the email to be verified again: once step 1
+  // shows, bring the email field and its Verify button into view.
+  const reverify = useRef(false);
+  useEffect(() => {
+    if (step !== 0 || !reverify.current) return;
+    reverify.current = false;
+    const email = document.getElementById("email");
+    email?.scrollIntoView({ block: "center" });
+    email?.focus({ preventScroll: true });
+  }, [step]);
   const storageKey = `registration-draft:${tournamentSlug}`;
 
   const schema = createRegistrationWizardSchema();
@@ -198,6 +208,18 @@ export function RegistrationWizard({
         });
         if (!res.ok) {
           const body = await res.json().catch(() => null);
+          if (body?.verifyEmail) {
+            // The verification lapsed (or this browser has since signed in with
+            // another email): back to step 1, where "Verify" is offered again.
+            setVerifiedEmail(null);
+            reverify.current = true;
+            setStep(0);
+            setError("email", {
+              type: "manual",
+              message: "Please verify your email again, then continue to submit.",
+            });
+            return;
+          }
           throw new Error(body?.error ?? "Something went wrong. Please try again.");
         }
         const body = await res.json();
@@ -248,7 +270,12 @@ export function RegistrationWizard({
           {step === 1 && <CategoryStep tournamentStartDate={tournamentStartDate} />}
           {step === 2 && <FamilyStep />}
           {step === 3 && <CommunityStep />}
-          {step === 4 && <DocumentsStep tournamentSlug={tournamentSlug} />}
+          {step === 4 && (
+            <DocumentsStep
+              tournamentSlug={tournamentSlug}
+              onVerifyEmail={() => setVerifiedEmail(null)}
+            />
+          )}
           {step === 5 && (
             <ReviewStep onEditStep={setStep} tournamentStartDate={tournamentStartDate} />
           )}

@@ -15,6 +15,9 @@ import { endOfDayIST } from "@/lib/datetime";
 import { revalidateTournamentSeats } from "@/lib/revalidate-public";
 import { isReadOnly, readOnlyResponse } from "@/lib/read-only";
 import { alertRegistrationFailure } from "@/lib/registration-alert";
+import { getPlayerEmail } from "@/lib/player-session";
+import { isAcceptableUploadKey } from "@/lib/self-service";
+import { checkUploadedDocuments } from "@/lib/upload-verify";
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (isReadOnly()) return readOnlyResponse();
@@ -59,9 +62,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
 }
 
 /**
- * Failures a player can't fix — the server rejecting the form's own data, a
- * missing tournament — also alert the organisers (see registration-alert.ts).
- * Expected ones (closed, full, already registered, email not verified) don't.
+ * Failures a player can't fix — the server rejecting the form's own data or
+ * uploads the browser already checked, a missing tournament — also alert the
+ * organisers (see registration-alert.ts). Expected ones (closed, full, already
+ * registered, email not verified) don't.
  */
 async function unexpected(status: number, error: string, slug: string) {
   await alertRegistrationFailure({ status, error, slug });
@@ -101,16 +105,32 @@ async function register(slug: string, body: unknown) {
   const dob = new Date(Date.UTC(data.birthYear, 0, 1));
   const ageCategory = naturalAgeCategory(ageByYear(data.birthYear, tournament.startDate));
 
+  // Verified recently, and in this browser: entering the code sets the player
+  // cookie (player-session.ts), so a verification elsewhere doesn't count.
   const verifiedUser = await prisma.user.findUnique({ where: { email: playerEmail } });
   const verifiedRecently =
     verifiedUser?.emailVerifiedAt &&
     Date.now() - verifiedUser.emailVerifiedAt.getTime() < EMAIL_VERIFICATION_VALIDITY_MS;
-  if (!verifiedRecently) {
+  if (!verifiedRecently || (await getPlayerEmail()) !== playerEmail) {
+    // verifyEmail: the wizard sends the player back to step 1 to verify again.
     return NextResponse.json(
-      { error: "Please verify your email before submitting your registration" },
+      { error: "Please verify your email before submitting your registration", verifyEmail: true },
       { status: 400 }
     );
   }
+
+  // The documents must be this tournament's fresh uploads, and really be what they claim.
+  if (
+    !isAcceptableUploadKey(data.ageProofKey, "ageProof", tournament.slug, null) ||
+    !isAcceptableUploadKey(data.passportPhotoKey, "passportPhoto", tournament.slug, null)
+  ) {
+    return unexpected(400, "Please upload your documents again.", slug);
+  }
+  const documentProblem = await checkUploadedDocuments([
+    { kind: "ageProof", key: data.ageProofKey },
+    { kind: "passportPhoto", key: data.passportPhotoKey },
+  ]);
+  if (documentProblem) return unexpected(400, documentProblem.problem, slug);
 
   const requiresPayment = tournament.entryFee > 0 && isRazorpayConfigured();
 

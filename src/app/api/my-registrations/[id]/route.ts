@@ -12,6 +12,8 @@ import { normalizeStatus } from "@/lib/registration-status";
 import { StaleStatusError, changeRegistrationStatus } from "@/lib/registration-workflow";
 import { recordRegistrationEvent } from "@/lib/registration-events";
 import { emailRegistration } from "@/lib/registration-notify";
+import { checkUploadedDocuments } from "@/lib/upload-verify";
+import { deleteObjects } from "@/lib/s3";
 
 const LABEL: Record<string, string> = {
   fullName: "name",
@@ -47,7 +49,7 @@ const fail = (error: string, status: number, extra: object = {}) =>
 /**
  * A player updates their own application (signed in at /my-registration).
  * It goes (back) to review: status pending, an "edited" timeline entry, and the
- * "Application received" email again.
+ * "Application received" email again. Replaced documents are deleted.
  */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (isReadOnly()) return readOnlyResponse();
@@ -82,6 +84,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   ) {
     return fail("Please upload your documents again.", 400);
   }
+  const replaced = {
+    ageProof: d.ageProofKey !== r.ageProofKey,
+    passportPhoto: d.passportPhotoKey !== r.passportPhotoKey,
+  };
+  const documentProblem = await checkUploadedDocuments([
+    ...(replaced.ageProof ? [{ kind: "ageProof" as const, key: d.ageProofKey }] : []),
+    ...(replaced.passportPhoto
+      ? [{ kind: "passportPhoto" as const, key: d.passportPhotoKey }]
+      : []),
+  ]);
+  if (documentProblem) return fail(documentProblem.problem, 400, { field: documentProblem.field });
 
   const fields = {
     fullName: d.fullName,
@@ -107,6 +120,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     ageProofType: d.ageProofType,
     ageProofKey: d.ageProofKey,
     passportPhotoKey: d.passportPhotoKey,
+    // A new upload replaces an inline copy from the old form.
+    ...(replaced.ageProof && { aadhaarImageData: null }),
+    ...(replaced.passportPhoto && { passportPhotoData: null }),
     consentAccepted: d.consentAccepted,
     guardianName: d.guardianName || null,
     guardianConsent: d.guardianConsent,
@@ -167,6 +183,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       );
     }
     throw err;
+  }
+
+  // The files they replaced aren't kept.
+  const old = [
+    replaced.ageProof && r.ageProofKey,
+    replaced.passportPhoto && r.passportPhotoKey,
+  ].filter((k): k is string => Boolean(k));
+  if (old.length) {
+    const { failed } = await deleteObjects(old);
+    if (failed.length) console.error("[my-registration] could not delete replaced files:", failed);
   }
 
   await emailRegistration(id, "received", { label: "Application received (updated)" });

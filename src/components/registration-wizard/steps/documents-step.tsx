@@ -4,7 +4,7 @@ import { useFormContext } from "react-hook-form";
 import { mightBeMinor } from "@/lib/age-category";
 import { AGE_PROOF_TYPES, type RegistrationWizardValues } from "@/lib/registration-schema";
 import { useS3Upload, type UploadInfo } from "@/lib/use-s3-upload";
-import { checkBeforeUpload } from "@/lib/upload-checks";
+import { inspectFile } from "@/lib/upload-checks";
 import {
   CheckboxField,
   SelectField,
@@ -22,10 +22,13 @@ type Cropping = { file: File; resolve: (cropped: File) => void; reject: (err: Er
 export function DocumentsStep({
   tournamentSlug,
   registrationId,
+  onVerifyEmail,
 }: {
   tournamentSlug: string;
   /** Set when a signed-in player updates their own application (/my-registration). */
   registrationId?: string;
+  /** The wizard: this browser's email verification lapsed, so step 1 must offer "Verify" again. */
+  onVerifyEmail?: () => void;
 }) {
   const {
     register,
@@ -38,7 +41,7 @@ export function DocumentsStep({
     uploading,
     error: uploadError,
     info,
-  } = useS3Upload(tournamentSlug, registrationId);
+  } = useS3Upload(tournamentSlug, registrationId, onVerifyEmail);
   const [cropping, setCropping] = useState<Cropping | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoInfo, setPhotoInfo] = useState<UploadInfo | undefined>();
@@ -108,11 +111,11 @@ export function DocumentsStep({
           preview={photoPreview}
           existingLabel={onRecord}
           onUpload={async (kind, file) => {
-            // Wrong type or far too big: say so before opening the cropper.
-            const problem = checkBeforeUpload(kind, file);
-            if (problem) throw new Error(problem);
+            // Not really an image, or far too big: say so before opening the cropper.
+            const inspected = await inspectFile(kind, file);
+            if ("problem" in inspected) throw new Error(inspected.problem);
             const cropped = await new Promise<File>((resolve, reject) =>
-              setCropping({ file, resolve, reject })
+              setCropping({ file: inspected.file, resolve, reject })
             );
             const key = await upload(kind, cropped);
             setPhotoPreview(URL.createObjectURL(cropped));
@@ -162,10 +165,10 @@ export function DocumentsStep({
         <p className="mt-2 text-xs text-muted">
           We collect this information to run tournament registration, verify age-category
           eligibility, and contact you about the event. Age-proof and photo files are stored in a
-          private cloud bucket, accessible only to tournament organizers — never made public. Data
-          is retained only as long as needed to run this and future Nagarathar&apos;s Chess events,
-          and you can request deletion at any time by contacting us. Read the full{" "}
-          {/* New tab, so the half-filled form isn't lost. */}
+          private cloud bucket, accessible only to tournament organizers — never made public. Age
+          proofs are deleted automatically after the tournament; other details are kept to run this
+          and future Nagarathar&apos;s Chess events, and you can request deletion at any time by
+          contacting us. Read the full {/* New tab, so the half-filled form isn't lost. */}
           <Link
             href="/privacy"
             target="_blank"

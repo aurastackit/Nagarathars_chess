@@ -27,20 +27,40 @@ const presignSchema = z.object({
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status });
 
 /**
- * Public: a registrant uploading an age proof or photo. Only for tournaments
- * open for registration, only allowed types, and the exact file size is signed
- * into the URL — S3 rejects a body of any other length.
+ * A registrant uploading an age proof or photo, from a browser that has
+ * verified its email (step 1 of the form, or signing in at /my-registration).
+ * Only for tournaments open for registration, only allowed types, and the
+ * exact file size is signed into the URL — S3 rejects a body of any other length.
  */
 export async function POST(req: Request) {
   if (isReadOnly()) return readOnlyResponse();
+  const TOO_MANY = "Too many uploads. Please wait a few minutes and try again.";
   // Each registration needs two uploads, plus a few retries.
   if (!checkRateLimit(`presign:${getClientIp(req)}`, 20, 10 * 60_000)) {
-    return fail("Too many uploads. Please wait a few minutes and try again.", 429);
+    return fail(TOO_MANY, 429);
   }
 
   const parsed = presignSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return fail("Invalid upload request", 400);
   const { tournamentSlug, kind, contentType, size } = parsed.data;
+
+  const email = await getPlayerEmail();
+  if (!email) {
+    if (parsed.data.registrationId) {
+      return fail("Your sign-in has expired. Please sign in again.", 401);
+    }
+    // verifyEmail: the wizard offers "Verify" on step 1 again.
+    return NextResponse.json(
+      {
+        error: "Please verify your email (step 1 of the form) before uploading.",
+        verifyEmail: true,
+      },
+      { status: 401 }
+    );
+  }
+  if (!checkRateLimit(`presign:email:${email}`, 20, 10 * 60_000)) {
+    return fail(TOO_MANY, 429);
+  }
 
   if (!isAllowedUpload(kind, contentType, size)) {
     const document = kind === "passportPhoto" ? "The photo" : "The age proof";
@@ -62,8 +82,6 @@ export async function POST(req: Request) {
   if (parsed.data.registrationId) {
     // Updating an existing application: allowed after registration closes, but
     // only by its signed-in owner, while it can still be edited.
-    const email = await getPlayerEmail();
-    if (!email) return fail("Your sign-in has expired. Please sign in again.", 401);
     const r = await getOwnedRegistration(parsed.data.registrationId, email);
     if (
       !r ||

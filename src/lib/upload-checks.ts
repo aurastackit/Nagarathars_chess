@@ -4,6 +4,7 @@ import {
   formatUploadLimit,
   type UploadKind,
 } from "@/lib/upload-limits";
+import { SIGNATURE_BYTES, checkFileContent } from "@/lib/file-signature";
 
 /** Photos bigger than this are refused before shrinking (it could stall a phone). */
 export const MAX_SOURCE_IMAGE_BYTES = 25 * 1024 * 1024;
@@ -31,4 +32,26 @@ export function checkBeforeUpload(kind: UploadKind, file: { type: string; size: 
     return `This image is ${formatBytes(file.size)} — too large to process. Please choose one under 25 MB.`;
   }
   return null;
+}
+
+/** A file's first bytes, for checkFileContent. */
+export async function readFileHead(file: Blob) {
+  return new Uint8Array(await file.slice(0, SIGNATURE_BYTES).arrayBuffer());
+}
+
+/**
+ * Checks a chosen file by what it contains, not its name: the problem in words
+ * a player can act on, or the file labelled with its real type (a PNG named
+ * .jpg is treated as a PNG; a renamed text file is refused).
+ */
+export async function inspectFile(
+  kind: UploadKind,
+  file: File
+): Promise<{ problem: string } | { file: File }> {
+  const content = checkFileContent(kind, await readFileHead(file));
+  if (!content.ok) return { problem: content.message };
+  const typed =
+    file.type === content.type ? file : new File([file], file.name, { type: content.type });
+  const problem = checkBeforeUpload(kind, typed);
+  return problem ? { problem } : { file: typed };
 }

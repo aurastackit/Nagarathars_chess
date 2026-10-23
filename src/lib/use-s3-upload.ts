@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { compressIfImage } from "@/lib/image-compression";
-import { checkBeforeUpload, formatBytes } from "@/lib/upload-checks";
+import { formatBytes, inspectFile, readFileHead } from "@/lib/upload-checks";
+import { checkFileContent } from "@/lib/file-signature";
 import { UPLOAD_MAX_BYTES, formatUploadLimit, type UploadKind } from "@/lib/upload-limits";
 
 export type { UploadKind };
@@ -16,23 +17,30 @@ const ENCODE_AS: Partial<Record<UploadKind, string>> = { passportPhoto: "image/j
 export type UploadInfo = { name: string; before: number; after: number };
 
 /**
- * Uploads a registration document straight to S3: checks the type and size in
- * the browser first, shrinks photos, then asks the server for a signed URL.
+ * Uploads a registration document straight to S3: checks the content and size
+ * in the browser first, shrinks photos, then asks the server for a signed URL.
  * `registrationId` is for a signed-in player replacing a document on their own
- * registration (allowed even after registration closes).
+ * registration (allowed even after registration closes). `onVerifyEmail` runs
+ * when the server says this browser's email verification has lapsed.
  */
-export function useS3Upload(tournamentSlug: string, registrationId?: string) {
+export function useS3Upload(
+  tournamentSlug: string,
+  registrationId?: string,
+  onVerifyEmail?: () => void
+) {
   const [uploading, setUploading] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<Partial<Record<UploadKind, UploadInfo>>>({});
 
-  async function upload(kind: UploadKind, file: File): Promise<string> {
+  async function upload(kind: UploadKind, chosen: File): Promise<string> {
     setError(null);
-    const problem = checkBeforeUpload(kind, file);
-    if (problem) {
-      setError(problem);
-      throw new Error(problem);
+    // Judged by its content, not its name or the type the browser guesses.
+    const inspected = await inspectFile(kind, chosen);
+    if ("problem" in inspected) {
+      setError(inspected.problem);
+      throw new Error(inspected.problem);
     }
+    const file = inspected.file;
 
     setUploading((s) => ({ ...s, [kind]: true }));
     try {
@@ -42,6 +50,9 @@ export function useS3Upload(tournamentSlug: string, registrationId?: string) {
           `The file is still ${formatBytes(compressed.size)} after shrinking — it must be under ${formatUploadLimit(kind)}.`
         );
       }
+      // What's sent must still be an allowed file, whatever the shrinking did.
+      const sent = checkFileContent(kind, await readFileHead(compressed));
+      if (!sent.ok) throw new Error(sent.message);
 
       const presignRes = await fetch("/api/uploads/presign", {
         method: "POST",
@@ -49,20 +60,21 @@ export function useS3Upload(tournamentSlug: string, registrationId?: string) {
         body: JSON.stringify({
           tournamentSlug,
           kind,
-          contentType: compressed.type,
+          contentType: sent.type,
           size: compressed.size,
           ...(registrationId && { registrationId }),
         }),
       });
       if (!presignRes.ok) {
         const body = await presignRes.json().catch(() => null);
+        if (body?.verifyEmail) onVerifyEmail?.();
         throw new Error(body?.error ?? "Could not start the upload");
       }
       const { uploadUrl, key } = await presignRes.json();
 
       const putRes = await fetch(uploadUrl, {
         method: "PUT",
-        headers: { "Content-Type": compressed.type },
+        headers: { "Content-Type": sent.type },
         body: compressed,
       });
       if (!putRes.ok) {
