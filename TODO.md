@@ -91,6 +91,8 @@ them off here as they're done.
       the last 30 minutes, from any browser — tie it to the player session cookie
       that Step 8 adds. Done: registering and uploading need that cookie.
 - [ ] Unused files in the bucket: uploads from forms never submitted, and files of
-      registrations deleted before 22 Oct, stay (private) in S3. Either add an S3
-      lifecycle rule, or give the app's IAM user s3:ListBucket on `registrations/`
-      so the daily job can delete files no registration uses after 2 days.
+      registrations deleted before 22 Oct, stay (private) in S3. Chosen (23 Oct):
+      an inline IAM policy giving the app's user s3:ListBucket on `registrations/`
+      and `id-cards/` only (safer than a lifecycle rule, which can't tell used
+      files from unused). Then: a dry-run list on /admin/privacy, deletion only
+      after the owner's OK, and the daily job keeps it tidy.
