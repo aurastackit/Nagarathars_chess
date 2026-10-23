@@ -23,8 +23,9 @@ export async function deliver(
   const replyTo = opts.replyTo === undefined ? organisersEmail() : opts.replyTo;
   if (shouldStubEmail()) {
     const files = opts.attachments?.map((a) => a.filename).join(", ");
+    // Development only (production without SES throws): the text, so sign-in codes can be read.
     console.log(
-      `[email:stub] Would email ${to} — "${content.subject}"${files ? ` [${files}]` : ""}`
+      `[email:stub] Would email ${to} — "${content.subject}"${files ? ` [${files}]` : ""}\n${content.text}`
     );
     return { status: "stubbed" as const };
   }

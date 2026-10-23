@@ -65,15 +65,20 @@ export function createRegistrationWizardSchema() {
         .string()
         .trim()
         .regex(INDIAN_MOBILE, "Enter a valid 10-digit mobile number (starting with 6, 7, 8 or 9)"),
-      birthYear: z
-        .string()
-        .trim()
-        .regex(/^\d{4}$/, "Enter your 4-digit year of birth, e.g. 2014")
-        .transform((year) => Number(year))
-        .refine(
-          (year) => year >= thisYear - 100 && year <= thisYear - 3,
-          "Enter a valid year of birth"
-        ),
+      // The form holds the year as text, but what the form submits (and posts to the
+      // API) is this schema's parsed output, where it's already a number — accept both.
+      birthYear: z.preprocess(
+        (year) => (typeof year === "number" ? String(year) : year),
+        z
+          .string()
+          .trim()
+          .regex(/^\d{4}$/, "Enter your 4-digit year of birth, e.g. 2014")
+          .transform((year) => Number(year))
+          .refine(
+            (year) => year >= thisYear - 100 && year <= thisYear - 3,
+            "Enter a valid year of birth"
+          )
+      ),
       // Choice and tick-box fields use refine() rather than z.enum / z.literal on
       // purpose: those fail in a way that makes zod skip the cross-field rules at
       // the bottom, which would hide them until the very last step.
