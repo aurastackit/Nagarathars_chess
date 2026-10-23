@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { deleteObjects, listKeys } from "@/lib/s3";
 import { requireAdminPage } from "@/lib/require-admin";
 import { logAdminAction, type AdminAction } from "@/lib/audit-log";
 import { emailForStatusChange } from "@/lib/registration-notify";
@@ -133,9 +134,10 @@ export async function saveAdminNotes(
 }
 
 /**
- * Deletes a registration and its timeline for good. The admin must type the
- * registration number to confirm. (Its uploaded files stay in S3 until the
- * document clean-up in the privacy step.)
+ * Deletes a registration, its timeline and its stored documents (photo, age
+ * proof, cached ID cards) for good. The admin must type the registration
+ * number to confirm. If S3 refuses a file, the record is still deleted and the
+ * file is reported (the admin clean-up can remove it later).
  */
 export async function deleteRegistration(
   _state: ActionResult,
@@ -150,6 +152,8 @@ export async function deleteRegistration(
       fullName: true,
       registrationNo: true,
       tournamentId: true,
+      passportPhotoKey: true,
+      ageProofKey: true,
       tournament: { select: { title: true, slug: true } },
     },
   });
@@ -160,14 +164,23 @@ export async function deleteRegistration(
   }
 
   await prisma.registration.delete({ where: { id } });
+  const cachedCards = (await listKeys(`id-cards/${id}/`)) ?? [];
+  const docs = await deleteObjects([r.passportPhotoKey ?? "", r.ageProofKey ?? "", ...cachedCards]);
+  const docsNote = docs.failed.length
+    ? `; ${docs.failed.length} stored file(s) couldn't be deleted: ${docs.failed.map((f) => `${f.key} (${f.error})`).join(", ")}`
+    : docs.deleted.length
+      ? `; ${docs.deleted.length} stored file(s) deleted`
+      : "";
   await logAdminAction({
     actorEmail: session.user!.email!,
     action: "registration.delete",
     targetType: "Registration",
     targetId: id,
-    summary: `Deleted ${r.fullName}'s registration (${expected}) for "${r.tournament.title}"`,
+    summary: `Deleted ${r.fullName}'s registration (${expected}) for "${r.tournament.title}"${docsNote}`,
   });
   revalidateRegistration(id, r.tournamentId);
   revalidateTournamentSeats(r.tournament.slug);
-  redirect(`/admin/registrations?deleted=${encodeURIComponent(expected)}`);
+  redirect(
+    `/admin/registrations?${new URLSearchParams({ deleted: expected, files: docs.failed.length ? "kept" : "deleted" })}`
+  );
 }

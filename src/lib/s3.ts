@@ -1,6 +1,12 @@
 import "server-only";
 import { randomUUID } from "crypto";
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectsCommand,
+  GetObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { isAllowedUpload, type UploadKind } from "@/lib/upload-limits";
 
@@ -170,4 +176,51 @@ export async function putObjectBytes(key: string, body: Buffer, contentType: str
   await getClient().send(
     new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: body, ContentType: contentType })
   );
+}
+
+/**
+ * Deletes private objects (a registration's documents, cached ID cards). Returns
+ * the keys S3 couldn't delete with the reason, so the caller can report them.
+ * Keys that don't exist count as deleted.
+ */
+export async function deleteObjects(keys: string[]) {
+  const unique = [...new Set(keys.filter(Boolean))];
+  if (unique.length === 0)
+    return { deleted: [] as string[], failed: [] as { key: string; error: string }[] };
+  if (!isS3Configured()) {
+    return { deleted: [], failed: unique.map((key) => ({ key, error: "S3 is not configured" })) };
+  }
+  try {
+    const res = await getClient().send(
+      new DeleteObjectsCommand({
+        Bucket: BUCKET,
+        Delete: { Objects: unique.map((Key) => ({ Key })), Quiet: true },
+      })
+    );
+    const failed = (res.Errors ?? []).map((e) => ({
+      key: e.Key ?? "?",
+      error: e.Code ?? e.Message ?? "error",
+    }));
+    return { deleted: unique.filter((k) => !failed.some((f) => f.key === k)), failed };
+  } catch (err) {
+    const error = (err as { name?: string }).name ?? (err instanceof Error ? err.message : "error");
+    return { deleted: [], failed: unique.map((key) => ({ key, error })) };
+  }
+}
+
+/**
+ * Keys under a prefix (e.g. a registration's cached ID cards). Needs
+ * s3:ListBucket; without it this returns null and the caller carries on.
+ */
+export async function listKeys(prefix: string) {
+  if (!isS3Configured()) return null;
+  try {
+    const res = await getClient().send(
+      new ListObjectsV2Command({ Bucket: BUCKET, Prefix: prefix })
+    );
+    return (res.Contents ?? []).map((o) => o.Key!).filter(Boolean);
+  } catch (err) {
+    console.error(`[s3] could not list ${prefix}:`, (err as { name?: string }).name ?? err);
+    return null;
+  }
 }

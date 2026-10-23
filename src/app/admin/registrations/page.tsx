@@ -20,6 +20,7 @@ export default async function PlayersPage({
   const filters = parsePlayerFilters(params);
   // Set by the detail page after a delete.
   const deleted = typeof params.deleted === "string" ? params.deleted.slice(0, 40) : null;
+  const filesKept = params.files === "kept";
   const { total, rows, tournaments, kovils } = await getPlayerList(filters);
   const pages = Math.max(1, Math.ceil(total / filters.per));
   const first = total === 0 ? 0 : (filters.page - 1) * filters.per + 1;
@@ -57,7 +58,10 @@ export default async function PlayersPage({
           role="status"
           className="rounded-md border border-green-200 bg-green-50 px-4 py-2 text-sm text-green-800"
         >
-          Deleted registration {deleted}.
+          Deleted registration {deleted}
+          {filesKept
+            ? " — but some of its stored files couldn't be removed (see Activity)."
+            : " and its stored files."}
         </p>
       )}
 

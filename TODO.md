@@ -5,9 +5,11 @@ them off here as they're done.
 
 ## Must fix before go-live
 
-- [ ] **Delete must remove the documents.** Deleting a registration leaves its
-      photo and age proof in S3; delete them with the record (Step 9, privacy),
-      plus a retention rule for old documents.
+- [ ] **Delete must remove the documents.** The admin Delete now removes the
+      photo, age proof and cached ID cards with the record (if S3 refuses, it says
+      so and /api/admin/storage/cleanup removes them later). Still to do in Step 9:
+      sweep files left by registrations deleted before this, a retention rule for
+      old documents, and confirm the app's IAM user may s3:DeleteObject.
 - [ ] **Unknown pages must return HTTP 404.** Not-found pages answer 200 (they show
       "Page not found" with noindex) because the root `loading.tsx` starts
       streaming before `notFound()` runs — public pages like
@@ -15,9 +17,11 @@ them off here as they're done.
 
 ## Access and credentials
 
-- [ ] **ORGANISERS_EMAIL** in Amplify: the organisers' inbox. It receives
-      contact-form messages and is the Reply-To on player emails. Until it's set,
-      contact messages are only in the admin Messages page.
+- [ ] **ORGANISERS_EMAIL doesn't reach the app** (set in Amplify, but the live
+      preview page says it isn't — same symptom as CRON_SECRET). It receives
+      contact-form messages and registration-error alerts, and is the Reply-To on
+      player emails. Check the build log line "amplify.yml from repo v4 -
+      CRON_SECRET present - … - ORGANISERS_EMAIL present - …".
 
 - [ ] **CRON_SECRET doesn't reach the app.** `POST /api/cron/expire-changes-requests`
       still answers 503 `{"error":"CRON_SECRET is not set"}`. Check the Amplify build
@@ -78,3 +82,6 @@ them off here as they're done.
       when classes open.
 - [ ] Date-change emails go out one by one while the admin waits on Save; fine for
       tens of players, move to a background job before it's hundreds.
+- [ ] Step 9: the register API accepts any submission for an email verified in
+      the last 30 minutes, from any browser — tie it to the player session cookie
+      that Step 8 adds.
