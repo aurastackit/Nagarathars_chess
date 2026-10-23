@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
+import { LISTED_STATUSES } from "@/lib/tournament-status";
 import { absoluteUrl } from "@/lib/site";
 import { CLASSES_ENABLED } from "@/lib/features";
 import { isTestContent } from "@/lib/next-tournament";
@@ -19,7 +20,7 @@ const latest = (dates: Date[]) =>
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [rows, newestClass, newestPhoto] = await Promise.all([
     prisma.tournament.findMany({
-      where: { status: { in: ["published", "closed", "completed"] } },
+      where: { status: { in: LISTED_STATUSES } },
       select: { slug: true, title: true, updatedAt: true, resultsPublished: true },
     }),
     CLASSES_ENABLED

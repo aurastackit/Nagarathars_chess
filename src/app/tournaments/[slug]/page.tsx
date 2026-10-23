@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { prisma } from "@/lib/prisma";
-import { SEATS_TAKEN_COUNT } from "@/lib/tournament-status";
+import { SEATS_TAKEN_COUNT, isUnlisted } from "@/lib/tournament-status";
 import { isRazorpayConfigured } from "@/lib/razorpay";
 import { Badge, buttonClasses } from "@/components/ui";
 import { formatDate, formatDateRange } from "@/lib/format";
@@ -66,7 +66,7 @@ export async function generateMetadata({
     // Canonical is always the clean URL — the registration pop-up lives at ?notice=1.
     path,
     image: `${path}/opengraph-image`,
-    noindex: isTestContent(tournament.title),
+    noindex: isTestContent(tournament.title) || isUnlisted(tournament.status),
   });
 }
 
@@ -143,6 +143,7 @@ export default async function TournamentDetailPage({
                 </Badge>
                 <Badge tone="white">{tournament.category}</Badge>
                 <Badge tone="white">{TOURNAMENT_STATUS_LABEL[status]}</Badge>
+                {isUnlisted(tournament.status) && <Badge tone="warning">Unlisted test event</Badge>}
               </div>
               <h1 className="h1 mt-3 max-w-2xl">{tournament.title}</h1>
               <p className="mt-2 text-white/70">

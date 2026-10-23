@@ -12,7 +12,13 @@ export type TournamentFormState = {
   notice?: string;
 } | null;
 
-export const TOURNAMENT_STATUSES = ["draft", "published", "closed", "completed"] as const;
+export const TOURNAMENT_STATUSES = [
+  "draft",
+  "unlisted",
+  "published",
+  "closed",
+  "completed",
+] as const;
 
 export type TournamentStatusValue = (typeof TOURNAMENT_STATUSES)[number];
 

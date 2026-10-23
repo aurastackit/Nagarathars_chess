@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { LISTED_STATUSES } from "@/lib/tournament-status";
 import { computeStandings, categoryWinners } from "@/lib/standings";
 import { ageCategoryLabel } from "@/lib/age-category";
 
@@ -11,7 +12,7 @@ export type ChampionEntry = {
 /** Champion + category winners for the most recent tournaments with published results. */
 export async function getHallOfChampions(limit = 3): Promise<ChampionEntry[]> {
   const tournaments = await prisma.tournament.findMany({
-    where: { resultsPublished: true },
+    where: { resultsPublished: true, status: { in: LISTED_STATUSES } },
     orderBy: { startDate: "desc" },
     take: limit,
   });

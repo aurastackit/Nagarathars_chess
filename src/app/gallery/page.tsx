@@ -3,6 +3,7 @@ import { pageMetadata } from "@/lib/seo";
 import { breadcrumbJsonLd } from "@/lib/seo/structured-data";
 import { JsonLd } from "@/components/json-ld";
 import { prisma } from "@/lib/prisma";
+import { LISTED_STATUSES } from "@/lib/tournament-status";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { isValidImageUrl } from "@/lib/image-url";
 import { getGallery } from "@/lib/gallery";
@@ -27,7 +28,7 @@ export default async function GalleryPage() {
   const [curatedGallery, tournaments, classes] = await Promise.all([
     getGallery({ take: 200 }),
     prisma.tournament.findMany({
-      where: { posterImageUrl: { not: null } },
+      where: { posterImageUrl: { not: null }, status: { in: LISTED_STATUSES } },
       orderBy: { startDate: "desc" },
     }),
     // No class data on public pages while classes are coming soon (lib/features).

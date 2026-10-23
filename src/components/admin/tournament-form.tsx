@@ -115,11 +115,12 @@ export function TournamentForm({
               "Status",
               <select {...p("status")} className={SELECT_CLASS}>
                 <option value="draft">Draft</option>
+                <option value="unlisted">Unlisted (test — direct link only)</option>
                 <option value="published">Published</option>
                 <option value="closed">Closed</option>
                 <option value="completed">Completed</option>
               </select>,
-              "Only “Published” tournaments appear on the public site."
+              "Only “Published” tournaments appear on the public site. “Unlisted” works only by its direct link — for testing."
             )}
         </div>
         <div className="grid gap-4 sm:grid-cols-2">

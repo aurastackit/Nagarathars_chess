@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { SEAT_HOLDING_STATUSES } from "@/lib/tournament-status";
+import { SEAT_HOLDING_STATUSES, isRegistrableStatus } from "@/lib/tournament-status";
 import { ageByYear, naturalAgeCategory } from "@/lib/age-category";
 import { createRegistrationWizardSchema } from "@/lib/registration-schema";
 import { emailRegistration } from "@/lib/registration-notify";
@@ -74,7 +74,7 @@ async function unexpected(status: number, error: string, slug: string) {
 
 async function register(slug: string, body: unknown) {
   const tournament = await prisma.tournament.findUnique({ where: { slug } });
-  if (!tournament || tournament.status !== "published") {
+  if (!tournament || !isRegistrableStatus(tournament.status)) {
     return unexpected(404, "Tournament not found", slug);
   }
   if (new Date() > endOfDayIST(tournament.registrationDeadline)) {

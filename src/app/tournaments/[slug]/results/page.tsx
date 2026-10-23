@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { prisma } from "@/lib/prisma";
+import { isUnlisted } from "@/lib/tournament-status";
 import { Badge, Card, EmptyState } from "@/components/ui";
 import { ageCategoryLabel } from "@/lib/age-category";
 import { computeStandings, categoryWinners } from "@/lib/standings";
@@ -42,7 +43,7 @@ export async function generateMetadata({
     ),
     path: `/tournaments/${tournament.slug}/results`,
     image: `/tournaments/${tournament.slug}/opengraph-image`,
-    noindex: isTestContent(tournament.title),
+    noindex: isTestContent(tournament.title) || isUnlisted(tournament.status),
   });
 }
 

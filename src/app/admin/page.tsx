@@ -73,7 +73,7 @@ export default async function AdminDashboardPage({
             id: x.id,
             title: x.title,
             year: x.startDate.getUTCFullYear(),
-            draft: x.status === "draft",
+            note: x.status === "draft" || x.status === "unlisted" ? x.status : null,
           }))}
         />
       </div>

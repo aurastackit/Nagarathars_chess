@@ -4,6 +4,7 @@ import { AGE_CATEGORIES, ageCategoryLabel } from "@/lib/age-category";
 import { formatDateTimeIST } from "@/lib/format";
 import { registrationAdminHref } from "@/lib/admin-links";
 import { SEAT_HOLDING_STATUSES, fixByDate } from "@/lib/registration-status";
+import { isUnlisted } from "@/lib/tournament-status";
 import {
   approvalRate,
   dailyRegistrationsAndEdits,
@@ -311,13 +312,17 @@ export async function getDashboard(tournamentId: string | null) {
   };
 }
 
-/** Tournaments for the switcher, and the one shown by default: the next upcoming, else the latest. */
+/**
+ * Tournaments for the switcher, and the one shown by default: the next
+ * upcoming, else the latest — never an unlisted (test) one.
+ */
 export async function getDashboardTournaments() {
   const list = await prisma.tournament.findMany({
     orderBy: { startDate: "desc" },
     select: { id: true, title: true, startDate: true, status: true },
   });
   const today = new Date(new Date().toISOString().slice(0, 10));
-  const upcoming = list.filter((t) => t.startDate >= today && t.status !== "draft").at(-1);
-  return { list, defaultId: upcoming?.id ?? list[0]?.id ?? null };
+  const real = list.filter((t) => !isUnlisted(t.status));
+  const upcoming = real.filter((t) => t.startDate >= today && t.status !== "draft").at(-1);
+  return { list, defaultId: upcoming?.id ?? real[0]?.id ?? list[0]?.id ?? null };
 }

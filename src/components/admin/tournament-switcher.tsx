@@ -8,7 +8,8 @@ export function TournamentSwitcher({
   tournaments,
   value,
 }: {
-  tournaments: { id: string; title: string; year: number; draft: boolean }[];
+  /** note: "draft" or "unlisted" — shown after the title. */
+  tournaments: { id: string; title: string; year: number; note: string | null }[];
   value: string;
 }) {
   const router = useRouter();
@@ -26,7 +27,7 @@ export function TournamentSwitcher({
         <option value="all">All tournaments</option>
         {tournaments.map((t) => (
           <option key={t.id} value={t.id}>
-            {t.title} ({t.year}){t.draft ? " — draft" : ""}
+            {t.title} ({t.year}){t.note ? ` — ${t.note}` : ""}
           </option>
         ))}
       </select>

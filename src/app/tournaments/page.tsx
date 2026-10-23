@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
-import { SEATS_TAKEN_COUNT } from "@/lib/tournament-status";
+import { LISTED_STATUSES, SEATS_TAKEN_COUNT } from "@/lib/tournament-status";
 import { EmptyState } from "@/components/ui";
 import { TournamentCard } from "@/components/tournament-card";
 import { EmptyTournaments } from "@/components/illustrations/empty-states";
@@ -21,7 +21,7 @@ export const metadata: Metadata = pageMetadata({
 
 export default async function TournamentsPage() {
   const rows = await prisma.tournament.findMany({
-    where: { status: { in: ["published", "closed", "completed"] } },
+    where: { status: { in: LISTED_STATUSES } },
     orderBy: { startDate: "asc" },
     include: SEATS_TAKEN_COUNT,
   });

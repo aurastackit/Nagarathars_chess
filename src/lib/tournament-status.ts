@@ -33,14 +33,27 @@ export function getTournamentStatus(
 }
 
 /**
+ * Admin visibility (the `status` field). Listed tournaments appear on the
+ * public site: home, /tournaments, the sitemap, the gallery. "unlisted" is the
+ * test mode: it works by direct link (page, registration) like a published
+ * tournament, but is never listed, announced or indexed.
+ */
+export const LISTED_STATUSES = ["published", "closed", "completed"];
+
+export const isUnlisted = (status: string) => status === "unlisted";
+
+/** Statuses a visitor may register for (dates permitting). */
+export const isRegistrableStatus = (status: string) => status === "published" || isUnlisted(status);
+
+/**
  * Whether a visitor can register right now: the tournament must be published
- * (admin visibility) and not yet closed or finished (dates).
+ * or unlisted (admin visibility) and not yet closed or finished (dates).
  */
 export function canRegisterFor(
   tournament: { status: string; endDate: Date; registrationDeadline: Date },
   now: Date = new Date()
 ) {
-  if (tournament.status !== "published") return false;
+  if (!isRegistrableStatus(tournament.status)) return false;
   const status = getTournamentStatus(tournament, now);
   return status !== "closed" && status !== "completed";
 }
