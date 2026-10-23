@@ -1,5 +1,12 @@
+"use client";
+
 import type { ChangeEvent, ReactNode } from "react";
 import type { FieldError, UseFormRegisterReturn } from "react-hook-form";
+import {
+  ATTENTION_RING,
+  AttentionNote,
+  useNeedsAttention,
+} from "@/components/registration-wizard/attention";
 
 const inputClasses =
   "w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-charcoal disabled:cursor-not-allowed disabled:bg-background disabled:text-foreground/40";
@@ -21,8 +28,10 @@ function FieldShell({
   className?: string;
   children: ReactNode;
 }) {
+  const attention = useNeedsAttention(htmlFor);
   return (
-    <div className={className}>
+    <div className={`${className} ${attention ? ATTENTION_RING : ""}`} data-field={htmlFor}>
+      {attention && <AttentionNote />}
       <label htmlFor={htmlFor} className="mb-1 block text-sm font-medium text-foreground">
         {label}
         {required && (
@@ -221,8 +230,13 @@ export function CheckboxField({
   className?: string;
   registration: UseFormRegisterReturn;
 }) {
+  const attention = useNeedsAttention(registration.name);
   return (
-    <div className={className}>
+    <div
+      className={`${className} ${attention ? ATTENTION_RING : ""}`}
+      data-field={registration.name}
+    >
+      {attention && <AttentionNote />}
       <label className="flex items-start gap-3">
         <input
           id={registration.name}
