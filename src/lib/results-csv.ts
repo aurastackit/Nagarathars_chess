@@ -1,8 +1,9 @@
 export type ResultCsvRow = {
   round: number;
   board: number | null;
-  whiteEmail: string;
-  blackEmail: string | null; // null = bye
+  /** The white_email cell: an email, or a registration number. */
+  white: string;
+  black: string | null; // null = bye
   result: "1-0" | "0-1" | "0.5-0.5" | "BYE";
 };
 
@@ -17,7 +18,8 @@ function normalizeResult(raw: string): "1-0" | "0-1" | "0.5-0.5" | "BYE" {
 /**
  * Parses the round-results CSV: `round,board,white_email,black_email,result`
  * (header row required, `board` and `black_email` may be blank — blank
- * black_email means a bye, which requires result "BYE").
+ * black_email means a bye, which requires result "BYE"). The player columns take
+ * an email or a registration number (see playerResolver).
  */
 export function parseResultsCsv(text: string): { rows: ResultCsvRow[]; errors: string[] } {
   const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
@@ -72,11 +74,42 @@ export function parseResultsCsv(text: string): { rows: ResultCsvRow[]; errors: s
     rows.push({
       round,
       board: boardRaw ? Number(boardRaw) : null,
-      whiteEmail: whiteEmail.toLowerCase(),
-      blackEmail: blackEmail ? blackEmail.toLowerCase() : null,
+      white: whiteEmail,
+      black: blackEmail,
       result,
     });
   }
 
   return { rows, errors };
+}
+
+/** A confirmed registrant, as the import matches them. */
+export type ImportRegistrant = { email: string; registrationNo: string | null; playerId: string };
+
+/**
+ * Finds the player a CSV cell means: a registration number, or an email that
+ * belongs to just one player in the tournament — brothers and sisters can share
+ * an email, so they need their registration numbers.
+ */
+export function playerResolver(registrants: ImportRegistrant[]) {
+  const byNumber = new Map<string, string>();
+  const byEmail = new Map<string, Set<string>>();
+  for (const r of registrants) {
+    if (r.registrationNo) byNumber.set(r.registrationNo.toLowerCase(), r.playerId);
+    const email = r.email.trim().toLowerCase();
+    byEmail.set(email, (byEmail.get(email) ?? new Set()).add(r.playerId));
+  }
+  return (cell: string): { playerId: string } | { error: string } => {
+    const value = cell.trim().toLowerCase();
+    const numbered = byNumber.get(value);
+    if (numbered) return { playerId: numbered };
+    const players = [...(byEmail.get(value) ?? [])];
+    if (players.length === 1) return { playerId: players[0] };
+    if (players.length > 1) {
+      return {
+        error: `${cell} is shared by ${players.length} players — use their registration numbers`,
+      };
+    }
+    return { error: `no confirmed registrant with the email or registration number ${cell}` };
+  };
 }

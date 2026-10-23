@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Card, Button } from "@/components/ui";
 import { requireAdminPage } from "@/lib/require-admin";
 import { logAdminAction } from "@/lib/audit-log";
-import { parseResultsCsv } from "@/lib/results-csv";
+import { parseResultsCsv, playerResolver } from "@/lib/results-csv";
 import { computeStandings } from "@/lib/standings";
 import { getOrCreatePlayer } from "@/lib/player";
 import { ageCategoryLabel } from "@/lib/age-category";
@@ -198,28 +198,26 @@ export default async function TournamentResultsPage({
     }
 
     const regs = await prisma.registration.findMany({
-      where: { tournamentId: id, status: { in: ["confirmed", "registered"] } },
-      include: { player: true },
+      where: {
+        tournamentId: id,
+        status: { in: ["confirmed", "registered"] },
+        playerId: { not: null },
+      },
+      select: { email: true, registrationNo: true, playerId: true },
     });
-    const playerByEmail = new Map(
-      regs.filter((r) => r.player).map((r) => [r.email.trim().toLowerCase(), r.player!])
-    );
+    const resolve = playerResolver(regs.map((r) => ({ ...r, playerId: r.playerId! })));
 
     const importErrors: string[] = [];
     let created = 0;
     for (const row of rows) {
-      const white = playerByEmail.get(row.whiteEmail);
-      const black = row.blackEmail ? playerByEmail.get(row.blackEmail) : null;
-      if (!white) {
-        importErrors.push(
-          `Round ${row.round}: no confirmed registrant with email ${row.whiteEmail}`
-        );
+      const white = resolve(row.white);
+      const black = row.black ? resolve(row.black) : null;
+      if ("error" in white) {
+        importErrors.push(`Round ${row.round}: ${white.error}`);
         continue;
       }
-      if (row.blackEmail && !black) {
-        importErrors.push(
-          `Round ${row.round}: no confirmed registrant with email ${row.blackEmail}`
-        );
+      if (black && "error" in black) {
+        importErrors.push(`Round ${row.round}: ${black.error}`);
         continue;
       }
       const round = await prisma.round.upsert({
@@ -231,8 +229,8 @@ export default async function TournamentResultsPage({
         data: {
           roundId: round.id,
           board: row.board,
-          whitePlayerId: white.id,
-          blackPlayerId: black?.id ?? null,
+          whitePlayerId: white.playerId,
+          blackPlayerId: black?.playerId ?? null,
           result: row.result,
         },
       });
@@ -322,7 +320,8 @@ export default async function TournamentResultsPage({
           <h2 className="text-sm font-semibold text-charcoal">Import results (CSV)</h2>
           <p className="mt-1 text-xs text-foreground/50">
             Columns: round,board,white_email,black_email,result. Result is one of 1-0, 0-1, 0.5-0.5,
-            BYE (leave black_email empty for a bye).
+            BYE (leave black_email empty for a bye). The player columns also take a registration
+            number — needed for brothers and sisters registered with the same email.
           </p>
           <form action={importCsv} className="mt-3 flex flex-wrap items-end gap-3">
             <div>
@@ -435,6 +434,7 @@ export default async function TournamentResultsPage({
                       {registrants.map((r) => (
                         <option key={r.id} value={r.player?.id}>
                           {r.fullName}
+                          {r.registrationNo ? ` · ${r.registrationNo}` : ""}
                         </option>
                       ))}
                     </select>
@@ -456,6 +456,7 @@ export default async function TournamentResultsPage({
                       {registrants.map((r) => (
                         <option key={r.id} value={r.player?.id}>
                           {r.fullName}
+                          {r.registrationNo ? ` · ${r.registrationNo}` : ""}
                         </option>
                       ))}
                       <option value="BYE">Bye (no opponent)</option>

@@ -18,6 +18,7 @@ import { alertRegistrationFailure } from "@/lib/registration-alert";
 import { getPlayerEmail } from "@/lib/player-session";
 import { isAcceptableUploadKey } from "@/lib/self-service";
 import { checkUploadedDocuments } from "@/lib/upload-verify";
+import { getOrCreatePlayer, normalizeEmail } from "@/lib/player";
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (isReadOnly()) return readOnlyResponse();
@@ -98,7 +99,7 @@ async function register(slug: string, body: unknown) {
     );
   }
   const data = parsed.data;
-  const playerEmail = data.email.trim().toLowerCase();
+  const playerEmail = normalizeEmail(data.email);
 
   // Only the year of birth is collected: it's stored as 1 January of that year,
   // and the age category is always worked out here, never taken from the form.
@@ -149,17 +150,18 @@ async function register(slug: string, body: unknown) {
           throw new Error("FULL");
         }
       }
-      const player = await tx.player.upsert({
-        where: { email: playerEmail },
-        update: { fullName: data.fullName, dob },
-        create: { email: playerEmail, fullName: data.fullName, dob },
-      });
+      // Each child registered with a parent's email gets their own profile (src/lib/player.ts).
+      const player = await getOrCreatePlayer(
+        { email: playerEmail, fullName: data.fullName, dob },
+        tx
+      );
       const registration = await tx.registration.create({
         data: {
           tournamentId: tournament.id,
           playerId: player.id,
           fullName: data.fullName,
-          email: data.email,
+          // Stored lower-cased and trimmed, so capitals can't split one person in two.
+          email: playerEmail,
           phone: data.phone,
           dob,
           gender: data.gender || null,

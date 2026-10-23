@@ -36,7 +36,7 @@ export async function changeRegistrationStatus(params: {
   /** The status the admin was looking at; if it has changed since, nothing happens (StaleStatusError). */
   expectFrom?: RegistrationStatus;
   /** Other fields written in the same update (e.g. a player's edited details). */
-  data?: Prisma.RegistrationUpdateManyMutationInput;
+  data?: Prisma.RegistrationUncheckedUpdateManyInput;
 }) {
   const { registrationId, to, actor } = params;
   const reason = params.reason?.trim() || null;

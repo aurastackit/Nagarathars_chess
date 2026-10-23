@@ -14,6 +14,7 @@ import { recordRegistrationEvent } from "@/lib/registration-events";
 import { emailRegistration } from "@/lib/registration-notify";
 import { checkUploadedDocuments } from "@/lib/upload-verify";
 import { deleteObjects } from "@/lib/s3";
+import { getOrCreatePlayer } from "@/lib/player";
 
 const LABEL: Record<string, string> = {
   fullName: "name",
@@ -96,10 +97,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   ]);
   if (documentProblem) return fail(documentProblem.problem, 400, { field: documentProblem.field });
 
+  // The profile follows the name and year of birth: correcting them moves only
+  // this registration (a parent's other children keep theirs).
+  const dob = new Date(Date.UTC(d.birthYear, 0, 1));
+  const player = await getOrCreatePlayer({ email: r.email, fullName: d.fullName, dob });
+
   const fields = {
+    playerId: player.id,
     fullName: d.fullName,
     phone: d.phone,
-    dob: new Date(Date.UTC(d.birthYear, 0, 1)),
+    dob,
     gender: d.gender,
     city: d.city,
     address: d.address,
@@ -183,6 +190,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       );
     }
     throw err;
+  }
+
+  // A profile left with nothing (its only registration moved) isn't kept either.
+  if (r.playerId && r.playerId !== player.id) {
+    await prisma.player.deleteMany({
+      where: {
+        id: r.playerId,
+        registrations: { none: {} },
+        whiteGames: { none: {} },
+        blackGames: { none: {} },
+      },
+    });
   }
 
   // The files they replaced aren't kept.

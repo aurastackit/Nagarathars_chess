@@ -112,15 +112,23 @@ model Registration {
 }
 
 /** A person who has played in tournaments, matched across tournaments by email. */
+/// One person who plays: the email they registered with (lower-cased), their
+/// name and their year of birth — a parent's email can hold several children.
 model Player {
   id            String         @id @default(cuid())
   fullName      String
+  /// Step 1 of 2 keeps the old one-player-per-email rule; step 2 drops it.
   email         String         @unique
+  /// fullName lower-cased with single spaces: compared, not shown.
+  nameKey       String?
   dob           DateTime?
+  birthYear     Int?
   createdAt     DateTime       @default(now())
   registrations Registration[]
   whiteGames    Pairing[]      @relation("WhitePairings")
   blackGames    Pairing[]      @relation("BlackPairings")
+
+  @@unique([email, nameKey, birthYear])
 }
 
 model Round {
