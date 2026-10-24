@@ -48,6 +48,11 @@ export const metadata: Metadata = {
     images: [{ url: absoluteUrl(DEFAULT_OG_IMAGE), width: 1200, height: 630, alt: SITE_NAME }],
   },
   twitter: { card: "summary_large_image", images: [absoluteUrl(DEFAULT_OG_IMAGE)] },
+  // Google Search Console and Bing Webmaster Tools ownership (no page overrides this key).
+  verification: {
+    google: "FftAZ_6IZSUym1maI4vYGyY-kQENDjAGXMD_qD2YXYc",
+    other: { "msvalidate.01": "088E3F671A7F9DE4FDC8DEBEB8FC0AFE" },
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
