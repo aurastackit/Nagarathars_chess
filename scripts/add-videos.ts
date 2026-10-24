@@ -14,7 +14,15 @@ type VideoInput = { link: string; caption?: string };
 
 // Fill in with real links before running — YouTube/Shorts URL, a Google Drive file-share
 // URL ("Anyone with the link"), or an .mp4 key/URL on our S3 bucket.
-const VIDEOS: VideoInput[] = [];
+const VIDEOS: VideoInput[] = [
+  {
+    link: "https://youtu.be/0pTmLNgkm3s",
+    caption: "Nagarathar's Chess Championship — 4 January 2026 highlights",
+  },
+];
+
+// true: only print what would be created/updated (still reads the database, never writes).
+const DRY_RUN = false;
 
 async function main() {
   if (VIDEOS.length === 0) {
@@ -35,6 +43,25 @@ async function main() {
     const thumbnailUrl = detected.provider === "YOUTUBE" ? detected.thumbnailUrl : null;
 
     const existing = await prisma.galleryItem.findFirst({ where: { url } });
+    if (DRY_RUN) {
+      console.log(
+        `[dry run] would ${existing ? `update ${existing.id}` : "create"}:`,
+        JSON.stringify(
+          {
+            provider: detected.provider,
+            url,
+            caption: caption ?? existing?.caption ?? null,
+            thumbnailUrl,
+            section: existing?.section ?? "HIGHLIGHTS",
+            sortOrder: existing?.sortOrder ?? sortOrder,
+          },
+          null,
+          2
+        )
+      );
+      if (!existing) sortOrder += 10;
+      continue;
+    }
     if (existing) {
       await prisma.galleryItem.update({
         where: { id: existing.id },
