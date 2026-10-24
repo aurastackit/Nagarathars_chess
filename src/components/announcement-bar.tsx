@@ -21,6 +21,9 @@ const START_DATE = new Intl.DateTimeFormat("en-IN", {
   timeZone: "UTC",
 });
 
+const FADE =
+  "linear-gradient(to right, transparent 0, #000 56px, #000 calc(100% - 56px), transparent 100%)";
+
 /** The ticker's items, in order. */
 function tickerItems(t: NextTournamentInfo, countdown: string) {
   return [
@@ -96,9 +99,9 @@ export function AnnouncementBar({
             aria-hidden="true"
             className="flex h-8 items-center overflow-hidden text-xs font-semibold motion-reduce:hidden sm:text-sm"
             style={{
-              maskImage: "linear-gradient(to right, transparent, #000 5%, #000 95%, transparent)",
-              WebkitMaskImage:
-                "linear-gradient(to right, transparent, #000 5%, #000 95%, transparent)",
+              // Soft 56px fade on both edges, so items never look cut off.
+              maskImage: FADE,
+              WebkitMaskImage: FADE,
             }}
           >
             <div className="ticker-track flex w-max flex-none items-center">

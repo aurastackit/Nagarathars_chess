@@ -39,8 +39,8 @@ export function HomeHero({
         <rect width="100%" height="100%" fill="url(#athangudi-tile)" opacity="0.05" />
       </svg>
 
-      <div className="relative mx-auto max-w-6xl px-4 pb-[clamp(3.5rem,9svh,5.5rem)] pt-[clamp(2.5rem,7svh,4.5rem)]">
-        <div className="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-8">
+      <div className="relative mx-auto max-w-6xl px-4 pb-[clamp(2.5rem,6svh,4rem)] pt-[clamp(1.5rem,4svh,2.5rem)]">
+        <div className="grid gap-10 lg:grid-cols-12 lg:items-start lg:gap-8">
           <div className="flex flex-col items-start gap-5 lg:col-span-6">
             {/* Not animated: it's the page's LCP element, and an element that starts at
                 opacity 0 isn't counted until much later. The rest still fades up. */}
@@ -98,19 +98,21 @@ export function HomeHero({
           </div>
 
           <div className="animate-fade-up lg:col-span-6" style={{ animationDelay: "200ms" }}>
-            {/* Board width tracks viewport height (svh) so board + chip stay above
-                the fold on short laptop screens, never dropping below 480px. */}
-            <div className="relative mx-auto w-full max-w-[420px] lg:max-w-[clamp(480px,calc(100svh-280px),520px)]">
-              <div
-                className="hero-glow pointer-events-none absolute -inset-[22%]"
-                aria-hidden="true"
-              />
-              <LiveBoard className="relative w-full" />
+            <div className="mx-auto w-full max-w-[420px] lg:max-w-[28rem]">
+              {/* Board width tracks viewport height (svh) so board + card fit one
+                  screen on laptops (1366×768 and up), capped at 500px on big ones. */}
+              <div className="relative mx-auto w-full lg:max-w-[clamp(300px,calc(100svh-430px),500px)]">
+                <div
+                  className="hero-glow pointer-events-none absolute -inset-[22%]"
+                  aria-hidden="true"
+                />
+                <LiveBoard className="relative w-full" />
+              </div>
               {/* Clear of the board, with real space below it. */}
               <TournamentChip
                 tournament={nextTournament}
                 timeLeft={timeLeft}
-                className="relative z-10 mt-6 lg:w-[28rem]"
+                className="relative z-10 mt-6"
               />
             </div>
           </div>
