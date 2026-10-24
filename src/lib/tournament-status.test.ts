@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   LISTED_STATUSES,
   canRegisterFor,
+  getTournamentStatus,
   isRegistrableStatus,
   isUnlisted,
 } from "./tournament-status";
@@ -27,4 +28,16 @@ test("unlisted (test) tournaments: open by direct link, never listed", () => {
   assert.ok(!LISTED_STATUSES.includes("unlisted") && !LISTED_STATUSES.includes("draft"));
   assert.deepEqual(LISTED_STATUSES, ["published", "closed", "completed"]);
   assert.ok((TOURNAMENT_STATUSES as readonly string[]).includes("unlisted"), "admins can pick it");
+});
+
+test("a one-day event is completed only after its day ends in India", () => {
+  const event = {
+    endDate: new Date("2026-12-27T00:00:00Z"),
+    registrationDeadline: new Date("2026-12-20T00:00:00Z"),
+  };
+  // 27 Dec 18:00 IST: on the day itself — registration closed, not completed.
+  assert.equal(getTournamentStatus(event, new Date("2026-12-27T12:30:00+00:00")), "closed");
+  assert.equal(getTournamentStatus(event, new Date("2026-12-27T00:01:00+05:30")), "closed");
+  // 28 Dec 00:01 IST: over.
+  assert.equal(getTournamentStatus(event, new Date("2026-12-28T00:01:00+05:30")), "completed");
 });

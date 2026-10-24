@@ -1,11 +1,7 @@
+import { todayIST } from "@/lib/datetime";
 import { getTournamentStatus } from "@/lib/tournament-status";
 
 type StatsTournament = { city: string; startDate: Date; endDate: Date; registrationDeadline: Date };
-
-/** Midnight UTC of today's date in India: tournament dates are stored as midnight UTC of the calendar day. */
-function todayIST(now: Date) {
-  return new Date(`${new Date(now.getTime() + 330 * 60_000).toISOString().slice(0, 10)}T00:00:00Z`);
-}
 
 /**
  * The figures on the home and About pages, from the published tournaments:

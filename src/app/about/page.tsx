@@ -10,6 +10,7 @@ import { TrusteesOrbit } from "@/components/trustees-orbit";
 import { COMMITTEE } from "@/data/committee";
 import { CLASSES_ENABLED } from "@/lib/features";
 import { getTournamentStats } from "@/lib/tournament-stats";
+import { getTournamentStatus } from "@/lib/tournament-status";
 
 // Static, regenerated at most every minute or on demand after an admin
 // change (lib/revalidate-public).
@@ -57,8 +58,9 @@ export default async function AboutPage() {
   ]);
 
   const tournamentStats = getTournamentStats(publishedTournaments);
-  const now = new Date();
-  const upcomingTournaments = publishedTournaments.filter((t) => t.endDate >= now);
+  const upcomingTournaments = publishedTournaments.filter(
+    (t) => getTournamentStatus(t) !== "completed"
+  );
 
   const stats = [
     { label: "Tournaments hosted", value: tournamentStats.hosted },

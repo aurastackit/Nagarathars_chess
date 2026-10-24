@@ -23,7 +23,8 @@ export function getTournamentStatus(
   tournament: { endDate: Date; registrationDeadline: Date },
   now: Date = new Date()
 ): TournamentStatus {
-  if (tournament.endDate < now) return "completed";
+  // endDate is midnight UTC of the last day: the event is on until that day ends in India.
+  if (endOfDayIST(tournament.endDate) < now) return "completed";
   const deadline = endOfDayIST(tournament.registrationDeadline);
   if (deadline < now) return "closed";
   if (deadline.getTime() - now.getTime() <= CLOSING_SOON_WINDOW_MS) {

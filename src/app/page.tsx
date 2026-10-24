@@ -7,6 +7,7 @@ import { CountUp } from "@/components/count-up";
 import { getNextTournament } from "@/lib/next-tournament";
 import { timeUntilEndOfDayIST } from "@/lib/countdown-format";
 import { SEATS_TAKEN_COUNT } from "@/lib/tournament-status";
+import { todayIST } from "@/lib/datetime";
 import { getTournamentStats } from "@/lib/tournament-stats";
 import { TournamentCard } from "@/components/tournament-card";
 import { getHallOfChampions } from "@/lib/hall-of-champions";
@@ -16,13 +17,19 @@ import { getGallery } from "@/lib/gallery";
 import { resolveVideoPlayback, type ShortsItem } from "@/lib/video";
 import { ShortsRow } from "@/components/shorts-row";
 import { CTA_PHOTO } from "@/lib/stock-photos";
-import { KnightIcon, PawnIcon, RookIcon, TrophyIcon } from "@/components/icons/chess-pieces";
+import {
+  KingIcon,
+  KnightIcon,
+  PawnIcon,
+  RookIcon,
+  TrophyIcon,
+} from "@/components/icons/chess-pieces";
+import { AGE_CATEGORIES, ageRangeLabel, type AgeCategoryValue } from "@/lib/age-category";
 import { HomeHero } from "@/components/hero/home-hero";
 import { VignetteCard } from "@/components/illustrations/vignettes/vignette-card";
 import { BrowseVignette } from "@/components/illustrations/how-it-works/browse-vignette";
 import { RegisterVignette } from "@/components/illustrations/how-it-works/register-vignette";
 import { PlayVignette } from "@/components/illustrations/how-it-works/play-vignette";
-import { TimeControlVignette } from "@/components/illustrations/tournament-formats/time-control-vignette";
 import {
   FocusVignette,
   PlanningVignette,
@@ -121,28 +128,21 @@ const STEPS = [
   },
 ];
 
-// `share` = each player's time as a share of an hour, drawn as the clock's gold arc.
-// Kickers follow FIDE's bands: blitz ≤10 min, rapid 10–60 min, classical 60+ min per player.
-const FORMATS = [
-  {
-    share: 0.92,
-    kicker: "60+ min each",
-    title: "Classical",
-    body: "Longer time controls that reward deep calculation — the traditional tournament format.",
+// Who each age category is for. The ages come from AGE_CATEGORIES / ageRangeLabel, never from here.
+const CATEGORY_CARDS: Record<AgeCategoryValue, { Icon: typeof PawnIcon; body: string }> = {
+  under_11: {
+    Icon: PawnIcon,
+    body: "Our youngest players: a friendly first step into tournament chess.",
   },
-  {
-    share: 25 / 60,
-    kicker: "10–60 min each",
-    title: "Rapid",
-    body: "Faster games that still leave room to think, ideal for one-day events and first-timers.",
+  "11_to_18": {
+    Icon: KnightIcon,
+    body: "School-age players ready to test themselves against others their own age.",
   },
-  {
-    share: 5 / 60,
-    kicker: "Up to 10 min each",
-    title: "Blitz",
-    body: "Quick-fire games for players who want fast-paced, high-energy competition.",
+  above_19: {
+    Icon: KingIcon,
+    body: "Adults and experienced players, from first-timers to club regulars.",
   },
-];
+};
 
 const BENEFITS = [
   {
@@ -196,7 +196,7 @@ export default async function HomePage() {
   ] = await Promise.all([
     prisma.tournament.findMany({
       // Only tournaments that haven't ended: a past one never shows as "upcoming".
-      where: { status: "published", endDate: { gte: new Date() } },
+      where: { status: "published", endDate: { gte: todayIST() } },
       orderBy: { startDate: "asc" },
       take: 3,
       include: SEATS_TAKEN_COUNT,
@@ -414,23 +414,34 @@ export default async function HomePage() {
       )}
 
       <Section
-        eyebrow="Time controls"
-        title="Tournament formats"
-        subtitle="We run events across every time control, so there's a format for how you like to play."
+        eyebrow="Who can play"
+        title="Age categories"
+        subtitle="Every tournament is played in age groups, so players compete with others their own age."
         align="left"
         className={nextBand()}
       >
         <div className="grid gap-6 md:grid-cols-3">
-          {FORMATS.map((f) => (
-            <VignetteCard
-              key={f.title}
-              kicker={f.kicker}
-              title={f.title}
-              body={f.body}
-              vignette={<TimeControlVignette share={f.share} />}
-            />
-          ))}
+          {AGE_CATEGORIES.map((c) => {
+            const { Icon, body } = CATEGORY_CARDS[c.value];
+            return (
+              <VignetteCard
+                key={c.value}
+                kicker={ageRangeLabel(c.value)}
+                title={c.label}
+                body={body}
+                vignette={
+                  <div className="flex h-full items-center justify-center">
+                    <Icon className="h-20 w-20 text-gold-ink" aria-hidden="true" />
+                  </div>
+                }
+              />
+            );
+          })}
         </div>
+        <p className="text-small mt-6 text-muted">
+          Age is counted by year of birth in the tournament year, and your category is set
+          automatically from it.
+        </p>
       </Section>
 
       {hallOfChampions.length > 0 && (

@@ -23,9 +23,8 @@ test("tournament stats: one past and one upcoming", () => {
     cities: 1,
     completed: 1,
   });
-  // Starting today counts as hosted. (getTournamentStatus calls a one-day event completed from
-  // the start of its day, because endDate is midnight UTC — noted in TODO.md.)
+  // Starting today counts as hosted, but it isn't completed until the day ends.
   const today = { ...upcoming, startDate: day("2026-10-24"), endDate: day("2026-10-24") };
-  assert.equal(getTournamentStats([today], now).hosted, 1);
+  assert.deepEqual(getTournamentStats([today], now), { hosted: 1, cities: 1, completed: 0 });
   assert.deepEqual(getTournamentStats([], now), { hosted: 0, cities: 0, completed: 0 });
 });
