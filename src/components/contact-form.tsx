@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { Button, Input, Label, Textarea } from "@/components/ui";
 import { HoneypotField } from "@/components/honeypot-field";
+import { whatsappLink, WHATSAPP_GREETING } from "@/data/contact";
 
 export function ContactForm() {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
@@ -35,7 +36,18 @@ export function ContactForm() {
   if (status === "success") {
     return (
       <div className="rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-800">
-        Thanks for reaching out — we&apos;ll get back to you soon.
+        <p>Thanks for reaching out — we&apos;ll get back to you soon.</p>
+        <p className="mt-2">
+          Need a faster reply?{" "}
+          <a
+            href={whatsappLink(WHATSAPP_GREETING)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold underline underline-offset-2"
+          >
+            Chat on WhatsApp<span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        </p>
       </div>
     );
   }

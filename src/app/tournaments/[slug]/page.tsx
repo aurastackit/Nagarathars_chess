@@ -26,6 +26,7 @@ import { isValidImageUrl } from "@/lib/image-url";
 import { RulesAccordion } from "@/components/rules-accordion";
 import { VenueMap } from "@/components/venue-map";
 import { CalendarIcon, WhatsAppIcon } from "@/components/icons/misc";
+import { whatsappLink } from "@/data/contact";
 import { RegistrationWizard } from "@/components/registration-wizard/registration-wizard-lazy";
 import { RegisterSlot, RegistrationFlow } from "@/components/registration-wizard/registration-flow";
 import { RegistrationNotice } from "@/components/registration-wizard/registration-notice";
@@ -233,6 +234,16 @@ export default async function TournamentDetailPage({
             >
               <WhatsAppIcon className="h-4 w-4" />
               Share on WhatsApp
+            </a>
+            <a
+              href={whatsappLink(`Hi, I have a question about ${tournament.title}.`)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonClasses("outline", "md", "gap-2")}
+            >
+              <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
+              Questions? Chat on WhatsApp
+              <span className="sr-only"> (opens in a new tab)</span>
             </a>
             {tournament.brochurePdfUrl && (
               <a

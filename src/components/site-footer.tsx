@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CLASSES_ENABLED } from "@/lib/features";
+import { WhatsAppIcon } from "@/components/icons/misc";
+import { CONTACT_EMAIL, WHATSAPP_DISPLAY, WHATSAPP_GREETING, whatsappLink } from "@/data/contact";
 
 const QUICK_LINKS = [
   { href: "/", label: "Home" },
@@ -60,6 +62,24 @@ export function SiteFooter() {
           >
             Send us a message &rarr;
           </Link>
+          <a
+            href={whatsappLink(WHATSAPP_GREETING)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 flex items-center gap-2 transition-colors hover:text-white hover:underline"
+          >
+            <WhatsAppIcon className="h-4 w-4 flex-none" aria-hidden="true" />
+            <span>
+              WhatsApp {WHATSAPP_DISPLAY}
+              <span className="sr-only"> (opens in a new tab)</span>
+            </span>
+          </a>
+          <a
+            href={`mailto:${CONTACT_EMAIL}`}
+            className="mt-2 block break-all transition-colors hover:text-white hover:underline"
+          >
+            {CONTACT_EMAIL}
+          </a>
         </div>
       </div>
       <div className="border-t border-white/10 py-4">
