@@ -14,6 +14,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "photos:committee": "node scripts/process-committee-photos.mjs",
     "icons": "node scripts/generate-icons.mjs",
+    "indexnow": "node scripts/indexnow.mjs",
     "test": "node scripts/run-tests.mjs"
   },
   "prisma": {
