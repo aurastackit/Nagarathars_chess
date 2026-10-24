@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { KingIcon, KnightIcon, PawnIcon } from "@/components/icons/chess-pieces";
 import type { AgeCategoryValue } from "@/lib/age-category";
+import { AGE_CATEGORY_ILLUSTRATIONS } from "@/components/illustrations/age-categories";
 
 const ART: Record<AgeCategoryValue, { Icon: typeof PawnIcon; src: string; alt: string }> = {
   under_11: {
@@ -26,7 +27,7 @@ const ART: Record<AgeCategoryValue, { Icon: typeof PawnIcon; src: string; alt: s
 /**
  * One home-page age category: a photo (with the category's chess piece in a
  * gold circle on its bottom edge), the age range, name and who it's for. If
- * the photo can't be loaded, the plain icon panel is shown instead.
+ * the photo can't be loaded, the category's illustration is shown instead.
  */
 export function CategoryCard({
   category,
@@ -40,14 +41,13 @@ export function CategoryCard({
   body: string;
 }) {
   const { Icon, src, alt } = ART[category];
+  const Illustration = AGE_CATEGORY_ILLUSTRATIONS[category];
   const [failed, setFailed] = useState(false);
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm">
       {failed ? (
-        <div className="vignette-panel flex aspect-[4/3] w-full items-center justify-center border-b border-border">
-          <Icon className="h-20 w-20 text-gold-ink" aria-hidden="true" />
-        </div>
+        <Illustration />
       ) : (
         <div className="relative">
           <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal/10">
