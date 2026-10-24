@@ -1,5 +1,3 @@
-import { getSignedVideoUrl } from "@/lib/s3";
-
 export type DetectedVideo =
   | { provider: "YOUTUBE"; id: string; embedUrl: string; thumbnailUrl: string }
   | { provider: "DRIVE"; id: string; embedUrl: string }
@@ -62,44 +60,4 @@ export class UnsupportedVideoUrlError extends Error {
     );
     this.name = "UnsupportedVideoUrlError";
   }
-}
-
-/** A HIGHLIGHTS GalleryItem, resolved and ready for a client component to render. */
-export type ShortsItem = {
-  id: string;
-  caption: string | null;
-  playback: VideoPlayback;
-};
-
-export type VideoPlayback =
-  | { provider: "YOUTUBE"; embedUrl: string; thumbnailUrl: string }
-  | { provider: "DRIVE"; embedUrl: string; thumbnailUrl: string | null }
-  | { provider: "S3"; videoUrl: string; thumbnailUrl: string | null };
-
-/** Server-only: resolves a GalleryItem's (url, videoProvider) into something a client
- * component can actually render — including signing the S3 playback URL. */
-export async function resolveVideoPlayback(item: {
-  url: string;
-  videoProvider: "YOUTUBE" | "DRIVE" | "S3";
-  thumbnailUrl: string | null;
-}): Promise<VideoPlayback> {
-  if (item.videoProvider === "S3") {
-    const videoUrl = await getSignedVideoUrl(item.url);
-    return { provider: "S3", videoUrl, thumbnailUrl: item.thumbnailUrl };
-  }
-
-  const detected = detectVideoProvider(item.url);
-  if (detected.provider !== item.videoProvider) {
-    throw new Error(
-      `GalleryItem videoProvider is ${item.videoProvider} but its url doesn't parse as one: ${item.url}`
-    );
-  }
-  if (detected.provider === "YOUTUBE") {
-    return {
-      provider: "YOUTUBE",
-      embedUrl: detected.embedUrl,
-      thumbnailUrl: item.thumbnailUrl ?? detected.thumbnailUrl,
-    };
-  }
-  return { provider: "DRIVE", embedUrl: detected.embedUrl, thumbnailUrl: item.thumbnailUrl };
 }

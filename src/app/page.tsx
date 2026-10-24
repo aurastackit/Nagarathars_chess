@@ -14,8 +14,6 @@ import { getHallOfChampions } from "@/lib/hall-of-champions";
 import { ClassWaitlistForm } from "@/components/class-waitlist-form";
 import { HERO_MOMENT_PHOTO } from "@/lib/featured-photos";
 import { getGallery } from "@/lib/gallery";
-import { resolveVideoPlayback, type ShortsItem } from "@/lib/video";
-import { ShortsRow } from "@/components/shorts-row";
 import { CTA_PHOTO } from "@/lib/stock-photos";
 import { KnightIcon, PawnIcon, RookIcon, TrophyIcon } from "@/components/icons/chess-pieces";
 import { CategoryCard } from "@/components/category-card";
@@ -171,32 +169,24 @@ const LEVEL_ORDER = ["beginner", "intermediate", "advanced"];
 
 export default async function HomePage() {
   // All in parallel: each query is a full round trip to the database.
-  const [
-    tournaments,
-    allClasses,
-    allPublished,
-    curatedGallery,
-    highlightVideos,
-    nextTournament,
-    hallOfChampions,
-  ] = await Promise.all([
-    prisma.tournament.findMany({
-      // Only tournaments that haven't ended: a past one never shows as "upcoming".
-      where: { status: "published", endDate: { gte: todayIST() } },
-      orderBy: { startDate: "asc" },
-      take: 3,
-      include: SEATS_TAKEN_COUNT,
-    }),
-    // No class data on public pages while classes are coming soon (lib/features).
-    CLASSES_ENABLED
-      ? prisma.classProgram.findMany({ orderBy: { createdAt: "asc" } })
-      : Promise.resolve([]),
-    prisma.tournament.findMany({ where: { status: "published" } }),
-    getGallery({ take: 6 }),
-    getGallery({ section: "HIGHLIGHTS", take: 10 }),
-    getNextTournament(),
-    getHallOfChampions(),
-  ]);
+  const [tournaments, allClasses, allPublished, curatedGallery, nextTournament, hallOfChampions] =
+    await Promise.all([
+      prisma.tournament.findMany({
+        // Only tournaments that haven't ended: a past one never shows as "upcoming".
+        where: { status: "published", endDate: { gte: todayIST() } },
+        orderBy: { startDate: "asc" },
+        take: 3,
+        include: SEATS_TAKEN_COUNT,
+      }),
+      // No class data on public pages while classes are coming soon (lib/features).
+      CLASSES_ENABLED
+        ? prisma.classProgram.findMany({ orderBy: { createdAt: "asc" } })
+        : Promise.resolve([]),
+      prisma.tournament.findMany({ where: { status: "published" } }),
+      getGallery({ take: 6 }),
+      getNextTournament(),
+      getHallOfChampions(),
+    ]);
   const nextTournamentTimeLeft = nextTournament
     ? timeUntilEndOfDayIST(nextTournament.registrationDeadline)
     : null;
@@ -221,25 +211,6 @@ export default async function HomePage() {
       title: p.caption ?? "Nagarathar's Chess Championship",
     }));
 
-  const shortsItems: ShortsItem[] = await Promise.all(
-    highlightVideos.items
-      // YouTube videos open on YouTube (gallery / About links), never in an in-page player.
-      .filter(
-        (row) =>
-          row.mediaType === "VIDEO" &&
-          row.videoProvider !== "NONE" &&
-          row.videoProvider !== "YOUTUBE"
-      )
-      .map(async (row) => ({
-        id: row.id,
-        caption: row.caption,
-        playback: await resolveVideoPlayback({
-          url: row.url,
-          videoProvider: row.videoProvider as "YOUTUBE" | "DRIVE" | "S3",
-          thumbnailUrl: row.thumbnailUrl,
-        }),
-      }))
-  );
   const levelGroups = LEVEL_ORDER.map((level) => ({
     level,
     info: LEVEL_INFO[level],
@@ -542,17 +513,6 @@ export default async function HomePage() {
               </Link>
             ))}
           </Reveal>
-        </Section>
-      )}
-
-      {shortsItems.length > 0 && (
-        <Section
-          title="Video highlights"
-          align="left"
-          action={<ViewAll href="/gallery" />}
-          className={nextBand()}
-        >
-          <ShortsRow items={shortsItems} />
         </Section>
       )}
 

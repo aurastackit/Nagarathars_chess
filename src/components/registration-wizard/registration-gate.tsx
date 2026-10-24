@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, useTransition, type ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
@@ -96,6 +97,15 @@ export function RegistrationGate({
         className="flex max-h-full w-full max-w-3xl flex-col overflow-y-auto bg-background shadow-lg outline-none sm:rounded-xl"
       >
         <div className="p-4 sm:p-6">
+          {/* Same lockup as the site header. */}
+          <Image
+            src="/brand/lockup-horizontal.svg"
+            alt="Nagarathar's Chess Championship"
+            width={406}
+            height={120}
+            unoptimized
+            className="mx-auto mb-4 h-10 w-auto sm:h-12"
+          />
           <Link href="/tournaments" className="text-sm font-semibold text-gold-ink hover:underline">
             &larr; Back to tournaments
           </Link>
