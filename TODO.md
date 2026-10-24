@@ -101,3 +101,4 @@ them off here as they're done.
       after the owner's OK, and the daily job keeps it tidy. Without listing, deleting
       a registration can't find its cached ID cards (`id-cards/<id>/`), so the three
       from the 23 Oct Step 10 run are still there and will be on that list.
+- [ ] Permanent automated tests in GitHub Actions with a separate test database and mock email.
