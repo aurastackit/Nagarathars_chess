@@ -5,6 +5,7 @@ import { JsonLd } from "@/components/json-ld";
 import { prisma } from "@/lib/prisma";
 import { LISTED_STATUSES } from "@/lib/tournament-status";
 import { GalleryGrid } from "@/components/gallery-grid";
+import { FeaturedVideo } from "@/components/featured-video";
 import { isValidImageUrl } from "@/lib/image-url";
 import { getGallery } from "@/lib/gallery";
 import { resolveVideoPlayback, type ShortsItem } from "@/lib/video";
@@ -56,6 +57,9 @@ export default async function GalleryPage() {
     }))
   );
 
+  // The first YouTube highlight is featured at the top (/gallery#highlights).
+  const featured = videoItems.find((v) => v.playback.provider === "YOUTUBE");
+
   const realItems = [
     ...photoRows.map((p) => ({
       id: p.id,
@@ -98,6 +102,8 @@ export default async function GalleryPage() {
             : "Moments from our tournaments — posters, banners, and highlights as our community grows."}
         </p>
       </div>
+
+      {featured && <FeaturedVideo item={featured} />}
 
       {realItems.length === 0 && videoItems.length === 0 ? (
         <EmptyState

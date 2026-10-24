@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { pageMetadata } from "@/lib/seo";
 import { breadcrumbJsonLd } from "@/lib/seo/structured-data";
 import { JsonLd } from "@/components/json-ld";
@@ -9,6 +10,7 @@ import { Reveal } from "@/components/reveal";
 import { TrusteesLineup } from "@/components/trustees-lineup";
 import { COMMITTEE } from "@/data/committee";
 import { CLASSES_ENABLED } from "@/lib/features";
+import { PlayIcon } from "@/components/icons/misc";
 import { getTournamentStats } from "@/lib/tournament-stats";
 import { getTournamentStatus } from "@/lib/tournament-status";
 
@@ -51,10 +53,21 @@ const PROMISES = [
 ];
 
 export default async function AboutPage() {
-  const [publishedTournaments, classPrograms] = await Promise.all([
+  const [publishedTournaments, classPrograms, highlight] = await Promise.all([
     prisma.tournament.findMany({ where: { status: "published" } }),
     // No class data on public pages while classes are coming soon (lib/features).
     CLASSES_ENABLED ? prisma.classProgram.count() : Promise.resolve(0),
+    // The gallery's featured video (the first YouTube highlight), for the band below the trustees.
+    prisma.galleryItem.findFirst({
+      where: {
+        isPublished: true,
+        mediaType: "VIDEO",
+        videoProvider: "YOUTUBE",
+        section: "HIGHLIGHTS",
+      },
+      orderBy: [{ sortOrder: "asc" }, { takenAt: "desc" }, { createdAt: "desc" }],
+      select: { thumbnailUrl: true },
+    }),
   ]);
 
   const tournamentStats = getTournamentStats(publishedTournaments);
@@ -150,6 +163,39 @@ export default async function AboutPage() {
       >
         <TrusteesLineup members={COMMITTEE} />
       </Section>
+
+      {highlight?.thumbnailUrl && (
+        <section className="border-y border-border bg-background py-10">
+          <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 px-4 text-center sm:flex-row sm:text-left">
+            <Link
+              href="/gallery#highlights"
+              tabIndex={-1}
+              aria-hidden="true"
+              className="group relative block aspect-video w-full max-w-72 flex-none overflow-hidden rounded-lg border border-border bg-charcoal shadow-sm"
+            >
+              <Image
+                src={highlight.thumbnailUrl}
+                alt=""
+                fill
+                sizes="288px"
+                className="object-cover"
+              />
+              <span className="absolute inset-0 flex items-center justify-center bg-black/25 transition-colors group-hover:bg-black/35">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-charcoal shadow-lg">
+                  <PlayIcon className="h-5 w-5 translate-x-0.5" />
+                </span>
+              </span>
+            </Link>
+            <div>
+              <h2 className="h3 text-charcoal">Relive our first championship</h2>
+              <p className="mt-1 text-muted">Highlights from 4 January 2026.</p>
+              <LinkButton href="/gallery#highlights" className="mt-4">
+                Watch the highlights
+              </LinkButton>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="bg-charcoal/5 py-14">
         <div className="mx-auto max-w-4xl px-4">

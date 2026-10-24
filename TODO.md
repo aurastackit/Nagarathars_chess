@@ -104,3 +104,4 @@ them off here as they're done.
 - [ ] Permanent automated tests in GitHub Actions with a separate test database and mock email.
 - [ ] Completed tournament pages still show the seats bar ("0 / N seats filled" on /tournaments cards and the detail page); hide it once the event has ended.
 - [ ] Admin tournament form accepts past dates, but the deadline must be before the start date, so a held event needs a past deadline too (no future-date block exists).
+- [ ] CSP frame-src has no https://drive.google.com, so Google Drive videos in the lightbox would be blocked (only YouTube was added, 24 Oct).
