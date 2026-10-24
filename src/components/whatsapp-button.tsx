@@ -6,17 +6,20 @@ export function WhatsAppButton({
   text,
   children = "Chat on WhatsApp",
   className = "",
+  onDark = false,
 }: {
   text: string;
   children?: React.ReactNode;
   className?: string;
+  /** On the charcoal panel: a gold focus outline (the green one would vanish). */
+  onDark?: boolean;
 }) {
   return (
     <a
       href={whatsappLink(text)}
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex items-center justify-center gap-2 rounded-md bg-[#1f7a4d] px-5 py-2.5 font-semibold text-white shadow-sm transition-colors hover:bg-[#18643f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1f7a4d] ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-md bg-[#1f7a4d] px-5 py-2.5 font-semibold text-white shadow-sm transition-colors hover:bg-[#18643f] focus-visible:outline-2 focus-visible:outline-offset-2 ${onDark ? "focus-visible:outline-gold" : "focus-visible:outline-[#1f7a4d]"} ${className}`}
     >
       <WhatsAppIcon className="h-5 w-5 flex-none" aria-hidden="true" />
       {children}
