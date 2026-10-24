@@ -9,6 +9,7 @@ import { Reveal } from "@/components/reveal";
 import { TrusteesOrbit } from "@/components/trustees-orbit";
 import { COMMITTEE } from "@/data/committee";
 import { CLASSES_ENABLED } from "@/lib/features";
+import { getTournamentStats } from "@/lib/tournament-stats";
 
 // Static, regenerated at most every minute or on demand after an admin
 // change (lib/revalidate-public).
@@ -55,16 +56,15 @@ export default async function AboutPage() {
     CLASSES_ENABLED ? prisma.classProgram.count() : Promise.resolve(0),
   ]);
 
-  const cities = new Set(publishedTournaments.map((t) => t.city)).size;
+  const tournamentStats = getTournamentStats(publishedTournaments);
   const now = new Date();
-  const pastTournaments = publishedTournaments.filter((t) => t.endDate < now);
   const upcomingTournaments = publishedTournaments.filter((t) => t.endDate >= now);
 
   const stats = [
-    { label: "Tournaments hosted", value: publishedTournaments.length },
-    { label: "Cities reached", value: cities },
+    { label: "Tournaments hosted", value: tournamentStats.hosted },
+    { label: "Cities reached", value: tournamentStats.cities },
     ...(CLASSES_ENABLED ? [{ label: "Class programs offered", value: classPrograms }] : []),
-    { label: "Tournaments completed", value: pastTournaments.length },
+    { label: "Tournaments completed", value: tournamentStats.completed },
   ];
 
   return (

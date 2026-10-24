@@ -6,7 +6,8 @@ import { Reveal } from "@/components/reveal";
 import { CountUp } from "@/components/count-up";
 import { getNextTournament } from "@/lib/next-tournament";
 import { timeUntilEndOfDayIST } from "@/lib/countdown-format";
-import { SEATS_TAKEN_COUNT, getTournamentStatus } from "@/lib/tournament-status";
+import { SEATS_TAKEN_COUNT } from "@/lib/tournament-status";
+import { getTournamentStats } from "@/lib/tournament-stats";
 import { TournamentCard } from "@/components/tournament-card";
 import { getHallOfChampions } from "@/lib/hall-of-champions";
 import { ClassWaitlistForm } from "@/components/class-waitlist-form";
@@ -194,7 +195,8 @@ export default async function HomePage() {
     hallOfChampions,
   ] = await Promise.all([
     prisma.tournament.findMany({
-      where: { status: "published" },
+      // Only tournaments that haven't ended: a past one never shows as "upcoming".
+      where: { status: "published", endDate: { gte: new Date() } },
       orderBy: { startDate: "asc" },
       take: 3,
       include: SEATS_TAKEN_COUNT,
@@ -214,19 +216,15 @@ export default async function HomePage() {
     : null;
 
   const classes = allClasses.slice(0, 3);
-  const completedTournaments = allPublished.filter((t) => getTournamentStatus(t) === "completed");
-  // Same four figures as the About page.
+  const tournamentStats = getTournamentStats(allPublished);
+  // Same figures as the About page (lib/tournament-stats).
   const stats = [
-    { Icon: KnightIcon, label: "Tournaments hosted", value: allPublished.length },
-    {
-      Icon: RookIcon,
-      label: "Cities reached",
-      value: new Set(allPublished.map((t) => t.city)).size,
-    },
+    { Icon: KnightIcon, label: "Tournaments hosted", value: tournamentStats.hosted },
+    { Icon: RookIcon, label: "Cities reached", value: tournamentStats.cities },
     ...(CLASSES_ENABLED
       ? [{ Icon: PawnIcon, label: "Class programs offered", value: allClasses.length }]
       : []),
-    { Icon: TrophyIcon, label: "Tournaments completed", value: completedTournaments.length },
+    { Icon: TrophyIcon, label: "Tournaments completed", value: tournamentStats.completed },
   ];
 
   const realGalleryItems = curatedGallery.items
