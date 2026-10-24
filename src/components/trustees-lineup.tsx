@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Fragment,
   useEffect,
   useRef,
   useState,
@@ -23,18 +24,33 @@ function subscribeReduced(onChange: () => void) {
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
+/** Each change is a chess move, picked by the target index. */
+const MOVES = ["rook", "bishop", "knight", "queen", "king"] as const;
+type Move = (typeof MOVES)[number];
+
+/** The move's path (line, then arrowhead) in a 100×100 box, drawn for a move to the right. */
+const TRACE: Record<Move, [string, string]> = {
+  rook: ["M10 50 H90", "M82 43 L90 50 L82 57"],
+  bishop: ["M15 85 L85 15", "M74 16 L85 15 L84 26"],
+  knight: ["M30 85 V30 Q30 18 45 18 H78", "M70 11 L78 18 L70 25"],
+  queen: ["M50 88 V12", "M43 20 L50 12 L57 20"],
+  king: ["M50 64 V36", "M43 44 L50 36 L57 44"],
+};
+
 /**
- * The /about trustees: one trustee in the spotlight (portrait, name, place and
- * the site's message), and below it a rail of all seven on alternating board
- * squares. The active square steps up like an advancing pawn. Advances every
- * 6s (driven by the progress line's CSS animation), paused on hover, keyboard
- * focus or the pause button; never with reduced motion.
+ * The /about trustees: one trustee in the spotlight card (portrait, name,
+ * place, the site's message, counter and controls), and under it a straight
+ * rail of all seven on alternating board squares. Each change plays a chess
+ * move (rook, bishop, knight, queen, king in turn). Advances every 6s (driven
+ * by the progress line's CSS animation), paused on hover, keyboard focus or
+ * the pause button; never with reduced motion, which also swaps instantly.
  */
 export function TrusteesLineup({ members }: { members: CommitteeMember[] }) {
   const count = members.length;
   const [index, setIndex] = useState(0);
   const [dir, setDir] = useState(1);
   const [prev, setPrev] = useState<number | null>(null);
+  const [changed, setChanged] = useState(false);
   const [focusIndex, setFocusIndex] = useState(0);
   const [stopped, setStopped] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -49,12 +65,14 @@ export function TrusteesLineup({ members }: { members: CommitteeMember[] }) {
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const running = !reduced && !stopped && !hovered && !focused;
+  const animate = changed && !reduced;
 
   function go(next: number, direction = next > index ? 1 : -1) {
     const n = (next + count) % count;
     if (n === index) return;
     setDir(direction);
     setPrev(reduced ? null : index);
+    setChanged(true);
     setIndex(n);
     setFocusIndex(n);
   }
@@ -83,7 +101,8 @@ export function TrusteesLineup({ members }: { members: CommitteeMember[] }) {
   }
 
   const member = members[index];
-  const slide = { "--dx": `${dir * 16}px` } as CSSProperties;
+  const move = MOVES[index % MOVES.length];
+  const moveStyle = { "--s": dir } as CSSProperties;
 
   return (
     <div
@@ -100,160 +119,208 @@ export function TrusteesLineup({ members }: { members: CommitteeMember[] }) {
         role="tabpanel"
         aria-live="polite"
         aria-labelledby={`trustee-tab-${member.id}`}
-        className="grid rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8"
+        className="flex flex-col items-center gap-6 overflow-hidden rounded-lg border border-border bg-background p-6 text-center shadow-sm sm:flex-row sm:gap-10 sm:p-8 sm:text-left"
       >
-        {prev !== null && (
-          <Spotlight
-            member={members[prev]}
-            position={prev + 1}
-            count={count}
-            className="trustee-out pointer-events-none"
-            style={slide}
-            onAnimationEnd={() => setPrev(null)}
-            hidden
+        <div
+          className="relative size-56 flex-none rounded-full ring-1 ring-gold sm:size-64"
+          style={moveStyle}
+        >
+          {animate && move === "queen" && (
+            <span key={`glow-${index}`} className="trustee-glow" aria-hidden="true" />
+          )}
+          {animate && (
+            <svg
+              key={`trace-${index}`}
+              viewBox="0 0 100 100"
+              className="pointer-events-none absolute -inset-[14%] size-[128%] overflow-visible"
+              style={{
+                transform:
+                  dir < 0 && move !== "queen" && move !== "king" ? "scaleX(-1)" : undefined,
+              }}
+              fill="none"
+              stroke="var(--gold)"
+              strokeWidth={1.2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d={TRACE[move][0]} pathLength={100} className="trustee-trace" />
+              <path d={TRACE[move][1]} className="trustee-trace-head" />
+            </svg>
+          )}
+          {prev !== null && (
+            <Portrait
+              key={`prev-${index}`}
+              member={members[prev]}
+              className={`trustee-out-${move}`}
+              onAnimationEnd={() => setPrev(null)}
+            />
+          )}
+          <Portrait
+            key={member.id}
+            member={member}
+            className={animate ? `trustee-in-${move}` : undefined}
+            label
           />
-        )}
-        <Spotlight
-          key={member.id}
-          member={member}
-          position={index + 1}
-          count={count}
-          className={reduced ? undefined : "trustee-in"}
-          style={slide}
-        />
-      </div>
+        </div>
 
-      <div className="mt-4 flex items-center justify-center gap-2">
-        <ControlButton label="Previous trustee" onClick={() => go(index - 1, -1)}>
-          <path d="M15 5l-7 7 7 7M8 12h12" />
-        </ControlButton>
-        {!reduced && (
-          <ControlButton
-            label={stopped ? "Play slideshow" : "Pause slideshow"}
-            onClick={() => setStopped((s) => !s)}
-          >
-            {stopped ? <path d="M8 5l11 7-11 7Z" /> : <path d="M9 5v14M15 5v14" />}
-          </ControlButton>
-        )}
-        <ControlButton label="Next trustee" onClick={() => go(index + 1, 1)}>
-          <path d="M9 5l7 7-7 7M16 12H4" />
-        </ControlButton>
+        <div className="flex min-w-0 flex-1 flex-col self-stretch sm:justify-center">
+          {/* Every trustee's text is laid out invisibly in the same cell, so the card keeps the tallest height. */}
+          <div className="grid">
+            {members.map((m) => (
+              <TrusteeText key={m.id} member={m} className="invisible" hidden />
+            ))}
+            <TrusteeText key={member.id} member={member} animate={animate} />
+          </div>
+
+          <div className="mt-5 flex items-center justify-center gap-3 sm:justify-between">
+            <p className="text-sm font-semibold tabular-nums tracking-wider text-gold-ink">
+              {pad(index + 1)} / {pad(count)}
+            </p>
+            <div className="flex items-center gap-2">
+              <ControlButton label="Previous trustee" onClick={() => go(index - 1, -1)}>
+                <path d="M15 5l-7 7 7 7M8 12h12" />
+              </ControlButton>
+              {!reduced && (
+                <ControlButton
+                  label={stopped ? "Play slideshow" : "Pause slideshow"}
+                  onClick={() => setStopped((s) => !s)}
+                >
+                  {stopped ? <path d="M8 5l11 7-11 7Z" /> : <path d="M9 5v14M15 5v14" />}
+                </ControlButton>
+              )}
+              <ControlButton label="Next trustee" onClick={() => go(index + 1, 1)}>
+                <path d="M9 5l7 7-7 7M16 12H4" />
+              </ControlButton>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div
         ref={railRef}
-        className="relative mt-2 snap-x snap-mandatory overflow-x-auto px-4 pb-2 pt-14 [scrollbar-width:thin] sm:pt-20"
+        className="relative mt-3 snap-x snap-mandatory overflow-x-auto px-2 pb-1 pt-2 [scrollbar-width:thin]"
       >
-        <div
-          role="tablist"
-          aria-label="Trustees"
-          onKeyDown={onRailKey}
-          className="mx-auto flex w-max gap-2 sm:gap-3"
-        >
-          {members.map((m, i) => {
-            const active = i === index;
-            return (
-              <button
-                key={m.id}
-                ref={(el) => {
-                  tabRefs.current[i] = el;
-                }}
-                type="button"
-                role="tab"
-                id={`trustee-tab-${m.id}`}
-                aria-selected={active}
-                aria-controls="trustee-spotlight"
-                aria-label={`${m.name}, ${m.place}`}
-                tabIndex={i === focusIndex ? 0 : -1}
-                onClick={() => go(i)}
-                className={`group flex snap-center flex-col items-center rounded-sm transition-opacity focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink ${active ? "" : "opacity-70 hover:opacity-100"}`}
-              >
-                <span className="relative block size-14 sm:size-20">
-                  <span
-                    className={`absolute inset-0 flex items-center justify-center rounded-[3px] p-1.5 shadow-sm transition-transform duration-300 ease-out motion-reduce:transition-none ${i % 2 ? "bg-[var(--board-dark)]" : "bg-[var(--board-light)]"} ${active ? "-translate-y-full ring-2 ring-gold" : "group-hover:-translate-y-1"}`}
-                  >
-                    <Image
-                      src={m.photoSmall}
-                      alt=""
-                      width={80}
-                      height={80}
-                      sizes="80px"
-                      className="size-full rounded-full object-cover"
-                    />
-                  </span>
-                </span>
-                <span className="mt-2 block h-0.5 w-full overflow-hidden rounded-full bg-gold/25">
-                  {active && (
-                    <span
-                      key={`${index}-${reduced}`}
-                      className={`block h-full origin-left bg-gold ${reduced ? "" : "trustee-progress"}`}
-                      style={{ animationPlayState: running ? "running" : "paused" }}
-                      onAnimationEnd={() => go(index + 1, 1)}
-                    />
-                  )}
-                </span>
-                <span
-                  className={`mt-1 text-xs tabular-nums ${active ? "font-semibold text-gold-ink" : "text-muted"}`}
+        <div className="mx-auto w-max">
+          <div role="tablist" aria-label="Trustees" onKeyDown={onRailKey} className="flex gap-3">
+            {members.map((m, i) => {
+              const active = i === index;
+              return (
+                <button
+                  key={m.id}
+                  ref={(el) => {
+                    tabRefs.current[i] = el;
+                  }}
+                  type="button"
+                  role="tab"
+                  id={`trustee-tab-${m.id}`}
+                  aria-selected={active}
+                  aria-controls="trustee-spotlight"
+                  aria-label={`${m.name}, ${m.place}`}
+                  tabIndex={i === focusIndex ? 0 : -1}
+                  onClick={() => go(i)}
+                  className={`flex snap-center flex-col items-center rounded-sm transition-opacity focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink ${active ? "" : "opacity-70 hover:opacity-100"}`}
                 >
-                  {i + 1}
-                </span>
-              </button>
-            );
-          })}
+                  <span
+                    className={`block size-14 rounded-[3px] p-1.5 shadow-sm transition-transform duration-300 ease-out motion-reduce:transition-none sm:size-16 ${i % 2 ? "bg-[var(--board-dark)]" : "bg-[var(--board-light)]"} ${active ? "-translate-y-1 scale-[1.06] ring-2 ring-gold" : ""}`}
+                  >
+                    <span className="block size-full overflow-hidden rounded-full">
+                      <Image
+                        src={m.photoSmall}
+                        alt=""
+                        width={64}
+                        height={64}
+                        sizes="64px"
+                        className="size-full object-cover"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    className={`mt-1.5 text-xs tabular-nums ${active ? "font-semibold text-gold-ink" : "text-muted"}`}
+                  >
+                    {i + 1}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <span className="mt-2 block h-0.5 w-full overflow-hidden rounded-full bg-gold/20">
+            <span
+              key={`${index}-${reduced}`}
+              className={`block h-full origin-left bg-gold ${reduced ? "" : "trustee-progress"}`}
+              style={{ animationPlayState: running ? "running" : "paused" }}
+              onAnimationEnd={() => go(index + 1, 1)}
+            />
+          </span>
         </div>
       </div>
     </div>
   );
 }
 
-function Spotlight({
+function Portrait({
   member,
-  position,
-  count,
   className,
-  style,
   onAnimationEnd,
-  hidden,
+  label,
 }: {
   member: CommitteeMember;
-  position: number;
-  count: number;
   className?: string;
-  style?: CSSProperties;
   onAnimationEnd?: () => void;
-  hidden?: boolean;
+  label?: boolean;
 }) {
   return (
     <div
-      className={`flex flex-col items-center gap-6 text-center [grid-area:1/1] sm:flex-row sm:items-center sm:gap-10 sm:text-left ${className ?? ""}`}
-      style={style}
+      className={`absolute inset-1.5 overflow-hidden rounded-full ${className ?? ""}`}
       onAnimationEnd={onAnimationEnd}
-      aria-hidden={hidden || undefined}
+      aria-hidden={label ? undefined : true}
     >
-      <div className="relative aspect-square w-full max-w-64 flex-none rounded-full p-1.5 ring-1 ring-gold sm:w-64">
-        <Image
-          src={member.photo}
-          alt={`Portrait of ${member.name}`}
-          width={800}
-          height={800}
-          sizes="(min-width: 640px) 256px, 80vw"
-          className="size-full rounded-full object-cover"
-        />
-      </div>
-      <div className="min-w-0 flex-1">
+      <Image
+        src={member.photo}
+        alt={label ? `Portrait of ${member.name}` : ""}
+        width={800}
+        height={800}
+        sizes="256px"
+        className="size-full object-cover"
+      />
+    </div>
+  );
+}
+
+function TrusteeText({
+  member,
+  className,
+  hidden,
+  animate,
+}: {
+  member: CommitteeMember;
+  className?: string;
+  hidden?: boolean;
+  animate?: boolean;
+}) {
+  const words = member.quote.split(" ");
+  return (
+    <div className={`[grid-area:1/1] ${className ?? ""}`} aria-hidden={hidden || undefined}>
+      <div className={animate ? "trustee-rise" : undefined}>
         <h3 className="font-display text-2xl font-bold text-charcoal sm:text-3xl">{member.name}</h3>
         <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted">
           <MapPinIcon className="size-4 flex-none text-gold-ink" aria-hidden="true" />
           {member.place}
         </p>
-        <span className="mx-auto mt-4 block h-px w-16 bg-gold sm:mx-0" aria-hidden="true" />
-        <blockquote className="mt-4 font-display text-lg italic leading-relaxed text-foreground/85">
-          {member.quote}
-        </blockquote>
-        <p className="mt-5 text-sm font-semibold tabular-nums tracking-wider text-gold-ink">
-          {pad(position)} / {pad(count)}
-        </p>
       </div>
+      <span className="mx-auto mt-4 block h-px w-16 bg-gold sm:mx-0" aria-hidden="true" />
+      <blockquote className="mt-4 font-display text-lg italic leading-relaxed text-foreground/85">
+        {animate
+          ? words.map((w, i) => (
+              <Fragment key={i}>
+                <span className="trustee-word" style={{ animationDelay: `${120 + i * 25}ms` }}>
+                  {w}
+                </span>
+                {i < words.length - 1 ? " " : ""}
+              </Fragment>
+            ))
+          : member.quote}
+      </blockquote>
     </div>
   );
 }

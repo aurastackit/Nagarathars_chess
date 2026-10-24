@@ -327,20 +327,136 @@ body {
     animation-play-state: paused;
   }
 
-  /* Trustees lineup (components/trustees-lineup.tsx): the spotlight crossfades
-     and slides 16px (--dx, sign = direction); the gold line under the active
-     square fills over 6s, and its end advances to the next trustee. */
-  @keyframes trusteeIn {
+  /* Trustees lineup (components/trustees-lineup.tsx). Each change is a chess
+     move (500ms): the old portrait leaves and the new one arrives along the
+     move — rook across, bishop diagonal, knight an L-hop with a small arc,
+     queen a scale-up with a gold glow, king one gentle step. --s is +1 for
+     next, -1 for previous. A faint gold arrow traces the path behind the
+     photo, the name rises and the quote appears word by word. The gold line
+     under the rail fills over 6s; its end advances to the next trustee. */
+  @keyframes trusteeInRook {
     from {
       opacity: 0;
-      transform: translateX(var(--dx, 16px));
+      transform: translateX(calc(var(--s, 1) * 56px));
     }
   }
 
-  @keyframes trusteeOut {
+  @keyframes trusteeOutRook {
     to {
       opacity: 0;
-      transform: translateX(calc(var(--dx, 16px) * -1));
+      transform: translateX(calc(var(--s, 1) * -56px));
+    }
+  }
+
+  @keyframes trusteeInBishop {
+    from {
+      opacity: 0;
+      transform: translate(calc(var(--s, 1) * 40px), 40px);
+    }
+  }
+
+  @keyframes trusteeOutBishop {
+    to {
+      opacity: 0;
+      transform: translate(calc(var(--s, 1) * -40px), -40px);
+    }
+  }
+
+  @keyframes trusteeInKnight {
+    0% {
+      opacity: 0;
+      transform: translate(calc(var(--s, 1) * -44px), 44px);
+    }
+    45% {
+      opacity: 1;
+      transform: translate(calc(var(--s, 1) * -44px), -4px);
+    }
+    75% {
+      transform: translate(calc(var(--s, 1) * -14px), -10px);
+    }
+    100% {
+      transform: none;
+    }
+  }
+
+  @keyframes trusteeOutKnight {
+    45% {
+      opacity: 0.6;
+      transform: translate(0, -36px);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(calc(var(--s, 1) * 44px), -44px);
+    }
+  }
+
+  @keyframes trusteeInQueen {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+  }
+
+  @keyframes trusteeOutQueen {
+    to {
+      opacity: 0;
+      transform: scale(1.04);
+    }
+  }
+
+  @keyframes trusteeInKing {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  @keyframes trusteeFade {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes trusteeGlow {
+    0%,
+    100% {
+      opacity: 0;
+    }
+    45% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes trusteeTrace {
+    0% {
+      opacity: 0.5;
+      stroke-dashoffset: 100;
+    }
+    70% {
+      opacity: 0.5;
+      stroke-dashoffset: 0;
+    }
+    100% {
+      opacity: 0;
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes trusteeTraceHead {
+    0%,
+    55%,
+    100% {
+      opacity: 0;
+    }
+    70% {
+      opacity: 0.5;
+    }
+  }
+
+  @keyframes trusteeRise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
     }
   }
 
@@ -350,12 +466,65 @@ body {
     }
   }
 
-  .trustee-in {
-    animation: trusteeIn 400ms ease both;
+  .trustee-in-rook {
+    animation: trusteeInRook 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .trustee-out-rook {
+    animation: trusteeOutRook 500ms ease-in both;
+  }
+  .trustee-in-bishop {
+    animation: trusteeInBishop 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .trustee-out-bishop {
+    animation: trusteeOutBishop 500ms ease-in both;
+  }
+  .trustee-in-knight {
+    animation: trusteeInKnight 500ms ease-out both;
+  }
+  .trustee-out-knight {
+    animation: trusteeOutKnight 500ms ease-in both;
+  }
+  .trustee-in-queen {
+    animation: trusteeInQueen 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .trustee-out-queen {
+    animation: trusteeOutQueen 500ms ease-out both;
+  }
+  .trustee-in-king {
+    animation: trusteeInKing 500ms ease-out both;
+  }
+  .trustee-out-king {
+    animation: trusteeFade 500ms ease-out both;
   }
 
-  .trustee-out {
-    animation: trusteeOut 400ms ease both;
+  .trustee-glow {
+    position: absolute;
+    inset: -12%;
+    border-radius: 9999px;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--gold) 45%, transparent),
+      transparent
+    );
+    animation: trusteeGlow 900ms ease-out both;
+  }
+
+  .trustee-trace {
+    stroke-dasharray: 100 100;
+    animation: trusteeTrace 650ms ease-out both;
+  }
+
+  .trustee-trace-head {
+    animation: trusteeTraceHead 650ms ease-out both;
+  }
+
+  .trustee-rise {
+    animation: trusteeRise 400ms 80ms ease-out both;
+  }
+
+  .trustee-word {
+    display: inline-block;
+    animation: trusteeRise 300ms ease-out both;
   }
 
   .trustee-progress {
