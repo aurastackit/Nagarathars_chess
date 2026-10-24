@@ -333,7 +333,7 @@ body {
      queen a scale-up with a gold glow, king one gentle step. --s is +1 for
      next, -1 for previous. A faint gold arrow traces the path behind the
      photo, the name rises and the quote appears word by word. The gold line
-     under the rail fills over 6s; its end advances to the next trustee. */
+     beside the active row fills over 6s; its end advances to the next trustee. */
   @keyframes trusteeInRook {
     from {
       opacity: 0;
@@ -462,7 +462,7 @@ body {
 
   @keyframes trusteeProgress {
     from {
-      transform: scaleX(0);
+      transform: scaleY(0);
     }
   }
 

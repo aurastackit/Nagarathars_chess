@@ -2,7 +2,6 @@
 
 import {
   Fragment,
-  useEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -39,8 +38,9 @@ const TRACE: Record<Move, [string, string]> = {
 
 /**
  * The /about trustees: one trustee in the spotlight card (portrait, name,
- * place, the site's message, counter and controls), and under it a straight
- * rail of all seven on alternating board squares. Each change plays a chess
+ * place, the site's message, counter and controls) and a vertical list of all
+ * seven on a "chess file" (left column on lg+, below the card on smaller
+ * screens); a gold marker slides along the file to the active row. Each change plays a chess
  * move (rook, bishop, knight, queen, king in turn). Advances every 6s (driven
  * by the progress line's CSS animation), paused on hover, keyboard focus or
  * the pause button; never with reduced motion, which also swaps instantly.
@@ -61,7 +61,7 @@ export function TrusteesLineup({ members }: { members: CommitteeMember[] }) {
     () => window.matchMedia(REDUCED).matches,
     () => true
   );
-  const railRef = useRef<HTMLDivElement>(null);
+  const spotlightRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const running = !reduced && !stopped && !hovered && !focused;
@@ -77,21 +77,21 @@ export function TrusteesLineup({ members }: { members: CommitteeMember[] }) {
     setFocusIndex(n);
   }
 
-  // Keep the active square in view on narrow screens without scrolling the page.
-  useEffect(() => {
-    const rail = railRef.current;
-    const tab = tabRefs.current[index];
-    if (!rail || !tab || rail.scrollWidth <= rail.clientWidth) return;
-    rail.scrollTo({
-      left: tab.offsetLeft - (rail.clientWidth - tab.offsetWidth) / 2,
-      behavior: reduced ? "auto" : "smooth",
-    });
-  }, [index, reduced]);
+  // A tapped row brings the spotlight into view, but only when it's off-screen (stacked layout).
+  function pick(i: number) {
+    go(i);
+    const card = spotlightRef.current;
+    if (!card) return;
+    const { top, bottom } = card.getBoundingClientRect();
+    if (top < 0 || bottom > window.innerHeight) {
+      card.scrollIntoView({ block: "nearest", behavior: reduced ? "auto" : "smooth" });
+    }
+  }
 
-  function onRailKey(e: KeyboardEvent<HTMLDivElement>) {
+  function onListKey(e: KeyboardEvent<HTMLDivElement>) {
     let n = focusIndex;
-    if (e.key === "ArrowRight" || e.key === "ArrowDown") n = (focusIndex + 1) % count;
-    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") n = (focusIndex - 1 + count) % count;
+    if (e.key === "ArrowDown") n = (focusIndex + 1) % count;
+    else if (e.key === "ArrowUp") n = (focusIndex - 1 + count) % count;
     else if (e.key === "Home") n = 0;
     else if (e.key === "End") n = count - 1;
     else return;
@@ -106,7 +106,7 @@ export function TrusteesLineup({ members }: { members: CommitteeMember[] }) {
 
   return (
     <div
-      className="mx-auto max-w-4xl"
+      className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-center lg:gap-10"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onFocus={(e) => setFocused(e.target.matches(":focus-visible"))}
@@ -115,6 +115,7 @@ export function TrusteesLineup({ members }: { members: CommitteeMember[] }) {
       }}
     >
       <div
+        ref={spotlightRef}
         id="trustee-spotlight"
         role="tabpanel"
         aria-live="polite"
@@ -198,61 +199,75 @@ export function TrusteesLineup({ members }: { members: CommitteeMember[] }) {
       </div>
 
       <div
-        ref={railRef}
-        className="relative mt-3 snap-x snap-mandatory overflow-x-auto px-2 pb-1 pt-2 [scrollbar-width:thin]"
+        role="tablist"
+        aria-label="Trustees"
+        aria-orientation="vertical"
+        onKeyDown={onListKey}
+        className="relative lg:order-first"
       >
-        <div className="mx-auto w-max">
-          <div role="tablist" aria-label="Trustees" onKeyDown={onRailKey} className="flex gap-3">
-            {members.map((m, i) => {
-              const active = i === index;
-              return (
-                <button
-                  key={m.id}
-                  ref={(el) => {
-                    tabRefs.current[i] = el;
-                  }}
-                  type="button"
-                  role="tab"
-                  id={`trustee-tab-${m.id}`}
-                  aria-selected={active}
-                  aria-controls="trustee-spotlight"
-                  aria-label={`${m.name}, ${m.place}`}
-                  tabIndex={i === focusIndex ? 0 : -1}
-                  onClick={() => go(i)}
-                  className={`flex snap-center flex-col items-center rounded-sm transition-opacity focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink ${active ? "" : "opacity-70 hover:opacity-100"}`}
-                >
-                  <span
-                    className={`block size-14 rounded-[3px] p-1.5 shadow-sm transition-transform duration-300 ease-out motion-reduce:transition-none sm:size-16 ${i % 2 ? "bg-[var(--board-dark)]" : "bg-[var(--board-light)]"} ${active ? "-translate-y-1 scale-[1.06] ring-2 ring-gold" : ""}`}
-                  >
-                    <span className="block size-full overflow-hidden rounded-full">
-                      <Image
-                        src={m.photoSmall}
-                        alt=""
-                        width={64}
-                        height={64}
-                        sizes="64px"
-                        className="size-full object-cover"
-                      />
-                    </span>
-                  </span>
-                  <span
-                    className={`mt-1.5 text-xs tabular-nums ${active ? "font-semibold text-gold-ink" : "text-muted"}`}
-                  >
-                    {i + 1}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          <span className="mt-2 block h-0.5 w-full overflow-hidden rounded-full bg-gold/20">
+        {/* The gold marker rides the file to the active row; the line beside it fills over 6s. */}
+        <span
+          className="pointer-events-none absolute left-0 top-0 z-10 block h-[60px] w-4 transition-transform duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:h-[72px]"
+          style={{ transform: `translateY(${index * 100}%)` }}
+          aria-hidden="true"
+        >
+          <span className="absolute left-[3px] top-1/2 block size-2.5 -translate-y-1/2 rounded-[2px] bg-gold shadow-sm" />
+          <span className="absolute inset-y-1.5 left-0 block w-0.5 overflow-hidden rounded-full bg-gold/20">
             <span
               key={`${index}-${reduced}`}
-              className={`block h-full origin-left bg-gold ${reduced ? "" : "trustee-progress"}`}
+              className={`block size-full origin-top bg-gold ${reduced ? "" : "trustee-progress"}`}
               style={{ animationPlayState: running ? "running" : "paused" }}
               onAnimationEnd={() => go(index + 1, 1)}
             />
           </span>
-        </div>
+        </span>
+        {members.map((m, i) => {
+          const active = i === index;
+          return (
+            <button
+              key={m.id}
+              ref={(el) => {
+                tabRefs.current[i] = el;
+              }}
+              type="button"
+              role="tab"
+              id={`trustee-tab-${m.id}`}
+              aria-selected={active}
+              aria-controls="trustee-spotlight"
+              tabIndex={i === focusIndex ? 0 : -1}
+              onClick={() => pick(i)}
+              className={`relative flex h-[60px] w-full items-center gap-3 rounded-md pl-6 pr-3 text-left transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-gold-ink lg:h-[72px] ${active ? "bg-background" : "hover:bg-background/60"}`}
+            >
+              <span
+                className={`absolute left-1 top-1/2 block size-1.5 -translate-y-1/2 ${i % 2 ? "bg-[color-mix(in_srgb,var(--board-dark)_45%,var(--board-light))]" : "bg-[var(--board-light)] ring-1 ring-border"}`}
+                aria-hidden="true"
+              />
+              <span
+                className={`w-4 flex-none text-xs tabular-nums ${active ? "font-semibold text-gold-ink" : "text-muted"}`}
+              >
+                {i + 1}
+              </span>
+              <span className="block size-12 flex-none overflow-hidden rounded-full border border-border lg:size-14">
+                <Image
+                  src={m.photoSmall}
+                  alt=""
+                  width={56}
+                  height={56}
+                  sizes="56px"
+                  className="size-full object-cover"
+                />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span
+                  className={`block truncate font-display font-semibold ${active ? "text-gold-ink" : "text-charcoal"}`}
+                >
+                  {m.name}
+                </span>
+                <span className="block truncate text-xs text-muted">{m.place}</span>
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
