@@ -6,7 +6,7 @@ import { JsonLd } from "@/components/json-ld";
 import { prisma } from "@/lib/prisma";
 import { LinkButton, Card, Section } from "@/components/ui";
 import { Reveal } from "@/components/reveal";
-import { TrusteesOrbit } from "@/components/trustees-orbit";
+import { TrusteesLineup } from "@/components/trustees-lineup";
 import { COMMITTEE } from "@/data/committee";
 import { CLASSES_ENABLED } from "@/lib/features";
 import { getTournamentStats } from "@/lib/tournament-stats";
@@ -148,7 +148,7 @@ export default async function AboutPage() {
         align="left"
         className="bg-card"
       >
-        <TrusteesOrbit members={COMMITTEE} />
+        <TrusteesLineup members={COMMITTEE} />
       </Section>
 
       <section className="bg-charcoal/5 py-14">

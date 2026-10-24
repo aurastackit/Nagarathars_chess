@@ -191,83 +191,6 @@ body {
   contain-intrinsic-size: auto 900px;
 }
 
-/*
- * Trustees orbit (components/trustees-orbit.tsx). Avatars are 240px elements
- * scaled down to 88px on the ring, so border widths here are in spotlight px
- * (5.5px ≈ a 2px ivory border at ring size).
- */
-.trustee-face {
-  box-shadow:
-    0 0 0 5.5px var(--card),
-    0 12px 30px -10px rgb(23 20 15 / 0.35);
-  transition:
-    transform 150ms ease-out,
-    box-shadow 150ms ease-out;
-}
-
-.trustee-avatar[aria-checked="false"]:hover .trustee-face {
-  transform: scale(1.06);
-  box-shadow:
-    0 0 0 5.5px var(--gold),
-    0 12px 30px -10px rgb(23 20 15 / 0.35);
-}
-
-.trustee-avatar:focus-visible {
-  outline: 2px solid var(--charcoal);
-  outline-offset: 14px;
-}
-
-/* The same subtle circular vignette on every portrait, so the set reads as one. */
-.trustee-vignette {
-  background: radial-gradient(circle, transparent 58%, rgb(23 20 15 / 0.14) 100%);
-}
-
-.trustee-glow {
-  box-shadow:
-    0 0 70px 18px color-mix(in srgb, var(--gold) 26%, transparent),
-    0 26px 50px -16px rgb(23 20 15 / 0.3);
-}
-
-/* Faint Athangudi tile pattern behind the stage, fading out radially. */
-.trustee-tiles {
-  opacity: 0.04;
-  mask-image: radial-gradient(circle, #000 35%, transparent 72%);
-}
-
-.trustee-spot-mobile {
-  box-shadow:
-    0 0 0 4px var(--card),
-    0 0 0 7px var(--gold),
-    0 0 50px 10px color-mix(in srgb, var(--gold) 22%, transparent);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .trustee-face {
-    transition: none;
-  }
-
-  .ts-in,
-  .ts-spot-in {
-    animation: tsFade 150ms ease-out both;
-  }
-
-  .ts-out {
-    animation: tsFadeOut 150ms ease-out both;
-  }
-}
-
-@keyframes tsFade {
-  from {
-    opacity: 0;
-  }
-}
-
-@keyframes tsFadeOut {
-  to {
-    opacity: 0;
-  }
-}
-
 /* Vignette panel: walnut-tinted ivory, lit from the upper left — the same light as the pieces and the hero. */
 .vignette-panel {
   background:
@@ -404,52 +327,39 @@ body {
     animation-play-state: paused;
   }
 
-  /* Trustees info card (components/trustees-orbit.tsx): the old text slides up
-     and out in 150ms; the new lines then stagger in from 8px below, 60ms apart,
-     and the gold rule grows left to right — all done by ~640ms. */
-  @keyframes tsItemIn {
+  /* Trustees lineup (components/trustees-lineup.tsx): the spotlight crossfades
+     and slides 16px (--dx, sign = direction); the gold line under the active
+     square fills over 6s, and its end advances to the next trustee. */
+  @keyframes trusteeIn {
     from {
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateX(var(--dx, 16px));
     }
   }
 
-  @keyframes tsRuleIn {
+  @keyframes trusteeOut {
+    to {
+      opacity: 0;
+      transform: translateX(calc(var(--dx, 16px) * -1));
+    }
+  }
+
+  @keyframes trusteeProgress {
     from {
       transform: scaleX(0);
     }
   }
 
-  @keyframes tsOut {
-    to {
-      opacity: 0;
-      transform: translateY(-8px);
-    }
+  .trustee-in {
+    animation: trusteeIn 400ms ease both;
   }
 
-  @keyframes tsSpotIn {
-    from {
-      opacity: 0;
-      transform: scale(0.96);
-    }
+  .trustee-out {
+    animation: trusteeOut 400ms ease both;
   }
 
-  .ts-in .ts-item {
-    animation: tsItemIn 250ms cubic-bezier(0.22, 1, 0.36, 1) both;
-    animation-delay: calc(150ms + var(--d, 0ms));
-  }
-
-  .ts-in .ts-rule {
-    animation: tsRuleIn 250ms cubic-bezier(0.22, 1, 0.36, 1) both;
-    animation-delay: calc(150ms + var(--d, 0ms));
-  }
-
-  .ts-out {
-    animation: tsOut 150ms ease-in both;
-  }
-
-  .ts-spot-in {
-    animation: tsSpotIn 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  .trustee-progress {
+    animation: trusteeProgress 6s linear both;
   }
 
   /* Heading underline (components/draw-underline.tsx). */
