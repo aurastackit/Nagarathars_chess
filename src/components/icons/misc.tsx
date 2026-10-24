@@ -85,6 +85,15 @@ export function WhatsAppIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+/** The YouTube mark: a rounded play button. */
+export function YouTubeIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8ZM9.75 15.02V8.98L15.5 12l-5.75 3.02Z" />
+    </svg>
+  );
+}
+
 /** A screen with a play mark — live online sessions. */
 export function ScreenIcon(props: SVGProps<SVGSVGElement>) {
   return (

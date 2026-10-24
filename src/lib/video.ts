@@ -49,6 +49,12 @@ export function detectVideoProvider(input: string): DetectedVideo {
   return { provider: "NONE" };
 }
 
+/** The youtube.com watch page for a YouTube link (any form), or null if it isn't one. */
+export function youtubeWatchUrl(input: string): string | null {
+  const detected = detectVideoProvider(input);
+  return detected.provider === "YOUTUBE" ? `https://www.youtube.com/watch?v=${detected.id}` : null;
+}
+
 export class UnsupportedVideoUrlError extends Error {
   constructor(input: string) {
     super(

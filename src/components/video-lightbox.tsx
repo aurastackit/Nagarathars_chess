@@ -12,13 +12,10 @@ export function VideoLightbox({
   items,
   startIndex,
   onClose,
-  landscape = false,
 }: {
   items: ShortsItem[];
   startIndex: number;
   onClose: () => void;
-  /** 16:9 frame for full-length videos (the gallery's featured video) instead of 9:16. */
-  landscape?: boolean;
 }) {
   const [index, setIndex] = useState(startIndex);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -118,11 +115,7 @@ export function VideoLightbox({
       </button>
 
       <div
-        className={
-          landscape
-            ? "relative aspect-video w-full max-w-[min(64rem,calc(80vh*16/9))]"
-            : "relative aspect-[9/16] max-h-[80vh] w-full max-w-sm"
-        }
+        className="relative aspect-[9/16] max-h-[80vh] w-full max-w-sm"
         onClick={(e) => e.stopPropagation()}
       >
         {playback.provider === "YOUTUBE" || playback.provider === "DRIVE" ? (

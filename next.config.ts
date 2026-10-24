@@ -2,9 +2,8 @@ import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV !== "production";
 
-// Razorpay checkout + its own webview, a keyless Google Maps embed on
-// tournament pages and YouTube (privacy-enhanced) video embeds are the only
-// third-party origins this app talks to.
+// Razorpay checkout + its own webview, and a keyless Google Maps embed on
+// tournament pages, are the only third-party origins this app talks to.
 const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://checkout.razorpay.com`,
@@ -12,7 +11,7 @@ const csp = [
   "img-src 'self' data: blob: https://*.supabase.co https://*.amazonaws.com",
   "font-src 'self' data:",
   "connect-src 'self' https://*.amazonaws.com https://checkout.razorpay.com https://lumberjack.razorpay.com https://api.razorpay.com",
-  "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://www.google.com https://maps.google.com https://www.youtube-nocookie.com",
+  "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://www.google.com https://maps.google.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -35,8 +34,6 @@ const nextConfig: NextConfig = {
       // src/lib/featured-photos.ts) and licensed Unsplash stock photos.
       { protocol: "https", hostname: "aipixture.com" },
       { protocol: "https", hostname: "images.unsplash.com" },
-      // YouTube video thumbnails (gallery highlights).
-      { protocol: "https", hostname: "i.ytimg.com" },
     ],
   },
   async redirects() {

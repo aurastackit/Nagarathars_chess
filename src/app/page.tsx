@@ -223,7 +223,13 @@ export default async function HomePage() {
 
   const shortsItems: ShortsItem[] = await Promise.all(
     highlightVideos.items
-      .filter((row) => row.mediaType === "VIDEO" && row.videoProvider !== "NONE")
+      // YouTube videos open on YouTube (gallery / About links), never in an in-page player.
+      .filter(
+        (row) =>
+          row.mediaType === "VIDEO" &&
+          row.videoProvider !== "NONE" &&
+          row.videoProvider !== "YOUTUBE"
+      )
       .map(async (row) => ({
         id: row.id,
         caption: row.caption,

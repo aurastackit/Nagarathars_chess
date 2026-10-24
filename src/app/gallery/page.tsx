@@ -5,10 +5,9 @@ import { JsonLd } from "@/components/json-ld";
 import { prisma } from "@/lib/prisma";
 import { LISTED_STATUSES } from "@/lib/tournament-status";
 import { GalleryGrid } from "@/components/gallery-grid";
-import { FeaturedVideo } from "@/components/featured-video";
+import { YouTubeLink } from "@/components/youtube-link";
 import { isValidImageUrl } from "@/lib/image-url";
-import { getGallery } from "@/lib/gallery";
-import { resolveVideoPlayback, type ShortsItem } from "@/lib/video";
+import { getGallery, getHighlightVideoLink } from "@/lib/gallery";
 import { EmptyState } from "@/components/ui";
 import { EmptyGallery } from "@/components/illustrations/empty-states";
 import { CLASSES_ENABLED } from "@/lib/features";
@@ -26,7 +25,7 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default async function GalleryPage() {
-  const [curatedGallery, tournaments, classes] = await Promise.all([
+  const [curatedGallery, tournaments, classes, highlight] = await Promise.all([
     getGallery({ take: 200 }),
     prisma.tournament.findMany({
       where: { posterImageUrl: { not: null }, status: { in: LISTED_STATUSES } },
@@ -39,33 +38,19 @@ export default async function GalleryPage() {
           orderBy: { createdAt: "desc" },
         })
       : Promise.resolve([]),
+    getHighlightVideoLink(),
   ]);
 
   const photoRows = curatedGallery.items.filter((p) => p.mediaType !== "VIDEO");
-  const videoRows = curatedGallery.items.filter(
-    (p) => p.mediaType === "VIDEO" && p.videoProvider !== "NONE"
-  );
-  const videoItems: ShortsItem[] = await Promise.all(
-    videoRows.map(async (row) => ({
-      id: row.id,
-      caption: row.caption,
-      playback: await resolveVideoPlayback({
-        url: row.url,
-        videoProvider: row.videoProvider as "YOUTUBE" | "DRIVE" | "S3",
-        thumbnailUrl: row.thumbnailUrl,
-      }),
-    }))
-  );
-
-  // The first YouTube highlight is featured at the top (/gallery#highlights).
-  const featured = videoItems.find((v) => v.playback.provider === "YOUTUBE");
+  // Videos aren't shown in the grid; the YouTube highlight is a link out (below the subtitle).
 
   const realItems = [
     ...photoRows.map((p) => ({
       id: p.id,
       src: p.url,
-      title: p.caption ?? "Nagarathar's Chess Championship",
-      caption: "Nagarathar's Chess Championship 2026",
+      // Photo cards show their caption only — no event name or year.
+      title: p.caption,
+      alt: p.altText ?? p.caption ?? "Photo from one of our chess tournaments",
       section: p.section,
       fit: "cover" as const,
     })),
@@ -101,18 +86,21 @@ export default async function GalleryPage() {
             ? "Moments from our tournaments and classes — posters, banners, and highlights as our community grows."
             : "Moments from our tournaments — posters, banners, and highlights as our community grows."}
         </p>
+        {highlight && (
+          <YouTubeLink href={highlight.href} className="mt-5">
+            Watch the 4 January highlights on YouTube
+          </YouTubeLink>
+        )}
       </div>
 
-      {featured && <FeaturedVideo item={featured} />}
-
-      {realItems.length === 0 && videoItems.length === 0 ? (
+      {realItems.length === 0 ? (
         <EmptyState
           className="mt-12"
           icon={<EmptyGallery className="h-16 w-16" />}
           message="No photos yet — check back once our next event wraps up."
         />
       ) : (
-        <GalleryGrid realItems={realItems} videoItems={videoItems} />
+        <GalleryGrid realItems={realItems} />
       )}
     </main>
   );
