@@ -17,13 +17,8 @@ import { getGallery } from "@/lib/gallery";
 import { resolveVideoPlayback, type ShortsItem } from "@/lib/video";
 import { ShortsRow } from "@/components/shorts-row";
 import { CTA_PHOTO } from "@/lib/stock-photos";
-import {
-  KingIcon,
-  KnightIcon,
-  PawnIcon,
-  RookIcon,
-  TrophyIcon,
-} from "@/components/icons/chess-pieces";
+import { KnightIcon, PawnIcon, RookIcon, TrophyIcon } from "@/components/icons/chess-pieces";
+import { CategoryCard } from "@/components/category-card";
 import { AGE_CATEGORIES, ageRangeLabel, type AgeCategoryValue } from "@/lib/age-category";
 import { HomeHero } from "@/components/hero/home-hero";
 import { VignetteCard } from "@/components/illustrations/vignettes/vignette-card";
@@ -129,19 +124,10 @@ const STEPS = [
 ];
 
 // Who each age category is for. The ages come from AGE_CATEGORIES / ageRangeLabel, never from here.
-const CATEGORY_CARDS: Record<AgeCategoryValue, { Icon: typeof PawnIcon; body: string }> = {
-  under_11: {
-    Icon: PawnIcon,
-    body: "Our youngest players: a friendly first step into tournament chess.",
-  },
-  "11_to_18": {
-    Icon: KnightIcon,
-    body: "School-age players ready to test themselves against others their own age.",
-  },
-  above_19: {
-    Icon: KingIcon,
-    body: "Adults and experienced players, from first-timers to club regulars.",
-  },
+const CATEGORY_BODY: Record<AgeCategoryValue, string> = {
+  under_11: "Our youngest players: a friendly first step into tournament chess.",
+  "11_to_18": "School-age players ready to test themselves against others their own age.",
+  above_19: "Adults and experienced players, from first-timers to club regulars.",
 };
 
 const BENEFITS = [
@@ -421,22 +407,15 @@ export default async function HomePage() {
         className={nextBand()}
       >
         <div className="grid gap-6 md:grid-cols-3">
-          {AGE_CATEGORIES.map((c) => {
-            const { Icon, body } = CATEGORY_CARDS[c.value];
-            return (
-              <VignetteCard
-                key={c.value}
-                kicker={ageRangeLabel(c.value)}
-                title={c.label}
-                body={body}
-                vignette={
-                  <div className="flex h-full items-center justify-center">
-                    <Icon className="h-20 w-20 text-gold-ink" aria-hidden="true" />
-                  </div>
-                }
-              />
-            );
-          })}
+          {AGE_CATEGORIES.map((c) => (
+            <CategoryCard
+              key={c.value}
+              category={c.value}
+              kicker={ageRangeLabel(c.value)}
+              title={c.label}
+              body={CATEGORY_BODY[c.value]}
+            />
+          ))}
         </div>
         <p className="text-small mt-6 text-muted">
           Age is counted by year of birth in the tournament year, and your category is set
