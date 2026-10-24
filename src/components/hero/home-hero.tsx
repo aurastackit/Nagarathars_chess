@@ -106,12 +106,11 @@ export function HomeHero({
                 aria-hidden="true"
               />
               <LiveBoard className="relative w-full" />
-              {/* Below the board, never over a square: on large screens it tucks
-                  8px into the frame's bottom edge, under the file letters. */}
+              {/* Clear of the board, with real space below it. */}
               <TournamentChip
                 tournament={nextTournament}
                 timeLeft={timeLeft}
-                className="relative z-10 mt-4 lg:-ml-6 lg:-mt-2 lg:w-[26rem]"
+                className="relative z-10 mt-6 lg:w-[28rem]"
               />
             </div>
           </div>

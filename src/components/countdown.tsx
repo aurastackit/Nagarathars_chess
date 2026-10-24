@@ -8,6 +8,7 @@ export function Countdown({
   target,
   initialTimeLeft,
   compact = false,
+  boxes = false,
 }: {
   target: string;
   /**
@@ -19,6 +20,8 @@ export function Countdown({
   initialTimeLeft: TimeLeft;
   /** Single-line "3d 11h left" form for tight spaces (e.g. the hero tournament chip) instead of the 4-box grid. */
   compact?: boolean;
+  /** Three small boxes — Days / Hrs / Min — with labels underneath, for the hero tournament card. */
+  boxes?: boolean;
 }) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(initialTimeLeft);
 
@@ -42,6 +45,28 @@ export function Countdown({
       <span className="font-semibold tabular-nums">
         {parts.join(" ")} <span className="font-normal opacity-75">left</span>
       </span>
+    );
+  }
+
+  if (boxes) {
+    const three = [
+      { label: "Days", value: timeLeft.d },
+      { label: "Hrs", value: timeLeft.h },
+      { label: "Min", value: timeLeft.m },
+    ];
+    return (
+      <div className="grid grid-cols-3 gap-2">
+        {three.map((u) => (
+          <div key={u.label} className="text-center">
+            <div className="rounded-md bg-charcoal py-1.5 font-display text-xl font-bold tabular-nums leading-none text-white">
+              {String(u.value).padStart(2, "0")}
+            </div>
+            <div className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-muted">
+              {u.label}
+            </div>
+          </div>
+        ))}
+      </div>
     );
   }
 

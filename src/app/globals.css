@@ -296,6 +296,23 @@ body {
  * printing never catches content mid-reveal.
  */
 @media screen and (prefers-reduced-motion: no-preference) {
+  /* Announcement bar ticker (components/announcement-bar.tsx): the track holds
+     two identical halves, so sliding it by half its width loops seamlessly. */
+  .ticker-track {
+    animation: tickerScroll 55s linear infinite;
+  }
+
+  .ticker:hover .ticker-track,
+  .ticker:focus-within .ticker-track {
+    animation-play-state: paused;
+  }
+
+  @keyframes tickerScroll {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
   .animate-fade-up {
     animation: fadeUp 0.8s ease-out both;
   }

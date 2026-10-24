@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 
-export type NextTournamentInfo = { title: string; slug: string; registrationDeadline: string };
+export type NextTournamentInfo = {
+  title: string;
+  slug: string;
+  registrationDeadline: string;
+  startDate: string;
+  venue: string;
+  city: string;
+  entryFee: number;
+};
 
 /** undefined = still loading; null = no tournament open for registration. */
 export type NextTournamentState = NextTournamentInfo | null | undefined;

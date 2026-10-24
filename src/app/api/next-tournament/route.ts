@@ -16,6 +16,10 @@ export async function GET() {
             title: t.title,
             slug: t.slug,
             registrationDeadline: t.registrationDeadline.toISOString(),
+            startDate: t.startDate.toISOString(),
+            venue: t.venue,
+            city: t.city,
+            entryFee: t.entryFee,
           }
         : null,
       // The announcement bar shows a maintenance notice instead of the countdown.
